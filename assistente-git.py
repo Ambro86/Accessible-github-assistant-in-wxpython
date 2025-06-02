@@ -1,4 +1,4 @@
-#pyinstaller --onefile --windowed --name AssistenteGit assistente-git.py
+#To create an executable use pyinstaller --onefile --windowed --name AssistenteGit assistente-git.py
 import wx
 import os
 import subprocess
