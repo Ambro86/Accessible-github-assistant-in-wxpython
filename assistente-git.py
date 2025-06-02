@@ -3,6 +3,7 @@ import wx
 import os
 import subprocess
 import fnmatch # Per il filtraggio dei file
+import re # Aggiunto per regex nella gestione errori push
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
 class InputDialog(wx.Dialog):
@@ -40,7 +41,7 @@ ORIGINAL_COMMANDS = {
         "info": "Crea un nuovo repository Git vuoto nella 'Cartella Repository' specificata. Questo è il primo passo per iniziare un nuovo progetto sotto controllo di versione."
     },
     "Aggiungi cartella/file da ignorare a .gitignore": {
-        "cmds": [], "input_needed": True, "input_label": "", "placeholder": "", 
+        "cmds": [], "input_needed": True, "input_label": "", "placeholder": "",
         "info": "Permette di selezionare una cartella o un file da aggiungere al file .gitignore. I file e le cartelle elencati in .gitignore vengono ignorati da Git e non verranno tracciati o committati."
     },
     "Controlla lo stato del repository": {
@@ -61,7 +62,7 @@ ORIGINAL_COMMANDS = {
     },
     "Crea un commit (salva modifiche)": {
         "cmds": [["git", "commit", "-m", "{input_val}"]], "input_needed": True,
-        "input_label": "Messaggio di Commit:", "placeholder": "", 
+        "input_label": "Messaggio di Commit:", "placeholder": "",
         "info": "Salva istantanea delle modifiche presenti nell'area di stage nel repository locale. Ogni commit ha un messaggio descrittivo. Per completare un merge, lascia il messaggio vuoto se Git ne propone uno."
     },
     "Rinomina ultimo commit (amend)": {
@@ -80,14 +81,14 @@ ORIGINAL_COMMANDS = {
         "info": "Mostra la cronologia dei commit. Puoi specificare quanti commit visualizzare. Il formato è compatto e mostra la struttura dei branch."
     },
     "Cerca testo nei file (git grep)": {
-        "cmds": [["git", "grep", "-n", "-i", "{input_val}"]], 
+        "cmds": [["git", "grep", "-n", "-i", "{input_val}"]],
         "input_needed": True,
         "input_label": "Testo da cercare nei file del repository:", "placeholder": "la mia stringa di ricerca",
         "info": "Cerca un pattern di testo (case-insensitive) nei file tracciati da Git. Mostra nome file e numero di riga delle corrispondenze."
     },
     "Cerca file nel progetto (tracciati da Git)": {
-        "cmds": [["git", "ls-files"]], 
-        "input_needed": True, 
+        "cmds": [["git", "ls-files"]],
+        "input_needed": True,
         "input_label": "Pattern nome file (opzionale, es: *.py o parte del nome):", "placeholder": "*.py (lascia vuoto per tutti)",
         "info": "Elenca i file tracciati da Git. Puoi fornire un pattern (case-insensitive, cerca come sottostringa) per filtrare i risultati. Lascia vuoto per vedere tutti i file."
     },
@@ -172,7 +173,7 @@ CATEGORIZED_COMMANDS = {
 
 CATEGORY_DISPLAY_ORDER = [
     "Operazioni di Base sul Repository", "Modifiche Locali e Commit", "Branch e Tag",
-    "Operazioni con Repository Remoti", "Salvataggio Temporaneo (Stash)", 
+    "Operazioni con Repository Remoti", "Salvataggio Temporaneo (Stash)",
     "Ricerca e Utilità", "Ripristino e Reset (Usare con Cautela!)"
 ]
 
@@ -181,11 +182,11 @@ class GitFrame(wx.Frame):
         super(GitFrame, self).__init__(*args, **kw)
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
-        self.command_tree_ctrl = None 
+        self.command_tree_ctrl = None
         self.InitUI()
-        self.SetMinSize((750, 700)) 
+        self.SetMinSize((750, 700))
         self.Centre()
-        self.SetTitle("Assistente Git Semplice v4.9 - Gestione Errori Avanzata") # Versione aggiornata
+        self.SetTitle("Assistente Git Semplice v5.0 - Gestione Push Upstream") # Versione aggiornata
         self.Show(True)
 
         if not self.git_available:
@@ -196,7 +197,7 @@ class GitFrame(wx.Frame):
         else:
             if self.command_tree_ctrl:
                  wx.CallAfter(self.command_tree_ctrl.SetFocus)
-        
+
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
@@ -223,7 +224,7 @@ class GitFrame(wx.Frame):
         main_sizer.Add(repo_sizer_box, 0, wx.EXPAND | wx.ALL, 10)
         cmd_sizer_box = wx.StaticBoxSizer(wx.VERTICAL, self.panel, "Seleziona Comando")
         self.command_tree_ctrl = wx.TreeCtrl(self.panel, style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT | wx.TR_LINES_AT_ROOT)
-        self.tree_root = self.command_tree_ctrl.AddRoot("Comandi Git") 
+        self.tree_root = self.command_tree_ctrl.AddRoot("Comandi Git")
         first_category_node_to_select = None
         for category_name in CATEGORY_DISPLAY_ORDER:
             category_data = CATEGORIZED_COMMANDS.get(category_name)
@@ -234,7 +235,7 @@ class GitFrame(wx.Frame):
                 for command_name_key in category_data.get("order", []):
                     command_details_original = ORIGINAL_COMMANDS.get(command_name_key)
                     if command_details_original:
-                        command_node = self.command_tree_ctrl.AppendItem(category_node, command_name_key) 
+                        command_node = self.command_tree_ctrl.AppendItem(category_node, command_name_key)
                         self.command_tree_ctrl.SetItemData(command_node, ("command", category_name, command_name_key))
         if first_category_node_to_select and first_category_node_to_select.IsOk():
             self.command_tree_ctrl.SelectItem(first_category_node_to_select)
@@ -260,7 +261,7 @@ class GitFrame(wx.Frame):
         focused_widget = self.FindFocus()
         if focused_widget == self.command_tree_ctrl:
             keycode = event.GetKeyCode()
-            if keycode == wx.WXK_SPACE: self.ShowItemInfoDialog(); return 
+            if keycode == wx.WXK_SPACE: self.ShowItemInfoDialog(); return
         event.Skip()
 
     def ShowItemInfoDialog(self): # ... (Identico alla versione precedente)
@@ -338,7 +339,7 @@ class GitFrame(wx.Frame):
                         if os.path.isdir(path_to_ignore) and not user_input.endswith('/'): user_input += '/'
                         self.output_text_ctrl.AppendText(f"Pattern .gitignore: {user_input}\n")
                     except ValueError: self.output_text_ctrl.AppendText(f"Errore percorso relativo: {path_to_ignore}.\n"); choice_dlg.Destroy(); return
-                else: self.output_text_ctrl.AppendText("Selezione annullata.\n"); choice_dlg.Destroy(); return 
+                else: self.output_text_ctrl.AppendText("Selezione annullata.\n"); choice_dlg.Destroy(); return
             else: self.output_text_ctrl.AppendText("Operazione .gitignore annullata.\n"); choice_dlg.Destroy(); return
             choice_dlg.Destroy()
         elif cmd_name_orig == "Annulla modifiche su file specifico (restore)":
@@ -351,7 +352,7 @@ class GitFrame(wx.Frame):
                 except ValueError: self.output_text_ctrl.AppendText(f"Errore percorso relativo: {path_to_restore}.\n"); file_dlg.Destroy(); return
             else: self.output_text_ctrl.AppendText("Selezione file annullata.\n"); file_dlg.Destroy(); return
             file_dlg.Destroy()
-        elif cmd_details.get("input_needed", False): 
+        elif cmd_details.get("input_needed", False):
             prompt = cmd_details.get("input_label", "Valore:"); placeholder = cmd_details.get("placeholder", "")
             dlg_title = f"Input per: {cmd_name_orig.split('(')[0].strip()}"
             input_dialog = InputDialog(self, dlg_title, prompt, placeholder)
@@ -361,19 +362,17 @@ class GitFrame(wx.Frame):
                     try:
                         num = int(user_input);
                         if num <= 0: self.output_text_ctrl.AppendText("Errore: Numero non positivo.\n"); input_dialog.Destroy(); return
-                        user_input = str(num) 
+                        user_input = str(num)
                     except ValueError: self.output_text_ctrl.AppendText(f"Errore: '{user_input}' non è un numero.\n"); input_dialog.Destroy(); return
                 elif cmd_name_orig in ["Crea nuovo Tag (leggero)", "Rinomina ultimo commit (amend)", "Cerca testo nei file (git grep)", "Resetta branch locale a versione remota (origin/nome-branch)"]:
                      if not user_input: self.output_text_ctrl.AppendText("Errore: Input richiesto.\n"); input_dialog.Destroy(); return
-                elif cmd_name_orig != "Cerca file nel progetto (tracciati da Git)": 
+                elif cmd_name_orig != "Cerca file nel progetto (tracciati da Git)":
                     is_commit = cmd_name_orig == "Crea un commit (salva modifiche)"
-                    if not user_input and is_commit: 
-                        if wx.MessageBox("Commit vuoto?", "Conferma", wx.YES_NO | wx.ICON_QUESTION) != wx.ID_YES:
+                    if not user_input and is_commit:
+                        if wx.MessageBox("Messaggio di commit vuoto. Continuare?", "Conferma Commit Vuoto", wx.YES_NO | wx.ICON_QUESTION) != wx.ID_YES:
                             self.output_text_ctrl.AppendText("Commit annullato.\n"); input_dialog.Destroy(); return
-                    elif not user_input and not is_commit and placeholder == "": 
+                    elif not user_input and not is_commit and placeholder == "":
                         self.output_text_ctrl.AppendText(f"Input richiesto.\n"); input_dialog.Destroy(); return
-                    elif user_input == placeholder and placeholder != "" and not is_commit : 
-                        self.output_text_ctrl.AppendText(f"Input placeholder.\n"); input_dialog.Destroy(); return
             else: self.output_text_ctrl.AppendText("Azione annullata.\n"); input_dialog.Destroy(); return
             input_dialog.Destroy()
         self.ExecuteGitCommand(cmd_name_orig, cmd_details, user_input)
@@ -384,13 +383,24 @@ class GitFrame(wx.Frame):
            command_name_original not in ["Aggiungi cartella/file da ignorare a .gitignore", "Annulla modifiche su file specifico (restore)"]:
              self.output_text_ctrl.AppendText(f"Input: {user_input_val}\n")
         repo_path = self.repo_path_ctrl.GetValue()
-        self.output_text_ctrl.AppendText(f"Cartella: {repo_path}\n\n"); wx.Yield() 
+        self.output_text_ctrl.AppendText(f"Cartella: {repo_path}\n\n"); wx.Yield()
         if not self.git_available and command_name_original != "Aggiungi cartella/file da ignorare a .gitignore":
             self.output_text_ctrl.AppendText("Errore: Git non disponibile.\n"); wx.MessageBox("Git non disponibile.", "Errore", wx.OK | wx.ICON_ERROR); return
         if not os.path.isdir(repo_path): self.output_text_ctrl.AppendText(f"Errore: Cartella '{repo_path}' non valida.\n"); return
-        is_special = command_name_original in ["Aggiungi cartella/file da ignorare a .gitignore", "Clona un repository (nella cartella corrente)", "Inizializza un nuovo repository qui", "Cerca file nel progetto (tracciati da Git)"]
-        if not is_special and not os.path.isdir(os.path.join(repo_path, ".git")):
-            self.output_text_ctrl.AppendText(f"Errore: '{repo_path}' non è un repo Git.\n"); return
+        is_special_no_repo_check = command_name_original in ["Clona un repository (nella cartella corrente)", "Inizializza un nuovo repository qui"]
+        is_gitignore_or_lsfiles = command_name_original in ["Aggiungi cartella/file da ignorare a .gitignore", "Cerca file nel progetto (tracciati da Git)"]
+
+        if not is_special_no_repo_check and not is_gitignore_or_lsfiles and not os.path.isdir(os.path.join(repo_path, ".git")):
+             # Per .gitignore e ls-files, permettiamo l'esecuzione anche se .git non è presente subito,
+             # ma .git DEVE esistere per ls-files (verrà gestito da git stesso)
+             # e per .gitignore, ha senso solo se il repo esiste o sta per essere inizializzato.
+            if command_name_original == "Aggiungi cartella/file da ignorare a .gitignore":
+                if not os.path.isdir(os.path.join(repo_path, ".git")):
+                     self.output_text_ctrl.AppendText(f"Avviso: La cartella '{repo_path}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non usarlo fino all'inizializzazione del repository.\n")
+            elif command_name_original != "Cerca file nel progetto (tracciati da Git)": # ls-files fallirà da solo se non è un repo
+                 self.output_text_ctrl.AppendText(f"Errore: La cartella '{repo_path}' non è un repository Git.\n"); return
+
+
         if command_details.get("confirm"):
             msg = command_details["confirm"].replace("{input_val}", user_input_val if user_input_val else "VALORE_NON_SPECIFICATO")
             style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING; title = "Conferma"
@@ -401,87 +411,149 @@ class GitFrame(wx.Frame):
             dlg.Destroy()
 
         full_output = ""; success = True; process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-        
+        cmds_to_run = []
+
         if command_name_original == "Aggiungi cartella/file da ignorare a .gitignore":
-            if not user_input_val: self.output_text_ctrl.AppendText("Errore: No pattern.\n"); return
+            if not user_input_val: self.output_text_ctrl.AppendText("Errore: Nessun pattern fornito per .gitignore.\n"); return
             gitignore_path = os.path.join(repo_path, ".gitignore")
             try:
-                exists = False
+                entry_exists = False
                 if os.path.exists(gitignore_path):
-                    with open(gitignore_path, 'r', encoding='utf-8') as f:
-                        if user_input_val.strip() in (l.strip() for l in f): exists = True
-                if exists: full_output += f"'{user_input_val}' già in .gitignore.\n"
+                    with open(gitignore_path, 'r', encoding='utf-8') as f_read:
+                        if user_input_val.strip() in (line.strip() for line in f_read): entry_exists = True
+                if entry_exists:
+                    full_output += f"L'elemento '{user_input_val}' è già presente in .gitignore.\n"
                 else:
-                    with open(gitignore_path, 'a', encoding='utf-8') as f:
+                    with open(gitignore_path, 'a', encoding='utf-8') as f_append:
+                        # Assicurati che ci sia un newline prima di aggiungere la nuova riga se il file non è vuoto e non termina con newline
                         if os.path.exists(gitignore_path) and os.path.getsize(gitignore_path) > 0:
-                             with open(gitignore_path, 'rb+') as f_nl: f_nl.seek(-1, os.SEEK_END);
-                             if f_nl.read() != b'\n': f.write('\n') 
-                        f.write(f"{user_input_val.strip()}\n") 
-                    full_output += f"'{user_input_val}' aggiunto a .gitignore\n"
+                             with open(gitignore_path, 'rb+') as f_nl_check: # Apri in read-binary per seek corretto
+                                 f_nl_check.seek(-1, os.SEEK_END)
+                                 if f_nl_check.read() != b'\n':
+                                     f_append.write('\n')
+                        f_append.write(f"{user_input_val.strip()}\n")
+                    full_output += f"'{user_input_val}' aggiunto a .gitignore.\n"
                 success = True
-            except Exception as e: full_output += f"Errore .gitignore: {e}\n"; success = False
+            except Exception as e: full_output += f"Errore durante la scrittura in .gitignore: {e}\n"; success = False
         elif command_name_original == "Cerca file nel progetto (tracciati da Git)":
             try:
-                process = subprocess.run(["git", "ls-files"], cwd=repo_path, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=process_flags)
-                out = process.stdout
-                if user_input_val:
-                    lines = out.splitlines(); glob_p = user_input_val if any(c in user_input_val for c in ['*', '?', '[']) else f"*{user_input_val}*"
-                    filtered = [l for l in lines if fnmatch.fnmatchcase(l.lower(), glob_p.lower())]
-                    full_output += f"--- Risultati per '{user_input_val}' ---\n" + ("\n".join(filtered) + "\n" if filtered else "Nessun file.\n")
-                else: full_output += f"--- Output (git ls-files) ---\n{out}\n"
-                if process.stderr: full_output += f"--- Errori ---\n{process.stderr}\n"
-                success = process.returncode == 0
-            except Exception as e: full_output += f"Errore: {e}\n"; success = False
-        else: 
-            cmds_to_run = []
+                # Prima controlla se è un repository git
+                git_check_proc = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo_path, capture_output=True, text=True, creationflags=process_flags)
+                if git_check_proc.returncode != 0 or git_check_proc.stdout.strip() != "true":
+                    full_output += f"Errore: '{repo_path}' non è un repository Git o non è la directory principale.\n"
+                    success = False
+                else:
+                    process = subprocess.run(["git", "ls-files"], cwd=repo_path, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=process_flags)
+                    out = process.stdout
+                    if user_input_val:
+                        lines = out.splitlines(); glob_p = user_input_val if any(c in user_input_val for c in ['*', '?', '[']) else f"*{user_input_val}*"
+                        filtered = [l for l in lines if fnmatch.fnmatchcase(l.lower(), glob_p.lower())]
+                        full_output += f"--- Risultati per '{user_input_val}' ---\n" + ("\n".join(filtered) + "\n" if filtered else "Nessun file trovato corrispondente al pattern.\n")
+                    else: full_output += f"--- Tutti i file tracciati da Git ---\n{out}\n"
+                    if process.stderr: full_output += f"--- Messaggi/Errori da 'git ls-files' ---\n{process.stderr}\n"
+                    success = process.returncode == 0
+            except subprocess.CalledProcessError as e: # Specifico per 'git ls-files' se fallisce
+                full_output += f"Errore nell'eseguire 'git ls-files': {e.stderr or e.stdout or str(e)}\n"
+                if "not a git repository" in (e.stderr or "").lower():
+                    full_output += f"La cartella '{repo_path}' non sembra essere un repository Git valido.\n"
+                success = False
+            except Exception as e: full_output += f"Errore imprevisto durante 'Cerca file nel progetto': {e}\n"; success = False
+        else:
             if command_name_original == "Crea nuovo Tag (leggero)":
                 parts = user_input_val.split(maxsplit=1)
                 if len(parts) == 1 and parts[0]: cmds_to_run = [["git", "tag", parts[0]]]
                 elif len(parts) >= 2 and parts[0]: cmds_to_run = [["git", "tag", parts[0], parts[1]]]
-                else: self.output_text_ctrl.AppendText("Errore input tag.\n"); return
+                else: self.output_text_ctrl.AppendText("Errore: Input per il tag non valido.\n"); return
             else:
                 for tmpl in command_details.get("cmds", []): cmds_to_run.append([p.replace("{input_val}", user_input_val) for p in tmpl])
-            if not cmds_to_run and command_name_original != "Crea nuovo Tag (leggero)": self.output_text_ctrl.AppendText("Nessun comando.\n"); return
-            
+
+            if not cmds_to_run: # Se, dopo tutto, non ci sono comandi (es. Tag vuoto gestito sopra)
+                 if command_name_original != "Crea nuovo Tag (leggero)": # Se non è il tag, che ha la sua logica
+                    self.output_text_ctrl.AppendText("Nessun comando da eseguire per questa azione.\n")
+                 return
+
+
             for i, cmd_parts in enumerate(cmds_to_run):
                 try:
                     proc = subprocess.run(cmd_parts, cwd=repo_path, capture_output=True, text=True, check=False, encoding='utf-8', errors='replace', creationflags=process_flags)
                     if proc.stdout: full_output += f"--- Output ({' '.join(cmd_parts)}) ---\n{proc.stdout}\n"
                     if proc.stderr: full_output += f"--- Messaggi/Errori ({' '.join(cmd_parts)}) ---\n{proc.stderr}\n"
-                    if proc.returncode != 0: 
-                        full_output += f"\n!!! Comando {' '.join(cmd_parts)} fallito con codice: {proc.returncode} !!!\n"; success = False
-                        if command_name_original == "Unisci branch specificato nel corrente (merge)" and "conflict" in (proc.stdout + proc.stderr).lower():
-                            self.output_text_ctrl.AppendText(full_output) 
-                            self.HandleMergeConflict(repo_path)
-                            return 
-                        # Gestione per 'git branch -d' fallito
-                        if command_name_original == "Elimina branch locale (sicuro, -d)" and "not fully merged" in (proc.stdout + proc.stderr).lower():
-                            self.output_text_ctrl.AppendText(full_output) # Mostra l'errore originale
-                            self.HandleBranchNotMerged(repo_path, user_input_val) # user_input_val è il nome del branch
-                            return # L'esecuzione principale termina qui, HandleBranchNotMerged gestirà il resto.
 
-                except Exception as e: full_output += f"Errore: {e}\n"; success = False; break
-        
-        if command_name_original not in ["Unisci branch specificato nel corrente (merge)", "Elimina branch locale (sicuro, -d)"] or success:
-            self.output_text_ctrl.AppendText(full_output)
-            if success: self.output_text_ctrl.AppendText("\nComando/i completato/i.\n")
-            else: self.output_text_ctrl.AppendText("\nEsecuzione fallita o con errori.\n")
-        
-        if command_name_original == "Rinomina ultimo commit (amend)" and success:
-            dlg = wx.MessageDialog(self, "Commit modificato.\n\nForzare push (push --force) a 'origin'?\n\nATTENZIONE: Sovrascrive storia server!",
+                    if proc.returncode != 0:
+                        full_output += f"\n!!! Comando {' '.join(cmd_parts)} fallito con codice: {proc.returncode} !!!\n"
+                        success = False # Segna fallimento generale
+
+                        # Gestione specifica errore "no upstream branch" per git push
+                        is_no_upstream_error = (
+                            command_name_original == "Invia le modifiche al server (push)" and
+                            proc.returncode == 128 and # Codice errore tipico per questo
+                            ("has no upstream branch" in proc.stderr.lower() or "no configured push destination" in proc.stderr.lower())
+                        )
+                        if is_no_upstream_error:
+                            self.output_text_ctrl.AppendText(full_output) # Mostra l'errore originale
+                            self.HandlePushNoUpstream(repo_path, proc.stderr)
+                            return # Gestione specifica completata, esci da ExecuteGitCommand
+
+                        if command_name_original == "Unisci branch specificato nel corrente (merge)" and "conflict" in (proc.stdout + proc.stderr).lower():
+                            self.output_text_ctrl.AppendText(full_output)
+                            self.HandleMergeConflict(repo_path)
+                            return
+
+                        if command_name_original == "Elimina branch locale (sicuro, -d)" and "not fully merged" in (proc.stdout + proc.stderr).lower():
+                            self.output_text_ctrl.AppendText(full_output)
+                            self.HandleBranchNotMerged(repo_path, user_input_val)
+                            return
+                        break # Interrompi ciclo dei comandi se uno fallisce e non è gestito specificamente
+                except Exception as e:
+                    full_output += f"Errore durante l'esecuzione di {' '.join(cmd_parts)}: {e}\n"; success = False; break
+        # --- Fine del blocco 'else' per comandi non .gitignore e non ls-files ---
+
+        # Output finale e messaggi di stato (raggiunto se non c'è stato un 'return' anticipato dai gestori specifici)
+        self.output_text_ctrl.AppendText(full_output)
+
+        if success:
+            if command_name_original == "Aggiungi cartella/file da ignorare a .gitignore":
+                 self.output_text_ctrl.AppendText("\nOperazione .gitignore completata.\n")
+            elif command_name_original == "Cerca file nel progetto (tracciati da Git)":
+                 self.output_text_ctrl.AppendText("\nRicerca file completata.\n")
+            else:
+                 self.output_text_ctrl.AppendText("\nComando/i completato/i con successo.\n")
+        else:
+            # Questo 'else' cattura fallimenti generici o fallimenti di .gitignore/ls-files
+            if command_name_original == "Aggiungi cartella/file da ignorare a .gitignore":
+                self.output_text_ctrl.AppendText("\nErrore durante l'aggiornamento di .gitignore.\n")
+            elif command_name_original == "Cerca file nel progetto (tracciati da Git)":
+                self.output_text_ctrl.AppendText("\nErrore durante la ricerca dei file.\n")
+            elif cmds_to_run : # Solo se c'erano comandi nel loop e sono falliti genericamente
+                self.output_text_ctrl.AppendText("\nEsecuzione (o parte di essa) fallita o con errori.\n")
+            # Se cmds_to_run era vuoto e success è False, l'errore è già stato stampato (es. tag input error)
+
+
+        if success and command_name_original == "Rinomina ultimo commit (amend)":
+            dlg = wx.MessageDialog(self, "Commit modificato con successo.\n\n"
+                                   "ATTENZIONE: Se questo commit era già stato inviato (push) a un repository condiviso, "
+                                   "forzare il push (push --force) sovrascriverà la cronologia sul server. "
+                                   "Questo può creare problemi per altri collaboratori.\n\n"
+                                   "Vuoi tentare un push forzato a 'origin' ora?",
                                    "Push Forzato Dopo Amend?", wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
             if dlg.ShowModal() == wx.ID_YES:
-                self.output_text_ctrl.AppendText("\nTentativo push forzato...\n"); wx.Yield()
-                self.RunSingleGitCommand(["git", "push", "--force", "origin"], repo_path, "Push Forzato")
-            else: self.output_text_ctrl.AppendText("\nPush forzato annullato.\n")
+                self.output_text_ctrl.AppendText("\nTentativo di push forzato a 'origin'...\n"); wx.Yield()
+                self.RunSingleGitCommand(["git", "push", "--force", "origin"], repo_path, "Push Forzato dopo Amend")
+            else: self.output_text_ctrl.AppendText("\nPush forzato non eseguito.\n")
             dlg.Destroy()
 
         if success and command_name_original == "Clona un repository (nella cartella corrente)" and user_input_val:
             try:
-                repo_name = user_input_val.split('/')[-1].replace(".git", "")
-                new_repo_path = os.path.join(repo_path, repo_name)
-                if os.path.isdir(new_repo_path): self.repo_path_ctrl.SetValue(new_repo_path); self.output_text_ctrl.AppendText(f"\nPercorso aggiornato: {new_repo_path}\n")
-            except Exception: pass
+                # Estrai il nome della repo dall'URL per aggiornare il percorso
+                repo_name = user_input_val.split('/')[-1]
+                if repo_name.endswith(".git"): repo_name = repo_name[:-4]
+                if repo_name: # Assicurati che repo_name non sia vuoto
+                    new_repo_path = os.path.join(repo_path, repo_name)
+                    if os.path.isdir(new_repo_path):
+                        self.repo_path_ctrl.SetValue(new_repo_path)
+                        self.output_text_ctrl.AppendText(f"\nPercorso della cartella repository aggiornato a: {new_repo_path}\n")
+            except Exception as e:
+                self.output_text_ctrl.AppendText(f"\nAvviso: impossibile aggiornare automaticamente il percorso dopo il clone: {e}\n")
 
     def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description="Comando Git"):
         """Helper per eseguire un singolo comando Git e mostrare l'output."""
@@ -498,95 +570,191 @@ class GitFrame(wx.Frame):
                 output += f"\n!!! {operation_description} fallito con codice: {proc.returncode} !!!\n"
         except Exception as e:
             output += f"Errore durante {operation_description}: {str(e)}\n"
-        
+
         self.output_text_ctrl.AppendText(output)
         return success
+
+    def GetCurrentBranchName(self, repo_path):
+        """Ottiene il nome del branch corrente in modo silente."""
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        try:
+            proc = subprocess.run(["git", "branch", "--show-current"], cwd=repo_path,
+                                  capture_output=True, text=True, check=True,
+                                  encoding='utf-8', errors='replace', creationflags=process_flags)
+            return proc.stdout.strip()
+        except (subprocess.CalledProcessError, FileNotFoundError, Exception):
+            return None # Restituisce None se non riesce a ottenere il nome del branch
+
+    def HandlePushNoUpstream(self, repo_path, original_stderr):
+        """Gestisce l'errore 'no upstream branch' durante il push."""
+        self.output_text_ctrl.AppendText(
+            "\n*** PROBLEMA PUSH: Branch corrente non ha un upstream remoto. ***\n"
+            "Questo di solito accade la prima volta che provi a inviare (push) un nuovo branch locale.\n"
+        )
+
+        current_branch = self.GetCurrentBranchName(repo_path)
+        parsed_branch_from_error = None
+
+        # Tenta di estrarre il nome del branch dall'errore di Git se GetCurrentBranchName fallisce
+        if not current_branch:
+            match_fatal = re.search(r"fatal: The current branch (\S+) has no upstream branch", original_stderr, re.IGNORECASE)
+            if match_fatal:
+                parsed_branch_from_error = match_fatal.group(1)
+            else:
+                # Fallback: cerca nel suggerimento di Git
+                match_hint = re.search(r"git push --set-upstream origin\s+(\S+)", original_stderr, re.IGNORECASE)
+                if match_hint:
+                    # Potrebbe esserci output aggiuntivo dopo il nome del branch nel suggerimento
+                    parsed_branch_from_error = match_hint.group(1).splitlines()[0].strip()
+
+
+            if parsed_branch_from_error:
+                current_branch = parsed_branch_from_error
+                self.output_text_ctrl.AppendText(f"Branch corrente rilevato dall'errore: '{current_branch}'\n")
+
+
+        if not current_branch:
+            self.output_text_ctrl.AppendText(
+                "Impossibile determinare automaticamente il nome del branch corrente.\n"
+                "Dovrai eseguire manualmente: git push --set-upstream origin <nome-del-tuo-branch>\n"
+            )
+            return
+
+        suggestion_command_str = f"git push --set-upstream origin {current_branch}"
+
+        confirm_msg = (
+            f"Il branch locale '{current_branch}' non sembra essere collegato a un branch remoto (upstream) su 'origin'.\n\n"
+            f"Vuoi eseguire il seguente comando per impostare il tracciamento e inviare le modifiche?\n\n"
+            f"    {suggestion_command_str}\n\n"
+            f"Questo collegherà '{current_branch}' locale a 'origin/{current_branch}' remoto."
+        )
+
+        dlg = wx.MessageDialog(self, confirm_msg,
+                               "Impostare Upstream e Fare Push?",
+                               wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        response = dlg.ShowModal()
+        dlg.Destroy()
+
+        if response == wx.ID_YES:
+            self.output_text_ctrl.AppendText(f"\nEsecuzione di: {suggestion_command_str}...\n")
+            wx.Yield()
+            command_parts = ["git", "push", "--set-upstream", "origin", current_branch]
+            success_upstream = self.RunSingleGitCommand(command_parts, repo_path, f"Push con impostazione upstream per '{current_branch}'")
+            if success_upstream:
+                self.output_text_ctrl.AppendText(f"\nPush con --set-upstream per '{current_branch}' completato con successo.\n")
+            else:
+                self.output_text_ctrl.AppendText(f"\nTentativo di push con --set-upstream per '{current_branch}' fallito. Controlla l'output sopra.\n")
+        else:
+            self.output_text_ctrl.AppendText(
+                "\nOperazione annullata dall'utente. Il branch non è stato inviato né collegato.\n"
+                f"Se necessario, puoi eseguire manualmente: {suggestion_command_str}\n"
+            )
+
 
     def HandleBranchNotMerged(self, repo_path, branch_name):
         """Gestisce il caso in cui 'git branch -d' fallisce per branch non mergiato."""
         confirm_force_delete_msg = (
             f"Il branch '{branch_name}' non è completamente unito (not fully merged).\n"
-            "Se elimini questo branch forzatamente, i commit unici su di esso potrebbero andare persi.\n\n"
-            "Vuoi forzare l'eliminazione (git branch -D)?"
+            "Se elimini questo branch forzatamente (con -D), i commit unici su di esso andranno persi.\n\n"
+            "Vuoi forzare l'eliminazione del branch locale (git branch -D {branch_name})?"
         )
-        dlg = wx.MessageDialog(self, confirm_force_delete_msg, 
-                               "Forzare Eliminazione Branch?", 
+        dlg = wx.MessageDialog(self, confirm_force_delete_msg,
+                               "Forzare Eliminazione Branch?",
                                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
         response = dlg.ShowModal()
         dlg.Destroy()
 
         if response == wx.ID_YES:
-            self.output_text_ctrl.AppendText(f"\nTentativo di forzare l'eliminazione del branch '{branch_name}'...\n")
+            self.output_text_ctrl.AppendText(f"\nTentativo di forzare l'eliminazione del branch locale '{branch_name}'...\n")
             wx.Yield()
-            success = self.RunSingleGitCommand(["git", "branch", "-D", branch_name], repo_path, f"Forza eliminazione {branch_name}")
-            if success: self.output_text_ctrl.AppendText(f"Branch '{branch_name}' eliminato forzatamente.\n")
-            else: self.output_text_ctrl.AppendText(f"Eliminazione forzata di '{branch_name}' fallita.\n")
+            success = self.RunSingleGitCommand(["git", "branch", "-D", branch_name], repo_path, f"Forza eliminazione branch locale {branch_name}")
+            if success: self.output_text_ctrl.AppendText(f"Branch locale '{branch_name}' eliminato forzatamente.\n")
+            else: self.output_text_ctrl.AppendText(f"Eliminazione forzata del branch locale '{branch_name}' fallita. Controlla l'output.\n")
         else:
-            self.output_text_ctrl.AppendText("\nEliminazione forzata non eseguita.\n")
+            self.output_text_ctrl.AppendText("\nEliminazione forzata del branch locale non eseguita.\n")
 
 
     def HandleMergeConflict(self, repo_path):
         self.output_text_ctrl.AppendText("\n*** CONFLITTI DI MERGE RILEVATI! ***\n")
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         try:
-            conflict_proc = subprocess.run(["git", "diff", "--name-only", "--diff-filter=U"], cwd=repo_path, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=process_flags)
-            conflicting_files = conflict_proc.stdout.strip().splitlines()
+            # Verifica lo stato per vedere i file in conflitto
+            status_proc = subprocess.run(["git", "status", "--porcelain"], cwd=repo_path, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=process_flags)
+            conflicting_files = [line.split()[-1] for line in status_proc.stdout.strip().splitlines() if line.startswith("UU ")]
+
             if conflicting_files:
-                self.output_text_ctrl.AppendText("File con conflitti:\n" + "\n".join(conflicting_files) + "\n\n")
-                
-                dialog_message = (
-                    "Merge fallito a causa di conflitti.\n\n"
-                    "Spiegazione:\n"
-                    " - 'BRANCH CORRENTE (...--ours)' si riferisce al branch su cui ti trovi attualmente (HEAD).\n"
-                    " - 'BRANCH DA UNIRE (...--theirs)' si riferisce al branch che stai cercando di unire.\n\n"
-                    "Come vuoi procedere?"
-                )
-                choices = [
-                    "Risolvi manualmente i conflitti",
-                    "Usa versione del BRANCH CORRENTE per tutti (--ours)",
-                    "Usa versione del BRANCH DA UNIRE per tutti (--theirs)",
-                    "Annulla il merge (git merge --abort)"
-                ]
-                choice_dlg = wx.SingleChoiceDialog(self, dialog_message, 
-                                                   "Conflitti di Merge", choices, wx.CHOICEDLG_STYLE)
-                
-                if choice_dlg.ShowModal() == wx.ID_OK:
-                    strategy_choice = choice_dlg.GetStringSelection()
-                    self.output_text_ctrl.AppendText(f"Strategia scelta: {strategy_choice}\n")
-                    
-                    if strategy_choice == "Risolvi manualmente i conflitti":
-                        self.output_text_ctrl.AppendText("Passi suggeriti:\n"
-                                                         "1. Apri i file elencati nel tuo editor.\n"
-                                                         "2. Risolvi i conflitti (rimuovi i marcatori <<<<, ====, >>>>).\n"
-                                                         "3. Usa 'Aggiungi tutte le modifiche all'area di stage' per marcare come risolti.\n"
-                                                         "4. Usa 'Crea un commit (salva modifiche)' per finalizzare.\n")
-                    elif strategy_choice == "Annulla il merge (git merge --abort)":
-                        self.ExecuteGitCommand("Annulla tentativo di merge (abort)", ORIGINAL_COMMANDS["Annulla tentativo di merge (abort)"], "")
-                    
-                    elif "BRANCH CORRENTE" in strategy_choice or "BRANCH DA UNIRE" in strategy_choice:
-                        checkout_option = "--ours" if "BRANCH CORRENTE" in strategy_choice else "--theirs"
-                        self.output_text_ctrl.AppendText(f"Applicazione strategia '{checkout_option}' per i file in conflitto...\n"); wx.Yield()
-                        all_strategy_applied_successfully = True
-                        for f_path in conflicting_files:
-                            checkout_cmd = ["git", "checkout", checkout_option, "--", f_path]
-                            # Usiamo RunSingleGitCommand per coerenza di output
-                            if not self.RunSingleGitCommand(checkout_cmd, repo_path, f"Applica {checkout_option} a {f_path}"):
-                                all_strategy_applied_successfully = False; break
-                        
-                        if all_strategy_applied_successfully:
-                            self.output_text_ctrl.AppendText("Strategia applicata. Ora aggiungo i file all'area di stage...\n"); wx.Yield()
-                            add_cmd_details = ORIGINAL_COMMANDS["Aggiungi tutte le modifiche all'area di stage"]
-                            if self.RunSingleGitCommand(add_cmd_details["cmds"][0], repo_path, "git add . (post-strategia)"):
-                                self.output_text_ctrl.AppendText("File aggiunti. Ora puoi usare 'Crea un commit (salva modifiche)' per finalizzare il merge.\n")
-                            else:
-                                self.output_text_ctrl.AppendText("ERRORE durante 'git add .'. Controlla l'output e lo stato.\n")
+                self.output_text_ctrl.AppendText("File con conflitti (marcati come UU in 'git status'):\n" + "\n".join(conflicting_files) + "\n\n")
+            else: # Potrebbe esserci un conflitto ma non rilevato da UU (raro, ma meglio controllare)
+                 diff_proc = subprocess.run(["git", "diff", "--name-only", "--diff-filter=U"], cwd=repo_path, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=process_flags)
+                 conflicting_files = diff_proc.stdout.strip().splitlines()
+                 if conflicting_files:
+                     self.output_text_ctrl.AppendText("File con conflitti (rilevati da diff-filter=U):\n" + "\n".join(conflicting_files) + "\n\n")
+                 else:
+                     self.output_text_ctrl.AppendText("Merge fallito, ma nessun file in conflitto specifico rilevato automaticamente. Controlla 'git status' manualmente.\n")
+
+
+            dialog_message = (
+                "Il merge è fallito a causa di conflitti.\n\n"
+                "Spiegazione delle opzioni di risoluzione automatica:\n"
+                " - 'Usa versione del BRANCH CORRENTE (--ours)': Per ogni file in conflitto, mantiene la versione del branch su cui ti trovi (HEAD).\n"
+                " - 'Usa versione del BRANCH DA UNIRE (--theirs)': Per ogni file in conflitto, usa la versione del branch che stai cercando di unire.\n\n"
+                "Come vuoi procedere?"
+            )
+            choices = [
+                "1. Risolvi manualmente i conflitti (poi fai 'add' e 'commit')", # Modificato per chiarezza
+                "2. Usa versione del BRANCH CORRENTE per tutti i conflitti (--ours)",
+                "3. Usa versione del BRANCH DA UNIRE per tutti i conflitti (--theirs)",
+                "4. Annulla il merge (git merge --abort)"
+            ]
+            choice_dlg = wx.SingleChoiceDialog(self, dialog_message,
+                                               "Gestione Conflitti di Merge", choices, wx.CHOICEDLG_STYLE)
+
+            if choice_dlg.ShowModal() == wx.ID_OK:
+                strategy_choice = choice_dlg.GetStringSelection()
+                self.output_text_ctrl.AppendText(f"Strategia scelta: {strategy_choice}\n")
+
+                if strategy_choice.startswith("1."): # Risolvi manualmente
+                    self.output_text_ctrl.AppendText("Azione richiesta:\n"
+                                                     "1. Apri i file elencati nel tuo editor di testo preferito.\n"
+                                                     "2. Cerca e risolvi i marcatori di conflitto (<<<<<<<, =======, >>>>>>>).\n"
+                                                     "3. Dopo aver risolto, usa il comando 'Aggiungi tutte le modifiche all'area di stage' per marcare i file come risolti.\n"
+                                                     "4. Infine, usa 'Crea un commit (salva modifiche)' per completare il merge. Lascia il messaggio di commit vuoto se Git ne propone uno di default.\n")
+                elif strategy_choice.startswith("4."): # Annulla merge
+                    self.ExecuteGitCommand("Annulla tentativo di merge (abort)", ORIGINAL_COMMANDS["Annulla tentativo di merge (abort)"], "")
+
+                elif strategy_choice.startswith("2.") or strategy_choice.startswith("3."): # --ours o --theirs
+                    checkout_option = "--ours" if strategy_choice.startswith("2.") else "--theirs"
+                    if not conflicting_files:
+                        self.output_text_ctrl.AppendText("Nessun file in conflitto specifico identificato per applicare la strategia automaticamente. Prova a risolvere manualmente o ad annullare.\n")
+                        choice_dlg.Destroy(); return
+
+                    self.output_text_ctrl.AppendText(f"Applicazione della strategia '{checkout_option}' per i file in conflitto...\n"); wx.Yield()
+                    all_strategy_applied_successfully = True
+                    for f_path in conflicting_files:
+                        # git checkout --ours/--theirs path/to/file
+                        checkout_cmd = ["git", "checkout", checkout_option, "--", f_path]
+                        if not self.RunSingleGitCommand(checkout_cmd, repo_path, f"Applica {checkout_option} a {f_path}"):
+                            all_strategy_applied_successfully = False
+                            # Non interrompere per un singolo file, prova ad applicare a tutti
+                            self.output_text_ctrl.AppendText(f"Attenzione: fallimento nell'applicare la strategia a {f_path}. Controlla l'output.\n")
+
+
+                    if all_strategy_applied_successfully:
+                        self.output_text_ctrl.AppendText(f"Strategia '{checkout_option}' applicata ai file in conflitto (o tentata). Ora è necessario aggiungere i file all'area di stage.\n"); wx.Yield()
+                        # Dopo aver usato --ours o --theirs, i file sono modificati e devono essere aggiunti
+                        add_cmd_details = ORIGINAL_COMMANDS["Aggiungi tutte le modifiche all'area di stage"]
+                        if self.RunSingleGitCommand(add_cmd_details["cmds"][0], repo_path, "git add . (post-strategia di merge)"):
+                            self.output_text_ctrl.AppendText("File modificati aggiunti all'area di stage.\n"
+                                                             "Ora puoi usare 'Crea un commit (salva modifiche)' per finalizzare il merge. Lascia il messaggio di commit vuoto se Git ne propone uno.\n")
                         else:
-                            self.output_text_ctrl.AppendText("Non tutti i file sono stati processati con la strategia scelta a causa di errori.\n")
-                choice_dlg.Destroy()
-            else:
-                self.output_text_ctrl.AppendText("Merge fallito, ma nessun file in conflitto rilevato automaticamente. Controlla 'git status'.\n")
+                            self.output_text_ctrl.AppendText("ERRORE durante 'git add .' dopo l'applicazione della strategia. Controlla l'output e lo stato del repository. Potrebbe essere necessario un intervento manuale.\n")
+                    else:
+                        self.output_text_ctrl.AppendText(f"Alcuni o tutti i file non sono stati processati con successo con la strategia '{checkout_option}'.\n"
+                                                         "Controlla l'output. Potrebbe essere necessario risolvere manualmente, aggiungere i file e committare, oppure annullare il merge.\n")
+            choice_dlg.Destroy()
         except Exception as e_conflict:
-            self.output_text_ctrl.AppendText(f"Errore nel cercare file in conflitto: {e_conflict}\n")
+            self.output_text_ctrl.AppendText(f"Errore durante il tentativo di gestione dei conflitti di merge: {e_conflict}\n"
+                                             "Controlla 'git status' per maggiori dettagli.\n")
 
     def OnBrowseRepoPath(self, event):
         dlg = wx.DirDialog(self, "Scegli la cartella del repository Git", defaultPath=self.repo_path_ctrl.GetValue(), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
