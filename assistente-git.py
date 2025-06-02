@@ -8,45 +8,56 @@ import re # Aggiunto per regex nella gestione errori push
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
+import os # os is already imported, but good to ensure it's here for this block
 
-# Imposta la lingua
-# Cerca di ottenere la lingua di default del sistema.
-# __file__ potrebbe non essere definito in alcuni contesti (es. pyinstaller --onefile su Windows senza console)
-# In tal caso, potresti voler usare un percorso fisso o un modo diverso per determinare la base path.
+# Try to set the locale to the user's default
+try:
+    locale.setlocale(locale.LC_ALL, '')
+except locale.Error:
+    # Silently ignore if the locale cannot be set (e.g., unsupported locale by OS)
+    # gettext will likely fallback to the default/NullTranslations
+    pass
+
+# Determine the language code
+try:
+    # getlocale() returns a tuple like ('it_IT', 'UTF-8') or (None, None)
+    # We are interested in the first part (language code)
+    lang_code = locale.getlocale(locale.LC_MESSAGES)[0] or locale.getlocale(locale.LC_CTYPE)[0]
+    if not lang_code: # If still None, try a broader category
+        lang_code = locale.getlocale()[0]
+
+    if lang_code:
+        # You might want to normalize lang_code here if your .mo files use 'it' instead of 'it_IT'
+        # e.g., languages = [lang_code, lang_code.split('_')[0]]
+        languages = [lang_code]
+        # If you want to be more specific and ensure a primary language like 'en' is always available
+        # if lang_code.split('_')[0] != 'en':
+        #     languages.append('en') # Add English as a fallback language
+    else:
+        languages = ['en'] # Default to English if no language code could be determined
+except Exception:
+    languages = ['en'] # Fallback to English on any error
+
+# Determine script directory for locales path
 try:
     script_dir = os.path.dirname(__file__)
-except NameError: # __file__ non è definito
+except NameError: # __file__ is not defined (e.g., in frozen app without console)
     import sys
     script_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
 
 localedir = os.path.join(script_dir, 'locales')
 
-try:
-    # Prova a ottenere la lingua dalle impostazioni locali del sistema
-    # locale.getdefaultlocale() restituisce (codice_lingua, encoding), es. ('it_IT', 'UTF-8')
-    lang_code, encoding = locale.getdefaultlocale()
-    if lang_code:
-        # Adatta per formati come 'it' invece di 'it_IT' se necessario per le tue cartelle 'locales'
-        # languages = [lang_code, lang_code.split('_')[0]]
-        languages = [lang_code]
-    else:
-        languages = ['en_US'] # Fallback a inglese se non si riesce a determinare la lingua
-except Exception:
-    languages = ['en_US'] # Fallback generico
-
-# Carica la traduzione, con fallback all'originale (None) se non disponibile
-# Il fallback=True per gettext.translation significa che se .mo non è trovato, ritorna una NullTranslations class
-# che fa sì che _(s) restituisca s.
+# Load the translation, with fallback to NullTranslations (which returns original strings)
 try:
     lang_translations = gettext.translation('myapp', localedir=localedir, languages=languages, fallback=True)
 except FileNotFoundError:
-    # Questo blocco potrebbe non essere necessario con fallback=True, ma per sicurezza
+    # This fallback ensures _() always works even if .mo files are missing
     lang_translations = gettext.NullTranslations()
 
-lang_translations.install() # Rende _ disponibile nei builtins, ma è buona pratica definirlo esplicitamente.
-_ = lang_translations.gettext  # la funzione _() viene usata per le stringhe traducibili
-# --- Fine setup gettext ---
-
+# Make the _ function available for translations
+_ = lang_translations.gettext
+# lang_translations.install() # Optionally install _ in builtins if preferred for other modules
+# --- End setup gettext ---
 
 # --- Define translatable command and category names (keys) ---
 # These will be used as keys in dictionaries and for display
