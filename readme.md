@@ -22,17 +22,17 @@ Questa applicazione è sviluppata utilizzando la libreria **wxPython**. wxPython
 
 2.  **Navigazione e Selezione dei Comandi**:
     * I comandi Git sono organizzati in categorie all'interno di una struttura ad albero.
-    * Fare clic su una categoria per espanderla e visualizzare i comandi al suo interno, o per collassarla.
-    * Selezionando un comando (singolo clic), una breve descrizione della sua funzione apparirà nella barra di stato in fondo alla finestra.
+    * Premere la freccia destra o fare clic su una categoria per espanderla e visualizzare i comandi al suo interno, o la freccia sinistra per chiuderla.
+    * Selezionando un comando con le frecce (o con singolo clic), una breve descrizione della sua funzione apparirà nella barra di stato in fondo alla finestra.
     * Per informazioni più dettagliate su una categoria o un comando selezionato, premere la **barra spaziatrice**: si aprirà una finestra di dialogo con la descrizione completa.
 
 3.  **Esecuzione di un Comando**:
-    * Per eseguire un comando, fare doppio clic su di esso nella struttura ad albero, oppure selezionarlo e premere il tasto **Invio**.
+    * Per eseguire un comando, spostarsi con freccia giù o su per selezionarlo, e poi premere il tasto **invio** o fare doppio clic su di esso nella struttura ad albero.
     * Se il comando selezionato richiede un input da parte dell'utente (ad esempio, un URL per clonare, un messaggio di commit, il nome di un branch, ecc.), verrà visualizzata una finestra di dialogo apposita. Seguire le istruzioni e inserire il valore richiesto.
     * Per alcuni comandi che possono avere un impatto significativo o potenzialmente distruttivo sul repository (come `reset --hard` o eliminazioni forzate), l'applicazione richiederà un'ulteriore conferma prima di procedere.
 
 4.  **Visualizzazione dell'Output**:
-    * L'output generato dall'esecuzione del comando Git (inclusi messaggi di successo, informazioni, avvisi o errori) sarà mostrato in tempo reale nell'area di testo "Output del Comando" nella parte inferiore dell'interfaccia.
+    * L'output generato dall'esecuzione del comando Git (inclusi messaggi di successo, informazioni, avvisi o errori) sarà mostrato in tempo reale nell'area di testo "Output del Comando" nella parte inferiore dell'interfaccia. Per raggiungerla con la tastiera è sufficiente premere **il tasto tab**.
 
 ## Funzionalità Principali
 
@@ -73,7 +73,7 @@ Di seguito sono elencate le categorie di comandi disponibili nell'Assistente Git
 * **Passa a un branch esistente**: Ti sposta su un altro branch locale esistente. (Richiede: Nome del branch)
 * **Unisci branch specificato nel corrente (merge)**: Integra le modifiche da un altro branch nel tuo branch corrente. Se ci sono conflitti, verranno segnalati e potrai scegliere una strategia di risoluzione. (Richiede: Nome del branch da unire)
 * **Elimina branch locale (sicuro, -d)**: Elimina un branch locale solo se è stato completamente unito. Se fallisce perché non mergiato, ti verrà chiesto se vuoi forzare. (Richiede: Nome del branch locale da eliminare; richiede conferma)
-* **Elimina branch locale (forzato, -D)**: ATTENZIONE: Elimina un branch locale forzatamente, anche se contiene commit non mergiati. (Richiede: Nome del branch locale da eliminare; richiede conferma pericolosa)
+* **Elimina branch locale (forzato, -D)**: ATTENZIONE: Elimina un branch locale forzatamente, anche se contiene commit non mergiati. (Richiede: Nome del branch locale da eliminare; richiede conferma e attenzione massima)
 * **Crea nuovo Tag (leggero)**: Crea un tag leggero per marcare un punto specifico nella cronologia, solitamente usato per le release (es. v1.0). Può essere applicato al commit corrente (HEAD) o a un commit specifico. (Richiede: Nome Tag [opz: HashCommit/Rif])
 
 ---
@@ -111,9 +111,9 @@ Di seguito sono elencate le categorie di comandi disponibili nell'Assistente Git
 *Comandi potenti per annullare modifiche, ripristinare file a versioni precedenti o resettare lo stato del repository. Queste azioni possono portare alla perdita di dati se non usate correttamente.*
 
 * **Annulla modifiche su file specifico (restore)**: Annulla le modifiche non ancora in stage per un file specifico (selezionato tramite dialogo), riportandolo allo stato dell'ultimo commit.
-* **Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)**: ATTENZIONE: Sovrascrive i file con le versioni del commit E RIMUOVE i file/directory non tracciati. (Richiede: Hash/riferimento del commit; richiede conferma pericolosa)
-* **Ripristina file modificati e pulisci file non tracciati**: Annulla modifiche nei file tracciati e rimuove file/directory non tracciati. (Richiede conferma pericolosa)
-* **Annulla modifiche locali (reset --hard HEAD)**: Resetta il branch corrente all'ultimo commit, scartando tutte le modifiche locali non committate. (Richiede conferma pericolosa)
+* **Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)**: ATTENZIONE: Sovrascrive i file con le versioni del commit E RIMUOVE i file/directory non tracciati. (Richiede: Hash/riferimento del commit; richiede conferma e attenzione massima)
+* **Ripristina file modificati e pulisci file non tracciati**: Annulla modifiche nei file tracciati e rimuove file/directory non tracciati. (Richiede conferma e attenzione massima)
+* **Annulla modifiche locali (reset --hard HEAD)**: Resetta il branch corrente all'ultimo commit, scartando tutte le modifiche locali non committate. (Richiede conferma e attenzione massima)
 * **Annulla tentativo di merge (abort)**: Annulla un tentativo di merge fallito a causa di conflitti, riportando il repository allo stato precedente al merge. (Richiede conferma)
 * **Ispeziona commit specifico (checkout - detached HEAD)**: Ti sposta su un commit specifico in uno stato 'detached HEAD'. Nuove modifiche non apparterranno a nessun branch a meno che non ne crei uno. (Richiede: Hash/riferimento del commit; richiede conferma)
 * **Resetta branch locale a versione remota (origin/nome-branch)**: ATTENZIONE: Resetta il branch locale CORRENTE allo stato del branch remoto 'origin/<nome-branch>'. Modifiche e commit locali non inviati verranno PERSI. (Richiede: Nome del branch remoto; richiede conferma estremamente pericolosa)
