@@ -18,12 +18,12 @@ jobs:
             asset_name_suffix: .exe
             pyinstaller_add_data_sep: ";"
           - os_name: Linux
-            os_runner: ubuntu-latest
+            os_runner: ubuntu-latest # Questo attualmente punta a ubuntu-24.04 come da tuoi log
             asset_name_suffix: ""
             pyinstaller_add_data_sep: ":"
           - os_name: macOS
             os_runner: macos-latest
-            asset_name_suffix: "" # Su macOS --onefile produce un eseguibile Unix
+            asset_name_suffix: "" 
             pyinstaller_add_data_sep: ":"
 
     steps:
@@ -33,13 +33,18 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' # Puoi cambiare la versione di Python se necessario
+        python-version: '3.9' 
 
-    # Passaggi specifici per le dipendenze di wxPython su Linux
     - name: Install Linux system dependencies for wxPython
       if: matrix.os_runner == 'ubuntu-latest'
       run: |
         sudo apt-get update -qq
+        echo "Attempting to install WebKitGTK development libraries..."
+        # Prova con libwebkit2gtk-4.1-dev dato che 4.0-dev non è stato trovato
+        # Se non usi wx.html2.WebView, puoi commentare o rimuovere la riga seguente
+        sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev || echo "WebKitGTK dev package installation failed or was skipped."
+        
+        echo "Installing other core wxPython dependencies..."
         sudo apt-get install -y --no-install-recommends \
           build-essential \
           pkg-config \
@@ -48,9 +53,7 @@ jobs:
           libpango1.0-dev \
           libcairo2-dev \
           libgdk-pixbuf2.0-dev \
-          libatk1.0-dev \
-          libwebkit2gtk-4.0-dev # Mantenuta se la tua app usa wx.html2.WebView
-        # Rimuovi/aggiungi altre dipendenze opzionali di wxPython se necessario (es. libsdl2-dev, freeglut3-dev, etc.)
+          libatk1.0-dev
 
     - name: Verify GTK3 installation with pkg-config (Linux)
       if: matrix.os_runner == 'ubuntu-latest'
@@ -59,34 +62,22 @@ jobs:
         if pkg-config --exists --print-errors "gtk+-3.0 >= 3.0.0"; then
           echo "GTK+ 3.0 found by pkg-config."
           echo "GTK+ 3.0 Version: $(pkg-config --modversion gtk+-3.0)"
-          echo "GTK+ 3.0 CFLAGS: $(pkg-config --cflags gtk+-3.0)"
-          echo "GTK+ 3.0 LIBS: $(pkg-config --libs gtk+-3.0)"
         else
-          echo "ERROR: GTK+ 3.0 (gtk+-3.0.pc) not found by pkg-config! This is likely the cause of the build failure."
+          echo "ERROR: GTK+ 3.0 (gtk+-3.0.pc) not found by pkg-config! This is likely the cause of the build failure if wxPython compilation proceeds."
           # Potresti voler far fallire la build qui se pkg-config non trova GTK3
           # exit 1 
         fi
-        # Verifica anche GTK4 per completezza, anche se wxPython 4.x usa principalmente GTK3
-        if pkg-config --exists --print-errors "gtk4 >= 4.0.0"; then
-          echo "GTK 4 found by pkg-config."
-        else
-          echo "GTK 4 (gtk4.pc) not found by pkg-config (this might be okay if wxPython targets GTK3)."
-        fi
-
 
     - name: Install Python dependencies
-      shell: bash # Usa bash per comandi consistenti su tutti gli OS
+      shell: bash 
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        # Aggiungi --verbose per vedere perché pip potrebbe non usare una wheel precompilata per wxPython
-        pip install --verbose wxPython
+        pip install --verbose wxPython  # --verbose per output dettagliato
         pip install pyinstaller
 
     - name: Build executable with PyInstaller
-      shell: bash # Usa bash per comandi consistenti
+      shell: bash 
       run: |
-        # Il comando PyInstaller fornito dall'utente, con il separatore per --add-data dinamico
-        # Assicurati che la cartella 'locales' sia nella root del tuo repository
         pyinstaller --onefile --windowed \
           --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
           --name AssistenteGit \
@@ -95,6 +86,6 @@ jobs:
     - name: Upload application artifact
       uses: actions/upload-artifact@v4
       with:
-        name: AssistenteGit-${{ matrix.os_name }} # Nome dell'artefatto, es. AssistenteGit-Windows
-        path: dist/AssistenteGit${{ matrix.asset_name_suffix }} # Percorso dell'eseguibile, es. dist/AssistenteGit.exe
-        if-no-files-found: error # Fallisce se l'eseguibile non viene trovato
+        name: AssistenteGit-${{ matrix.os_name }} 
+        path: dist/AssistenteGit${{ matrix.asset_name_suffix }} 
+        if-no-files-found: error 
