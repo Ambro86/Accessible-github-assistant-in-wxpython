@@ -1,0 +1,967 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AssistenteGit 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-03 00:00+0000\n"
+"PO-Revision-Date: 2025-06-03 00:00+0000\n"
+"Last-Translator: Your Name <you@example.com>\n"
+"Language-Team: English <yourteam@example.com>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "\n!!! Comando {} fallito con codice di uscita: {} !!!\n"
+msgstr "\n!!! Command {} failed with exit code: {} !!!\n"
+
+msgid "\n!!! Operazione '{}' fallita con codice di uscita: {} !!!\n"
+msgstr "\n!!! Operation '{}' failed with exit code: {} !!!\n"
+
+msgid "\n*** CONFLITTI DI MERGE RILEVATI! ***\n"
+msgstr "\n*** MERGE CONFLICTS DETECTED! ***\n"
+
+msgid ""
+"\n"
+"*** PROBLEMA PUSH: Il branch corrente non ha un upstream remoto configurato. ***\n"
+"Questo di solito accade la prima volta che si tenta di inviare (push) un nuovo branch locale al server remoto.\n"
+msgstr ""
+"\n"
+"*** PUSH PROBLEM: Current branch has no configured upstream remote. ***\n"
+"This usually happens the first time you try to push a new local branch to the remote server.\n"
+
+msgid ""
+"\n"
+"Avviso: impossibile aggiornare automaticamente il percorso dopo il clone: {}.\n"
+"Si prega di selezionare manualmente la nuova cartella del repository se necessario.\n"
+msgstr ""
+"\n"
+"Warning: could not automatically update path after clone: {}.\n"
+"Please manually select the new repository folder if necessary.\n"
+
+msgid "\nComando/i completato/i con successo.\n"
+msgstr "\nCommand(s) completed successfully.\n"
+
+msgid "\nEliminazione forzata del branch locale non eseguita.\n"
+msgstr "\nForced deletion of local branch not performed.\n"
+
+msgid "\nErrore durante l'aggiornamento del file .gitignore.\n"
+msgstr "\nError while updating the .gitignore file.\n"
+
+msgid "\nErrore durante la ricerca dei file.\n"
+msgstr "\nError during file search.\n"
+
+msgid "\nEsecuzione (o parte di essa) fallita o con errori. Controllare l'output per i dettagli.\n"
+msgstr "\nExecution (or part of it) failed or had errors. Check the output for details.\n"
+
+msgid "\nEsecuzione di: {}...\n"
+msgstr "\nExecuting: {}...\n"
+
+msgid "\nOperazione .gitignore completata con successo.\n"
+msgstr "\n.gitignore operation completed successfully.\n"
+
+msgid ""
+"\n"
+"Operazione annullata dall'utente. Il branch non è stato inviato né collegato al remoto.\n"
+"Se necessario, puoi eseguire manualmente il comando: {}\n"
+msgstr ""
+"\n"
+"Operation cancelled by user. The branch was not pushed nor linked to the remote.\n"
+"If necessary, you can manually execute the command: {}\n"
+
+msgid "\nPercorso della cartella repository aggiornato a: {}\n"
+msgstr "\nRepository folder path updated to: {}\n"
+
+msgid "\nPush con --set-upstream per '{}' completato con successo.\n"
+msgstr "\nPush with --set-upstream for '{}' completed successfully.\n"
+
+msgid "\nPush forzato non eseguito.\n"
+msgstr "\nForced push not performed.\n"
+
+msgid "\nRicerca file completata.\n"
+msgstr "\nFile search completed.\n"
+
+msgid "\nTentativo di forzare l'eliminazione del branch locale '{}'...\n"
+msgstr "\nAttempting to force delete local branch '{}'...\n"
+
+msgid "\nTentativo di push con --set-upstream per '{}' fallito. Controlla l'output sopra per i dettagli.\n"
+msgstr "\nAttempt to push with --set-upstream for '{}' failed. Check the output above for details.\n"
+
+msgid "\nTentativo di push forzato a 'origin' in corso...\n"
+msgstr "\nAttempting forced push to 'origin'...\n"
+
+msgid "'{}' aggiunto correttamente a .gitignore.\n"
+msgstr "'{}' added successfully to .gitignore.\n"
+
+msgid "'{}' non è un comando eseguibile.\n"
+msgstr "'{}' is not an executable command.\n"
+
+msgid "*.py (lascia vuoto per tutti)"
+msgstr "*.py (leave empty for all)"
+
+msgid ""
+"--- Messaggi/Errori ({}) ---\n"
+"{}\n"
+msgstr ""
+"--- Messages/Errors ({}) ---\n"
+"{}\n"
+
+msgid ""
+"--- Messaggi/Errori ({}): ---\n"
+"{}\n"
+msgstr ""
+"--- Messages/Errors ({}): ---\n"
+"{}\n"
+
+msgid ""
+"--- Messaggi/Errori da 'git ls-files' ---\n"
+"{}\n"
+msgstr ""
+"--- Messages/Errors from 'git ls-files' ---\n"
+"{}\n"
+
+msgid ""
+"--- Output ({}) ---\n"
+"{}\n"
+msgstr ""
+"--- Output ({}) ---\n"
+"{}\n"
+
+msgid ""
+"--- Output ({}): ---\n"
+"{}\n"
+msgstr ""
+"--- Output ({}): ---\n"
+"{}\n"
+
+msgid "--- Risultati per il pattern '{}' ---\n"
+msgstr "--- Results for pattern '{}' ---\n"
+
+msgid "--- Tutti i file tracciati da Git nel repository ---\n{}"
+msgstr "--- All files tracked by Git in the repository ---\n{}"
+
+msgid "1. Risolvi manualmente i conflitti (poi fai 'add' e 'commit')"
+msgstr "1. Resolve conflicts manually (then 'add' and 'commit')"
+
+msgid "2. Usa versione del BRANCH CORRENTE per tutti i conflitti (--ours)"
+msgstr "2. Use CURRENT BRANCH version for all conflicts (--ours)"
+
+msgid "3. Usa versione del BRANCH DA UNIRE per tutti i conflitti (--theirs)"
+msgstr "3. Use INCOMING BRANCH version for all conflicts (--theirs)"
+
+msgid "4. Annulla il merge (git merge --abort)"
+msgstr "4. Abort the merge (git merge --abort)"
+
+msgid "ATTENZIONE MASSIMA: Sposta il puntatore del branch corrente al commit specificato."
+msgstr "MAXIMUM ATTENTION: Moves the current branch pointer to the specified commit."
+
+msgid "ATTENZIONE MASSIMA: Stai per eliminare forzatamente il branch locale '{input_val}'. Commit non mergiati verranno PERSI. Sei sicuro?"
+msgstr "MAXIMUM ATTENTION: You are about to forcibly delete the local branch '{input_val}'. Unmerged commits will be LOST. Are you sure?"
+
+msgid "ATTENZIONE: Annulla TUTTE le modifiche locali non committate e resetta all'ultimo commit?"
+msgstr "WARNING: Discard ALL uncommitted local changes and reset to the last commit?"
+
+msgid "ATTENZIONE: Elimina un branch locale forzatamente, anche se contiene commit non mergiati."
+msgstr "WARNING: Forcibly deletes a local branch, even if it contains unmerged commits."
+
+msgid "ATTENZIONE: Resetta il branch locale CORRENTE allo stato del branch remoto 'origin/<nome-branch>'. Modifiche e commit locali non inviati verranno PERSI."
+msgstr "WARNING: Resets the CURRENT local branch to the state of the remote branch 'origin/<branch-name>'. Local changes and unpushed commits will be LOST."
+
+msgid "ATTENZIONE: Ripristina file modificati E RIMUOVE file/directory non tracciati? Azione IRREVERSIBILE."
+msgstr "WARNING: Restore modified files AND REMOVE untracked files/directories? IRREVERSIBLE action."
+
+msgid "ATTENZIONE: Sovrascrive i file con le versioni del commit E RIMUOVE i file/directory non tracciati."
+msgstr "WARNING: Overwrites files with versions from the commit AND REMOVES untracked files/directories."
+
+msgid "Aggiunge tutte le modifiche correnti (file nuovi, modificati, cancellati) nella directory di lavoro all'area di stage, preparandole per il prossimo commit. Usato anche per marcare conflitti di merge come risolti."
+msgstr "Adds all current changes (new, modified, deleted files) in the working directory to the staging area, preparing them for the next commit. Also used to mark merge conflicts as resolved."
+
+msgid "Aggiungi cartella/file da ignorare a .gitignore"
+msgstr "Add folder/file to ignore to .gitignore"
+
+msgid "Aggiungi repository remoto 'origin'"
+msgstr "Add remote repository 'origin'"
+
+msgid "Aggiungi tutte le modifiche all'area di stage"
+msgstr "Add all changes to the staging area"
+
+msgid ""
+"Alcuni o tutti i file non sono stati processati con successo con la strategia '{}'.\n"
+"Controlla l'output. Potrebbe essere necessario risolvere manualmente, aggiungere i file e committare, oppure annullare il merge.\n"
+msgstr ""
+"Some or all files were not successfully processed with the '{}' strategy.\n"
+"Check the output. You may need to resolve manually, add the files and commit, or abort the merge.\n"
+
+msgid "Annulla le modifiche non ancora in stage per un file specifico (selezionato tramite dialogo), riportandolo allo stato dell'ultimo commit."
+msgstr "Discards changes not yet staged for a specific file (selected via dialog), restoring it to the state of the last commit."
+
+msgid "Annulla modifiche locali (reset --hard HEAD)"
+msgstr "Discard local changes (reset --hard HEAD)"
+
+msgid "Annulla modifiche nei file tracciati e rimuove file/directory non tracciati."
+msgstr "Discards changes in tracked files and removes untracked files/directories."
+
+msgid "Annulla modifiche su file specifico (restore)"
+msgstr "Discard changes on specific file (restore)"
+
+msgid "Annulla tentativo di merge (abort)"
+msgstr "Abort merge attempt (abort)"
+
+msgid "Annulla un tentativo di merge fallito a causa di conflitti, riportando il repository allo stato precedente al merge."
+msgstr "Aborts a failed merge attempt due to conflicts, returning the repository to the state before the merge."
+
+msgid "Applica le modifiche dall'ultimo stash e lo rimuove dalla lista."
+msgstr "Applies changes from the last stash and removes it from the list."
+
+msgid "Applica ultime modifiche da stash (stash pop)"
+msgstr "Apply latest changes from stash (stash pop)"
+
+msgid "Applica {} a {}"
+msgstr "Apply {} to {}"
+
+msgid "Applicazione della strategia '{}' per i file in conflitto...\n"
+msgstr "Applying strategy '{}' for conflicting files...\n"
+
+msgid "Assistente Git Semplice v5.0 - Gestione Push Upstream"
+msgstr "Simple Git Assistant v5.0 - Upstream Push Management"
+
+msgid "Attenzione: fallimento nell'applicare la strategia a {}. Controlla l'output.\n"
+msgstr "Warning: failed to apply strategy to {}. Check the output.\n"
+
+msgid "Attivazione item...\n"
+msgstr "Activating item...\n"
+
+msgid "Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n"
+msgstr "Warning: Folder '{}' does not appear to be a Git repository. The .gitignore file will be created/modified, but Git may not use it until the repository is initialized ('{}').\n"
+
+msgid "Azione annullata dall'utente.\n"
+msgstr "Action cancelled by user.\n"
+
+msgid ""
+"Azione richiesta:\n"
+"1. Apri i file in conflitto (elencati sopra) nel tuo editor di testo preferito.\n"
+"2. Cerca e risolvi i marcatori di conflitto Git (es. <<<<<<<, =======, >>>>>>>).\n"
+"3. Dopo aver risolto tutti i conflitti in un file, usa il comando '{}' per marcare il file come risolto.\n"
+"4. Una volta che tutti i file in conflitto sono stati aggiunti, usa il comando '{}' per completare il merge. Puoi lasciare il messaggio di commit vuoto se Git ne propone uno di default.\n"
+msgstr ""
+"Action required:\n"
+"1. Open the conflicting files (listed above) in your favorite text editor.\n"
+"2. Look for and resolve Git conflict markers (e.g., <<<<<<<, =======, >>>>>>>).\n"
+"3. After resolving all conflicts in a file, use the '{}' command to mark the file as resolved.\n"
+"4. Once all conflicting files have been added, use the '{}' command to complete the merge. You can leave the commit message empty if Git proposes a default one.\n"
+
+msgid "Branch corrente rilevato dall'errore Git: '{}'\n"
+msgstr "Current branch detected from Git error: '{}'\n"
+
+msgid "Branch e Tag"
+msgstr "Branch and Tag"
+
+msgid "Branch locale '{}' eliminato forzatamente.\n"
+msgstr "Local branch '{}' forcibly deleted.\n"
+
+msgid "CONFERMA ESTREMA: Resettare il branch locale CORRENTE a 'origin/{input_val}'? TUTTI i commit locali non inviati e le modifiche non committate su questo branch verranno PERSI IRREVERSIBILMENTE. Sei sicuro?"
+msgstr "EXTREME CONFIRMATION: Reset the CURRENT local branch to 'origin/{input_val}'? ALL unpushed local commits and uncommitted changes on this branch will be LOST IRREVERSIBLY. Are you sure?"
+
+msgid "CONFERMA ESTREMA: Stai per resettare il branch corrente a un commit precedente e PERDERE TUTTI i commit e le modifiche locali successive. Azione IRREVERSIBILE. Sei assolutamente sicuro?"
+msgstr "EXTREME CONFIRMATION: You are about to reset the current branch to a previous commit and LOSE ALL subsequent local commits and changes. IRREVERSIBLE action. Are you absolutely sure?"
+
+msgid "Cartella"
+msgstr "Folder"
+
+msgid "Cartella Repository: {}\n\n"
+msgstr "Repository Folder: {}\n\n"
+
+msgid "Cartella del Repository (Directory di Lavoro)"
+msgstr "Repository Folder (Working Directory)"
+
+msgid "Cartella repository impostata a: {}"
+msgstr "Repository folder set to: {}"
+
+msgid "Categoria '{}' espansa/collassata.\n"
+msgstr "Category '{}' expanded/collapsed.\n"
+
+msgid "Cerca file nel progetto (tracciati da Git)"
+msgstr "Search files in project (tracked by Git)"
+
+msgid "Cerca testo nei file (git grep)"
+msgstr "Search text in files (git grep)"
+
+msgid "Cerca un pattern di testo (case-insensitive) nei file tracciati da Git. Mostra nome file e numero di riga delle corrispondenze."
+msgstr "Searches for a text pattern (case-insensitive) in Git-tracked files. Shows filename and line number of matches."
+
+msgid "Clona un repository (nella cartella corrente)"
+msgstr "Clone a repository (in the current folder)"
+
+msgid "Clona un repository remoto specificato dall'URL in una nuova sottocartella all'interno della 'Cartella Repository' attualmente selezionata. Utile per iniziare a lavorare su un progetto esistente."
+msgstr "Clones a remote repository specified by URL into a new subfolder within the currently selected 'Repository Folder'. Useful for starting work on an existing project."
+
+msgid "Collega il tuo repository locale a un repository remoto."
+msgstr "Connects your local repository to a remote repository."
+
+msgid "Comandi Git"
+msgstr "Git Commands"
+
+msgid "Comandi fondamentali per iniziare, clonare, configurare file da ignorare e controllare lo stato generale del repository."
+msgstr "Fundamental commands to start, clone, configure ignored files, and check the general status of the repository."
+
+msgid "Comandi per cercare testo all'interno dei file del progetto e per trovare file specifici tracciati da Git."
+msgstr "Commands for searching text within project files and for finding specific files tracked by Git."
+
+msgid "Comandi per interagire con i repository remoti: scaricare (fetch/pull), inviare (push), configurare remoti ed eliminare branch remoti."
+msgstr "Commands for interacting with remote repositories: download (fetch/pull), send (push), configure remotes, and delete remote branches."
+
+msgid "Comandi per la gestione dei branch (creazione, visualizzazione, cambio, unione, eliminazione) e dei tag."
+msgstr "Commands for branch management (creation, viewing, switching, merging, deletion) and tags."
+
+msgid "Comandi per mettere temporaneamente da parte le modifiche non committate."
+msgstr "Commands to temporarily set aside uncommitted changes."
+
+msgid "Comandi per visualizzare le differenze, aggiungere file all'area di stage, creare e modificare commit, e ispezionare la cronologia."
+msgstr "Commands to view differences, add files to the staging area, create and modify commits, and inspect history."
+
+msgid "Comandi potenti per annullare modifiche, ripristinare file a versioni precedenti o resettare lo stato del repository. Queste azioni possono portare alla perdita di dati se non usate correttamente."
+msgstr "Powerful commands to undo changes, restore files to previous versions, or reset the repository state. These actions can lead to data loss if not used correctly."
+
+msgid "Comando selezionato: {}\n"
+msgstr "Selected command: {}\n"
+
+msgid ""
+"Commit modificato con successo.\n"
+"\n"
+"ATTENZIONE: Se questo commit era già stato inviato (push) a un repository condiviso, forzare il push (push --force) sovrascriverà la cronologia sul server. Questo può creare problemi per altri collaboratori.\n"
+"\n"
+"Vuoi tentare un push forzato a 'origin' ora?"
+msgstr ""
+"Commit successfully modified.\n"
+"\n"
+"WARNING: If this commit had already been pushed to a shared repository, forcing the push (push --force) will overwrite the history on the server. This can create problems for other collaborators.\n"
+"\n"
+"Do you want to attempt a forced push to 'origin' now?"
+
+msgid "Conferma Azione"
+msgstr "Confirm Action"
+
+msgid "Conferma Azione PERICOLOSA!"
+msgstr "Confirm DANGEROUS Action!"
+
+msgid "Conferma Commit Vuoto"
+msgstr "Confirm Empty Commit"
+
+msgid "Controlla branch corrente"
+msgstr "Check current branch"
+
+msgid "Controlla indirizzi remoti configurati"
+msgstr "Check configured remote addresses"
+
+msgid "Controlla lo stato del repository"
+msgstr "Check repository status"
+
+msgid "Cosa vuoi aggiungere a .gitignore?"
+msgstr "What do you want to add to .gitignore?"
+
+msgid "Crea e passa a un nuovo branch"
+msgstr "Create and switch to a new branch"
+
+msgid "Crea nuovo Tag (leggero)"
+msgstr "Create new Tag (lightweight)"
+
+msgid "Crea nuovo branch (senza cambiare)"
+msgstr "Create new branch (without switching)"
+
+msgid "Crea un commit (salva modifiche)"
+msgstr "Create a commit (save changes)"
+
+msgid "Crea un nuovo branch locale basato sul commit corrente, ma non ti sposta automaticamente su di esso."
+msgstr "Creates a new local branch based on the current commit, but does not automatically switch to it."
+
+msgid "Crea un nuovo branch locale e ti sposta immediatamente su di esso."
+msgstr "Creates a new local branch and immediately switches to it."
+
+msgid "Crea un nuovo repository Git vuoto nella 'Cartella Repository' specificata. Questo è il primo passo per iniziare un nuovo progetto sotto controllo di versione."
+msgstr "Creates a new empty Git repository in the specified 'Repository Folder'. This is the first step to start a new project under version control."
+
+msgid "Crea un tag leggero per marcare un punto specifico nella cronologia, solitamente usato per le release (es. v1.0). Può essere applicato al commit corrente (HEAD) o a un commit specifico."
+msgstr "Creates a lightweight tag to mark a specific point in history, usually used for releases (e.g., v1.0). It can be applied to the current commit (HEAD) or a specific commit."
+
+msgid "Creazione del commit annullata.\n"
+msgstr "Commit creation cancelled.\n"
+
+msgid "Dettagli del comando non trovati per: {}\n"
+msgstr "Command details not found for: {}\n"
+
+msgid "Dettagli: {}"
+msgstr "Details: {}"
+
+msgid "ERRORE durante 'git add .' dopo l'applicazione della strategia. Controlla l'output e lo stato del repository. Potrebbe essere necessario un intervento manuale.\n"
+msgstr "ERROR during 'git add .' after applying the strategy. Check the output and repository status. Manual intervention may be required.\n"
+
+msgid "Elenca i file tracciati da Git. Puoi fornire un pattern (case-insensitive, cerca come sottostringa) per filtrare i risultati. Lascia vuoto per vedere tutti i file."
+msgstr "Lists files tracked by Git. You can provide a pattern (case-insensitive, searches as substring) to filter results. Leave empty to see all files."
+
+msgid "Elenca tutti i branch locali e tutti i branch remoti tracciati."
+msgstr "Lists all local branches and all tracked remote branches."
+
+msgid "Elimina branch locale (forzato, -D)"
+msgstr "Delete local branch (forced, -D)"
+
+msgid "Elimina branch locale (sicuro, -d)"
+msgstr "Delete local branch (safe, -d)"
+
+msgid "Elimina branch remoto ('origin')"
+msgstr "Delete remote branch ('origin')"
+
+msgid "Elimina un branch dal repository remoto 'origin'."
+msgstr "Deletes a branch from the 'origin' remote repository."
+
+msgid "Elimina un branch locale solo se è stato completamente unito. Se fallisce perché non mergiato, ti verrà chiesto se vuoi forzare."
+msgstr "Deletes a local branch only if it has been fully merged. If it fails because it's not merged, you will be asked if you want to force it."
+
+msgid "Eliminazione forzata del branch locale '{}' fallita. Controlla l'output.\n"
+msgstr "Forced deletion of local branch '{}' failed. Check the output.\n"
+
+msgid "Equivalente a un 'git fetch' seguito da un 'git merge' del branch remoto tracciato nel tuo branch locale corrente."
+msgstr "Equivalent to a 'git fetch' followed by a 'git merge' of the tracked remote branch into your current local branch."
+
+msgid "Errore"
+msgstr "Error"
+
+msgid "Errore Git"
+msgstr "Git Error"
+
+msgid ""
+"Errore durante il tentativo di gestione dei conflitti di merge: {}\n"
+"Controlla 'git status' per maggiori dettagli.\n"
+msgstr ""
+"Error while trying to manage merge conflicts: {}\n"
+"Check 'git status' for more details.\n"
+
+msgid "Errore durante l'esecuzione di 'git ls-files': {}\n"
+msgstr "Error executing 'git ls-files': {}\n"
+
+msgid "Errore durante l'esecuzione di {}: {}\n"
+msgstr "Error executing {}: {}\n"
+
+msgid "Errore durante l'operazione '{}': {}\n"
+msgstr "Error during operation '{}': {}\n"
+
+msgid "Errore durante la scrittura nel file .gitignore: {}\n"
+msgstr "Error writing to .gitignore file: {}\n"
+
+msgid "Errore imprevisto durante la ricerca dei file: {}\n"
+msgstr "Unexpected error during file search: {}\n"
+
+msgid ""
+"Errore nel calcolare il percorso relativo per: {}.\n"
+"Assicurati che sia all'interno della cartella del repository.\n"
+msgstr ""
+"Error calculating relative path for: {}.\n"
+"Ensure it is inside the repository folder.\n"
+
+msgid "Errore: '{}' non è un numero valido.\n"
+msgstr "Error: '{}' is not a valid number.\n"
+
+msgid "Errore: Git non sembra essere installato o accessibile nel PATH di sistema.\n"
+msgstr "Error: Git does not seem to be installed or accessible in the system PATH.\n"
+
+msgid "Errore: Il numero di commit deve essere un intero positivo.\n"
+msgstr "Error: The number of commits must be a positive integer.\n"
+
+msgid "Errore: Input per il tag non valido. Fornire almeno il nome del tag.\n"
+msgstr "Error: Invalid input for tag. Provide at least the tag name.\n"
+
+msgid "Errore: La cartella '{}' non sembra essere un repository Git valido (manca la sottocartella .git).\n"
+msgstr "Error: Folder '{}' does not appear to be a valid Git repository (missing .git subfolder).\n"
+
+msgid "Errore: La cartella '{}' non è un repository Git valido o non sei nella directory principale del progetto.\n"
+msgstr "Error: Folder '{}' is not a valid Git repository or you are not in the main project directory.\n"
+
+msgid "Errore: La cartella specificata '{}' non è una directory valida.\n"
+msgstr "Error: The specified folder '{}' is not a valid directory.\n"
+
+msgid "Errore: Nessun pattern fornito per .gitignore.\n"
+msgstr "Error: No pattern provided for .gitignore.\n"
+
+msgid "Errore: Questo comando richiede un input.\n"
+msgstr "Error: This command requires input.\n"
+
+msgid "File"
+msgstr "File"
+
+msgid ""
+"File con conflitti (marcati come UU in 'git status'):\n"
+"{}\n"
+"\n"
+msgstr ""
+"Files with conflicts (marked as UU in 'git status'):\n"
+"{}\n"
+"\n"
+
+msgid ""
+"File con conflitti (rilevati da diff --diff-filter=U):\n"
+"{}\n"
+"\n"
+msgstr ""
+"Files with conflicts (detected by diff --diff-filter=U):\n"
+"{}\n"
+"\n"
+
+msgid "File da ripristinare: {}\n"
+msgstr "File to restore: {}\n"
+
+msgid ""
+"File modificati aggiunti all'area di stage.\n"
+"Ora puoi usare il comando '{}' per finalizzare il merge. Lascia il messaggio di commit vuoto se Git ne propone uno.\n"
+msgstr ""
+"Modified files added to the staging area.\n"
+"You can now use the '{}' command to finalize the merge. Leave the commit message empty if Git proposes one.\n"
+
+msgid "Forza eliminazione branch locale {}"
+msgstr "Force delete local branch {}"
+
+msgid "Forzare Eliminazione Branch Locale?"
+msgstr "Force Delete Local Branch?"
+
+msgid "Gestione Conflitti di Merge"
+msgstr "Merge Conflict Management"
+
+msgid "Git non disponibile."
+msgstr "Git not available."
+
+msgid "Git non sembra essere installato o non è nel PATH di sistema. L'applicazione potrebbe non funzionare correttamente."
+msgstr "Git does not seem to be installed or is not in the system PATH. The application may not function correctly."
+
+msgid "Hash, tag o riferimento del commit (es. HEAD~2):"
+msgstr "Commit hash, tag, or reference (e.g., HEAD~2):"
+
+msgid "Hash/riferimento del commit a cui resettare:"
+msgstr "Commit hash/reference to reset to:"
+
+msgid "Hash/riferimento del commit da cui ripristinare i file:"
+msgstr "Commit hash/reference to restore files from:"
+
+msgid "Hash/riferimento del commit da ispezionare:"
+msgstr "Commit hash/reference to inspect:"
+
+msgid ""
+"Il branch '{}' non è completamente unito (not fully merged).\n"
+"Se elimini questo branch forzatamente (usando l'opzione -D), i commit unici su di esso andranno persi.\n"
+"\n"
+"Vuoi forzare l'eliminazione del branch locale (git branch -D {})?"
+msgstr ""
+"Branch '{}' is not fully merged.\n"
+"If you forcibly delete this branch (using the -D option), unique commits on it will be lost.\n"
+"\n"
+"Do you want to force the deletion of the local branch (git branch -D {})?"
+
+msgid ""
+"Il branch locale '{}' non sembra essere collegato a un branch remoto (upstream) su 'origin'.\n"
+"\n"
+"Vuoi eseguire il seguente comando per impostare il tracciamento e inviare le modifiche?\n"
+"\n"
+"    {}\n"
+"\n"
+"Questo collegherà il branch locale '{}' al branch remoto 'origin/{}'."
+msgstr ""
+"The local branch '{}' does not seem to be linked to a remote (upstream) branch on 'origin'.\n"
+"\n"
+"Do you want to execute the following command to set up tracking and push the changes?\n"
+"\n"
+"    {}\n"
+"\n"
+"This will link the local branch '{}' to the remote branch 'origin/{}'."
+
+msgid ""
+"Il merge è fallito a causa di conflitti.\n"
+"\n"
+"Spiegazione delle opzioni di risoluzione automatica:\n"
+" - 'Usa versione del BRANCH CORRENTE (--ours)': Per ogni file in conflitto, mantiene la versione del branch su cui ti trovi (HEAD).\n"
+" - 'Usa versione del BRANCH DA UNIRE (--theirs)': Per ogni file in conflitto, usa la versione del branch che stai cercando di unire.\n"
+"\n"
+"Come vuoi procedere?"
+msgstr ""
+"The merge failed due to conflicts.\n"
+"\n"
+"Explanation of automatic resolution options:\n"
+" - 'Use CURRENT BRANCH version (--ours)': For each conflicting file, keeps the version from the branch you are currently on (HEAD).\n"
+" - 'Use INCOMING BRANCH version (--theirs)': For each conflicting file, uses the version from the branch you are trying to merge.\n"
+"\n"
+"How do you want to proceed?"
+
+msgid "Il messaggio di commit è vuoto. Vuoi procedere comunque?"
+msgstr "The commit message is empty. Do you want to proceed anyway?"
+
+msgid ""
+"Impossibile determinare automaticamente il nome del branch corrente.\n"
+"Dovrai eseguire manualmente il comando: git push --set-upstream origin <nome-del-tuo-branch>\n"
+msgstr ""
+"Could not automatically determine the current branch name.\n"
+"You will need to manually execute the command: git push --set-upstream origin <your-branch-name>\n"
+
+msgid "Impostare Upstream e Fare Push?"
+msgstr "Set Upstream and Push?"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Informazioni sul comando non disponibili."
+msgstr "Command information not available."
+
+msgid "Informazioni sulla categoria non disponibili."
+msgstr "Category information not available."
+
+msgid "Inizializza un nuovo repository qui"
+msgstr "Initialize a new repository here"
+
+msgid "Input fornito: {}\n"
+msgstr "Input provided: {}\n"
+
+msgid "Input per: {}"
+msgstr "Input for: {}"
+
+msgid "Input richiesto per questo comando.\n"
+msgstr "Input required for this command.\n"
+
+msgid "Integra le modifiche da un altro branch nel tuo branch corrente. Se ci sono conflitti, verranno segnalati e potrai scegliere una strategia di risoluzione."
+msgstr "Integrates changes from another branch into your current branch. If there are conflicts, they will be reported, and you can choose a resolution strategy."
+
+msgid "Invia i commit del tuo branch locale al repository remoto corrispondente."
+msgstr "Sends commits from your local branch to the corresponding remote repository."
+
+msgid "Invia le modifiche al server (push)"
+msgstr "Send changes to the server (push)"
+
+msgid "Ispeziona commit specifico (checkout - detached HEAD)"
+msgstr "Inspect specific commit (checkout - detached HEAD)"
+
+msgid "L'elemento '{}' è già presente in .gitignore.\n"
+msgstr "The item '{}' is already present in .gitignore.\n"
+
+msgid "La cartella '{}' non sembra essere un repository Git valido.\n"
+msgstr "Folder '{}' does not appear to be a valid Git repository.\n"
+
+msgid "Merge fallito, ma nessun file in conflitto specifico rilevato automaticamente dai comandi standard. Controlla 'git status' manualmente.\n"
+msgstr "Merge failed, but no specific conflicting files were automatically detected by standard commands. Check 'git status' manually.\n"
+
+msgid "Messaggio corretto del commit"
+msgstr "Corrected commit message"
+
+msgid "Messaggio di Commit:"
+msgstr "Commit Message:"
+
+msgid "Mette da parte le modifiche non committate per pulire la directory di lavoro."
+msgstr "Sets aside uncommitted changes to clean the working directory."
+
+msgid "Modifica URL del repository remoto 'origin'"
+msgstr "Modify URL of remote repository 'origin'"
+
+msgid "Modifica il messaggio e/o i file dell'ultimo commit. ATTENZIONE: Non usare se il commit è già stato inviato (push) a un repository condiviso, a meno che tu non sappia esattamente cosa stai facendo (richiede un push forzato e può creare problemi ai collaboratori)."
+msgstr "Modifies the message and/or files of the last commit. WARNING: Do not use if the commit has already been pushed to a shared repository, unless you know exactly what you are doing (requires a forced push and can create problems for collaborators)."
+
+msgid "Modifica l'URL di un repository remoto esistente."
+msgstr "Modifies the URL of an existing remote repository."
+
+msgid "Modifiche Locali e Commit"
+msgstr "Local Changes and Commits"
+
+msgid "Mostra dettagli di un commit specifico"
+msgstr "Show details of a specific commit"
+
+msgid "Mostra il nome del branch Git su cui stai attualmente lavorando."
+msgstr "Shows the name of the Git branch you are currently working on."
+
+msgid "Mostra informazioni dettagliate su un commit specifico, inclusi l'autore, la data, il messaggio di commit e le modifiche introdotte."
+msgstr "Shows detailed information about a specific commit, including author, date, commit message, and changes introduced."
+
+msgid "Mostra l'elenco dei repository remoti configurati."
+msgstr "Shows the list of configured remote repositories."
+
+msgid "Mostra la cronologia dei commit. Puoi specificare quanti commit visualizzare. Il formato è compatto e mostra la struttura dei branch."
+msgstr "Shows the commit history. You can specify how many commits to display. The format is compact and shows the branch structure."
+
+msgid "Mostra le modifiche apportate ai file tracciati che non sono ancora state aggiunte all'area di stage (cioè, prima di 'git add'). Utile per rivedere le modifiche prima di prepararle per un commit."
+msgstr "Shows changes made to tracked files that have not yet been added to the staging area (i.e., before 'git add'). Useful for reviewing changes before preparing them for a commit."
+
+msgid "Mostra le modifiche che sono state aggiunte all'area di stage e sono pronte per essere incluse nel prossimo commit. Utile per una revisione finale prima di committare."
+msgstr "Shows changes that have been added to the staging area and are ready to be included in the next commit. Useful for a final review before committing."
+
+msgid "Mostra lo stato attuale della directory di lavoro e dell'area di stage. Indica quali file sono stati modificati, quali sono in stage (pronti per il commit) e quali non sono tracciati da Git."
+msgstr "Shows the current status of the working directory and staging area. Indicates which files have been modified, which are staged (ready for commit), and which are not tracked by Git."
+
+msgid "Nessun comando specifico da eseguire per questa azione.\n"
+msgstr "No specific command to execute for this action.\n"
+
+msgid "Nessun dato associato all'elemento '{}'."
+msgstr "No data associated with item '{}'."
+
+msgid "Nessun elemento selezionato."
+msgstr "No item selected."
+
+msgid "Nessun file in conflitto specifico identificato per applicare la strategia automaticamente. Prova a risolvere manualmente o ad annullare.\n"
+msgstr "No specific conflicting files identified to apply the strategy automatically. Try resolving manually or aborting.\n"
+
+msgid "Nessun file specifico rilevato automaticamente."
+msgstr "No specific files automatically detected."
+
+msgid "Nessun file trovato corrispondente al pattern.\n"
+msgstr "No files found matching the pattern.\n"
+
+msgid "Nessun item valido selezionato per l'attivazione.\n"
+msgstr "No valid item selected for activation.\n"
+
+msgid "Nessuna informazione dettagliata trovata per '{}'."
+msgstr "No detailed information found for '{}'."
+
+msgid "Nessuna informazione disponibile per questa categoria."
+msgstr "No information available for this category."
+
+msgid "Nessuna informazione disponibile per questo comando."
+msgstr "No information available for this command."
+
+msgid "Nome Tag [opz: HashCommit/Rif] (es: v1.0 o v1.0 a1b2c3d):"
+msgstr "Tag Name [opt: CommitHash/Ref] (e.g., v1.0 or v1.0 a1b2c3d):"
+
+msgid "Nome del branch a cui passare:"
+msgstr "Name of the branch to switch to:"
+
+msgid "Nome del branch da unire in quello corrente:"
+msgstr "Name of the branch to merge into the current one:"
+
+msgid "Nome del branch locale da eliminare (FORZATO):"
+msgstr "Name of the local branch to delete (FORCED):"
+
+msgid "Nome del branch locale da eliminare (sicuro):"
+msgstr "Name of the local branch to delete (safe):"
+
+msgid "Nome del branch remoto (es. main) a cui resettare:"
+msgstr "Name of the remote branch (e.g., main) to reset to:"
+
+msgid "Nome del branch su 'origin' da eliminare:"
+msgstr "Name of the branch on 'origin' to delete:"
+
+msgid "Nome del nuovo branch da creare e a cui passare:"
+msgstr "Name of the new branch to create and switch to:"
+
+msgid "Nome del nuovo branch da creare:"
+msgstr "Name of the new branch to create:"
+
+msgid "Nuovo URL del repository remoto (origin):"
+msgstr "New URL of the remote repository (origin):"
+
+msgid "Nuovo messaggio per l'ultimo commit:"
+msgstr "New message for the last commit:"
+
+msgid "Operazione .gitignore annullata.\n"
+msgstr ".gitignore operation cancelled.\n"
+
+msgid "Operazione annullata dall'utente.\n"
+msgstr "Operation cancelled by user.\n"
+
+msgid "Operazioni con Repository Remoti"
+msgstr "Remote Repository Operations"
+
+msgid "Operazioni di Base sul Repository"
+msgstr "Basic Repository Operations"
+
+msgid "Output del Comando"
+msgstr "Command Output"
+
+msgid "Passa a un branch esistente"
+msgstr "Switch to an existing branch"
+
+msgid "Pattern .gitignore da aggiungere: {}\n"
+msgstr ".gitignore pattern to add: {}\n"
+
+msgid "Pattern nome file (opzionale, es: *.py o parte del nome):"
+msgstr "Filename pattern (optional, e.g., *.py or part of the name):"
+
+msgid "Percorso:"
+msgstr "Path:"
+
+msgid "Permette di selezionare una cartella o un file da aggiungere al file .gitignore. I file e le cartelle elencati in .gitignore vengono ignorati da Git e non verranno tracciati o committati."
+msgstr "Allows selecting a folder or file to add to the .gitignore file. Files and folders listed in .gitignore are ignored by Git and will not be tracked or committed."
+
+msgid "Pronto."
+msgstr "Ready."
+
+msgid "Push Forzato Dopo Amend?"
+msgstr "Force Push After Amend?"
+
+msgid "Push Forzato dopo Amend"
+msgstr "Force Push after Amend"
+
+msgid "Push con impostazione upstream per '{}'"
+msgstr "Push with upstream setting for '{}'"
+
+msgid "Quanti commit vuoi visualizzare? (numero):"
+msgstr "How many commits do you want to display? (number):"
+
+msgid "Resetta branch corrente a commit specifico (reset --hard)"
+msgstr "Reset current branch to specific commit (reset --hard)"
+
+msgid "Resetta branch locale a versione remota (origin/nome-branch)"
+msgstr "Reset local branch to remote version (origin/branch-name)"
+
+msgid "Resetta il branch corrente all'ultimo commit, scartando tutte le modifiche locali."
+msgstr "Resets the current branch to the last commit, discarding all local changes."
+
+msgid "Ricerca e Utilità"
+msgstr "Search and Utility"
+
+msgid "Rinomina ultimo commit (amend)"
+msgstr "Rename last commit (amend)"
+
+msgid "Ripristina file modificati e pulisci file non tracciati"
+msgstr "Restore modified files and clean untracked files"
+
+msgid "Ripristino e Reset (Usare con Cautela!)"
+msgstr "Restore and Reset (Use with Caution!)"
+
+msgid "Salva istantanea delle modifiche presenti nell'area di stage nel repository locale. Ogni commit ha un messaggio descrittivo. Per completare un merge, lascia il messaggio vuoto se Git ne propone uno."
+msgstr "Saves a snapshot of the changes present in the staging area to the local repository. Each commit has a descriptive message. To complete a merge, leave the message empty if Git proposes one."
+
+msgid "Salva modifiche temporaneamente (stash)"
+msgstr "Temporarily save changes (stash)"
+
+msgid "Salvataggio Temporaneo (Stash)"
+msgstr "Temporary Save (Stash)"
+
+msgid "Scarica da remoto 'origin' (fetch)"
+msgstr "Download from remote 'origin' (fetch)"
+
+msgid "Scarica le modifiche dal server e unisci (pull)"
+msgstr "Download changes from server and merge (pull)"
+
+msgid "Scarica tutte le novità (commit, branch, tag) dal repository remoto specificato (solitamente 'origin') ma non unisce automaticamente queste modifiche al tuo lavoro locale."
+msgstr "Downloads all updates (commits, branches, tags) from the specified remote repository (usually 'origin') but does not automatically merge these changes into your local work."
+
+msgid "Scegli la cartella del repository Git"
+msgstr "Choose the Git repository folder"
+
+msgid "Sei sicuro di voler annullare il merge corrente e scartare le modifiche del tentativo di merge?"
+msgstr "Are you sure you want to abort the current merge and discard the changes from the merge attempt?"
+
+msgid "Sei sicuro di voler eliminare il branch '{input_val}' dal remoto 'origin'?"
+msgstr "Are you sure you want to delete the branch '{input_val}' from the remote 'origin'?"
+
+msgid "Sei sicuro di voler sovrascrivere i file con le versioni del commit '{input_val}' E RIMUOVERE tutti i file/directory non tracciati?"
+msgstr "Are you sure you want to overwrite files with versions from commit '{input_val}' AND REMOVE all untracked files/directories?"
+
+msgid "Sei sicuro di voler tentare di eliminare il branch locale '{input_val}'?"
+msgstr "Are you sure you want to attempt to delete the local branch '{input_val}'?"
+
+msgid "Seleziona Comando"
+msgstr "Select Command"
+
+msgid "Seleziona il file da aggiungere a .gitignore"
+msgstr "Select the file to add to .gitignore"
+
+msgid "Seleziona il file da ripristinare allo stato dell'ultimo commit"
+msgstr "Select the file to restore to the state of the last commit"
+
+msgid "Seleziona la cartella da aggiungere a .gitignore"
+msgstr "Select the folder to add to .gitignore"
+
+msgid "Seleziona un comando o una categoria per maggiori dettagli."
+msgstr "Select a command or category for more details."
+
+msgid "Selezione Tipo Elemento"
+msgstr "Select Item Type"
+
+msgid "Selezione annullata.\n"
+msgstr "Selection cancelled.\n"
+
+msgid "Selezione del file per il ripristino annullata.\n"
+msgstr "File selection for restore cancelled.\n"
+
+msgid "Sfoglia..."
+msgstr "Browse..."
+
+msgid "Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)"
+msgstr "Overwrite files with commit and clean (checkout <commit> . && clean -fd)"
+
+msgid "Stai per entrare in uno stato 'detached HEAD'. Nuove modifiche non apparterranno a nessun branch a meno che non ne crei uno. Continuare?"
+msgstr "You are about to enter a 'detached HEAD' state. New changes will not belong to any branch unless you create one. Continue?"
+
+msgid "Strategia '{}' applicata (o tentata) ai file in conflitto. Ora è necessario aggiungere i file modificati all'area di stage.\n"
+msgstr "Strategy '{}' applied (or attempted) to conflicting files. Now you need to add the modified files to the staging area.\n"
+
+msgid "Strategia scelta: {}\n"
+msgstr "Strategy chosen: {}\n"
+
+msgid "Testo da cercare nei file del repository:"
+msgstr "Text to search for in repository files:"
+
+msgid "Ti sposta su un altro branch locale esistente."
+msgstr "Switches you to another existing local branch."
+
+msgid "Ti sposta su un commit specifico in uno stato 'detached HEAD'."
+msgstr "Switches you to a specific commit in a 'detached HEAD' state."
+
+msgid "URL del Repository da clonare:"
+msgstr "Repository URL to clone:"
+
+msgid "URL del repository remoto (origin):"
+msgstr "Remote repository URL (origin):"
+
+msgid "Unisci branch specificato nel corrente (merge)"
+msgstr "Merge specified branch into current (merge)"
+
+msgid "VALORE_NON_SPECIFICATO"
+msgstr "UNSPECIFIED_VALUE"
+
+msgid "Valore:"
+msgstr "Value:"
+
+msgid "Visualizza cronologia commit (numero personalizzato)"
+msgstr "View commit history (custom number)"
+
+msgid "Visualizza modifiche in stage (diff --staged)"
+msgstr "View staged changes (diff --staged)"
+
+msgid "Visualizza modifiche non in stage (diff)"
+msgstr "View unstaged changes (diff)"
+
+msgid "Visualizza tutti i branch (locali e remoti)"
+msgstr "View all branches (local and remote)"
+
+msgid "es. a1b2c3d"
+msgstr "e.g., a1b2c3d"
+
+msgid "es. a1b2c3d o HEAD"
+msgstr "e.g., a1b2c3d or HEAD"
+
+msgid "es. a1b2c3d o HEAD~1"
+msgstr "e.g., a1b2c3d or HEAD~1"
+
+msgid "es. a1b2c3d o HEAD~3"
+msgstr "e.g., a1b2c3d or HEAD~3"
+
+msgid "feature/branch-da-forzare"
+msgstr "feature/branch-to-force"
+
+msgid "feature/branch-da-unire"
+msgstr "feature/branch-to-merge"
+
+msgid "feature/branch-remoto-obsoleto"
+msgstr "feature/obsolete-remote-branch"
+
+msgid "feature/nome-branch"
+msgstr "feature/branch-name"
+
+msgid "feature/vecchio-branch"
+msgstr "feature/old-branch"
+
+msgid "git add . (post-strategia di merge)"
+msgstr "git add . (post-merge-strategy)"
+
+msgid "la mia stringa di ricerca"
+msgstr "my search string"
+
+msgid "main"
+msgstr "main"
+
+msgid "nuovo-branch-locale"
+msgstr "new-local-branch"
+
+msgid "v1.0 (per HEAD) oppure v1.0 a1b2c3d"
+msgstr "v1.0 (for HEAD) or v1.0 a1b2c3d"

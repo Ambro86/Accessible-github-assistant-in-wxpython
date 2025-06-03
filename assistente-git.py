@@ -5,58 +5,86 @@ import subprocess
 import fnmatch # Per il filtraggio dei file
 import re # Aggiunto per regex nella gestione errori push
 
+
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
-import os # os is already imported, but good to ensure it's here for this block
+import os
+
+# --- Setup gettext for internationalization ---
 
 # Try to set the locale to the user's default
 try:
-    locale.setlocale(locale.LC_ALL, '')
-except locale.Error:
-    # Silently ignore if the locale cannot be set (e.g., unsupported locale by OS)
-    # gettext will likely fallback to the default/NullTranslations
-    pass
+    locale.setlocale(locale.LC_ALL, '') # Imposta la locale in base all'ambiente
+    print(f"DEBUG: Locale impostata a: {locale.getlocale(locale.LC_CTYPE)}") # Controlla cosa viene impostato
+except locale.Error as e:
+    print(f"DEBUG: Errore nell'impostare la locale: {e}") # Stampa l'errore specifico
+    pass # Continua comunque, getlocale potrebbe restituire qualcosa o None
 
 # Determine the language code
 try:
-    # getlocale() returns a tuple like ('it_IT', 'UTF-8') or (None, None)
-    # We are interested in the first part (language code)
-    lang_code = locale.getlocale(locale.LC_MESSAGES)[0] or locale.getlocale(locale.LC_CTYPE)[0]
-    if not lang_code: # If still None, try a broader category
-        lang_code = locale.getlocale()[0]
+    # Stampa i valori PRIMA di provare ad assegnarli a lang_code
+    lc_messages_tuple = locale.getlocale(locale.LC_ALL)
+    lc_ctype_tuple = locale.getlocale(locale.LC_CTYPE)
+    general_locale_tuple = locale.getlocale() # Equivalente a locale.getlocale(locale.LC_ALL) se LC_ALL è stato impostato
 
-    if lang_code:
-        # You might want to normalize lang_code here if your .mo files use 'it' instead of 'it_IT'
-        # e.g., languages = [lang_code, lang_code.split('_')[0]]
-        languages = [lang_code]
-        # If you want to be more specific and ensure a primary language like 'en' is always available
-        # if lang_code.split('_')[0] != 'en':
-        #     languages.append('en') # Add English as a fallback language
+    print(f"DEBUG: locale.getlocale(LC_MESSAGES) ha restituito: {lc_messages_tuple}")
+    print(f"DEBUG: locale.getlocale(LC_CTYPE) ha restituito: {lc_ctype_tuple}")
+    print(f"DEBUG: locale.getlocale() (generale) ha restituito: {general_locale_tuple}")
+
+    lang_code_messages = lc_messages_tuple[0]
+    lang_code_ctype = lc_ctype_tuple[0]
+    lang_code_general = general_locale_tuple[0]
+
+    lang_code = lang_code_messages or lang_code_ctype # Prova prima LC_MESSAGES, poi LC_CTYPE
+    
+    if not lang_code: # Se ancora None o vuoto, prova con la locale generale
+        lang_code = lang_code_general
+    
+    print(f"DEBUG: lang_code DENTRO il try PRIMA dell'if: '{lang_code}' (tipo: {type(lang_code)})") # Stampa sempre lang_code qui
+
+    if lang_code and lang_code.strip(): # Assicurati che lang_code non sia solo spazi bianchi
+        # Normalizza il codice lingua (es. 'it_IT' -> 'it') se le tue cartelle sono chiamate 'it', 'en', ecc.
+        # Esempio di normalizzazione:
+        if '_' in lang_code:
+            lang_code_short = lang_code.split('_')[0]
+            languages = [lang_code, lang_code_short] # Prova prima 'it_IT', poi 'it'
+        else:
+        #    languages = [lang_code]
+            languages = [lang_code] # Usa il codice lingua rilevato (es. 'it_IT')
+                                # gettext.translation cercherà 'it_IT', poi 'it' se languages=['it_IT'] e hai fatto find()
+        
+        print(f"DEBUG: Lingua rilevata e usata: {lang_code}") # Questa è la tua stampa originale
+        print(f"DEBUG: Lista 'languages' impostata a: {languages}")
     else:
+        print(f"DEBUG: lang_code era None o vuoto ('{lang_code}'), default a inglese.")
         languages = ['en'] # Default to English if no language code could be determined
-except Exception:
+except Exception as e:
+    print(f"DEBUG: ECCEZIONE durante il rilevamento della lingua: {type(e).__name__}: {e}")
     languages = ['en'] # Fallback to English on any error
+    
+#Fine blocco virgolette. # Questo commento non è più rilevante
+
+#languages = ['en']  # Per forzare una lingua in fase di test.
 
 # Determine script directory for locales path
 try:
     script_dir = os.path.dirname(__file__)
-except NameError: # __file__ is not defined (e.g., in frozen app without console)
+except NameError: 
     import sys
     script_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
 
 localedir = os.path.join(script_dir, 'locales')
 
-# Load the translation, with fallback to NullTranslations (which returns original strings)
+# Load the translation
 try:
-    lang_translations = gettext.translation('myapp', localedir=localedir, languages=languages, fallback=True)
+    lang_translations = gettext.translation('assistente_git', localedir=localedir, languages=languages, fallback=True)
 except FileNotFoundError:
-    # This fallback ensures _() always works even if .mo files are missing
     lang_translations = gettext.NullTranslations()
 
-# Make the _ function available for translations
 _ = lang_translations.gettext
-# lang_translations.install() # Optionally install _ in builtins if preferred for other modules
+print(f"DEBUG: Test translation for 'Pronto.': {_('Pronto.')}")
+print(f"DEBUG: Type of lang_translations: {type(lang_translations)}")
 # --- End setup gettext ---
 
 # --- Define translatable command and category names (keys) ---
