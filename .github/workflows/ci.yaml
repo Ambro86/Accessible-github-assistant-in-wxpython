@@ -18,7 +18,7 @@ jobs:
             asset_name_suffix: .exe
             pyinstaller_add_data_sep: ";"
           - os_name: Linux
-            os_runner: ubuntu-latest # Questo attualmente punta a ubuntu-24.04 come da tuoi log
+            os_runner: ubuntu-latest 
             asset_name_suffix: ""
             pyinstaller_add_data_sep: ":"
           - os_name: macOS
@@ -31,18 +31,35 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Python
+      id: setup_python # Aggiunto un id per referenziare l'output della versione Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.9' 
+
+    - name: Get pip cache directory
+      id: pip_cache # id per referenziare l'output
+      shell: bash
+      run: |
+        echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        # Stampa il percorso per debug
+        echo "Pip cache directory is: $(pip cache dir)"
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pip_cache.outputs.dir }}
+        # Chiave della cache: OS, versione Python installata, un identificatore per i pacchetti principali e una versione manuale della cache
+        key: ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-v1 
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-
 
     - name: Install Linux system dependencies for wxPython
       if: matrix.os_runner == 'ubuntu-latest'
       run: |
         sudo apt-get update -qq
         echo "Attempting to install WebKitGTK development libraries..."
-        # Prova con libwebkit2gtk-4.1-dev dato che 4.0-dev non è stato trovato
-        # Se non usi wx.html2.WebView, puoi commentare o rimuovere la riga seguente
-        sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev || echo "WebKitGTK dev package installation failed or was skipped."
+        # Prova con libwebkit2gtk-4.1-dev. Se non usi wx.html2.WebView, puoi commentare/rimuovere.
+        sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev || echo "WebKitGTK dev package installation failed or was skipped, continuing..."
         
         echo "Installing other core wxPython dependencies..."
         sudo apt-get install -y --no-install-recommends \
@@ -63,25 +80,28 @@ jobs:
           echo "GTK+ 3.0 found by pkg-config."
           echo "GTK+ 3.0 Version: $(pkg-config --modversion gtk+-3.0)"
         else
-          echo "ERROR: GTK+ 3.0 (gtk+-3.0.pc) not found by pkg-config! This is likely the cause of the build failure if wxPython compilation proceeds."
-          # Potresti voler far fallire la build qui se pkg-config non trova GTK3
-          # exit 1 
+          echo "WARNING: GTK+ 3.0 (gtk+-3.0.pc) not found by pkg-config. This might cause issues if wxPython needs to compile from source and GTK3 is a hard requirement not met."
         fi
 
     - name: Install Python dependencies
       shell: bash 
       run: |
         python -m pip install --upgrade pip setuptools wheel
+        echo "Installing wxPython..."
         pip install --verbose wxPython  # --verbose per output dettagliato
+        echo "Installing PyInstaller..."
         pip install pyinstaller
+        echo "Python dependencies installed."
 
     - name: Build executable with PyInstaller
       shell: bash 
       run: |
+        echo "Starting PyInstaller build..."
         pyinstaller --onefile --windowed \
           --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
           --name AssistenteGit \
           assistente-git.py
+        echo "PyInstaller build finished."
 
     - name: Upload application artifact
       uses: actions/upload-artifact@v4
