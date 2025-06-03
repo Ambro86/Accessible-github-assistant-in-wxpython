@@ -1,0 +1,70 @@
+name: Build AssistenteGit Multi-OS
+
+on:
+  push:
+    branches: [ main, master ] # Modifica se il tuo ramo principale ha un nome diverso
+  workflow_dispatch: # Permette l'avvio manuale dalla tab Azioni di GitHub
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os_name }}
+    runs-on: ${{ matrix.os_runner }}
+    strategy:
+      fail-fast: false # Continua con gli altri OS anche se uno fallisce
+      matrix:
+        include:
+          - os_name: Windows
+            os_runner: windows-latest
+            asset_name_suffix: .exe
+            pyinstaller_add_data_sep: ";"
+          - os_name: Linux
+            os_runner: ubuntu-latest
+            asset_name_suffix: ""
+            pyinstaller_add_data_sep: ":"
+          - os_name: macOS
+            os_runner: macos-latest
+            asset_name_suffix: "" # Su macOS --onefile produce un eseguibile Unix
+            pyinstaller_add_data_sep: ":"
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9' # Puoi cambiare la versione di Python se necessario
+
+    - name: Install Python dependencies
+      shell: bash # Usa bash per comandi consistenti su tutti gli OS
+      run: |
+        python -m pip install --upgrade pip
+        pip install wxPython  # Dipendenza per la tua GUI
+        pip install pyinstaller
+
+    # Passaggi specifici per le dipendenze di wxPython su Linux
+    - name: Install Linux system dependencies for wxPython
+      if: matrix.os_runner == 'ubuntu-latest'
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends \
+          libgtk-3-dev \
+          libwebkit2gtk-4.0-dev \
+          libsdl2-dev # Aggiunta per completezza, potrebbe non essere strettamente necessaria
+
+    - name: Build executable with PyInstaller
+      shell: bash # Usa bash per comandi consistenti
+      run: |
+        # Il comando PyInstaller fornito dall'utente, con il separatore per --add-data dinamico
+        # Assicurati che la cartella 'locales' sia nella root del tuo repository
+        pyinstaller --onefile --windowed \
+          --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+          --name AssistenteGit \
+          assistente-git.py
+
+    - name: Upload application artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AssistenteGit-${{ matrix.os_name }} # Nome dell'artefatto, es. AssistenteGit-Windows
+        path: dist/AssistenteGit${{ matrix.asset_name_suffix }} # Percorso dell'eseguibile, es. dist/AssistenteGit.exe
+        if-no-files-found: error # Fallisce se l'eseguibile non viene trovato
