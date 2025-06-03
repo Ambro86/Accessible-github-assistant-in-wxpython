@@ -35,22 +35,52 @@ jobs:
       with:
         python-version: '3.9' # Puoi cambiare la versione di Python se necessario
 
-    - name: Install Python dependencies
-      shell: bash # Usa bash per comandi consistenti su tutti gli OS
-      run: |
-        python -m pip install --upgrade pip
-        pip install wxPython  # Dipendenza per la tua GUI
-        pip install pyinstaller
-
     # Passaggi specifici per le dipendenze di wxPython su Linux
     - name: Install Linux system dependencies for wxPython
       if: matrix.os_runner == 'ubuntu-latest'
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          pkg-config \
           libgtk-3-dev \
-          libwebkit2gtk-4.0-dev \
-          libsdl2-dev # Aggiunta per completezza, potrebbe non essere strettamente necessaria
+          libglib2.0-dev \
+          libpango1.0-dev \
+          libcairo2-dev \
+          libgdk-pixbuf2.0-dev \
+          libatk1.0-dev \
+          libwebkit2gtk-4.0-dev # Mantenuta se la tua app usa wx.html2.WebView
+        # Rimuovi/aggiungi altre dipendenze opzionali di wxPython se necessario (es. libsdl2-dev, freeglut3-dev, etc.)
+
+    - name: Verify GTK3 installation with pkg-config (Linux)
+      if: matrix.os_runner == 'ubuntu-latest'
+      run: |
+        echo "Verifying GTK+ 3.0 installation via pkg-config..."
+        if pkg-config --exists --print-errors "gtk+-3.0 >= 3.0.0"; then
+          echo "GTK+ 3.0 found by pkg-config."
+          echo "GTK+ 3.0 Version: $(pkg-config --modversion gtk+-3.0)"
+          echo "GTK+ 3.0 CFLAGS: $(pkg-config --cflags gtk+-3.0)"
+          echo "GTK+ 3.0 LIBS: $(pkg-config --libs gtk+-3.0)"
+        else
+          echo "ERROR: GTK+ 3.0 (gtk+-3.0.pc) not found by pkg-config! This is likely the cause of the build failure."
+          # Potresti voler far fallire la build qui se pkg-config non trova GTK3
+          # exit 1 
+        fi
+        # Verifica anche GTK4 per completezza, anche se wxPython 4.x usa principalmente GTK3
+        if pkg-config --exists --print-errors "gtk4 >= 4.0.0"; then
+          echo "GTK 4 found by pkg-config."
+        else
+          echo "GTK 4 (gtk4.pc) not found by pkg-config (this might be okay if wxPython targets GTK3)."
+        fi
+
+
+    - name: Install Python dependencies
+      shell: bash # Usa bash per comandi consistenti su tutti gli OS
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        # Aggiungi --verbose per vedere perché pip potrebbe non usare una wheel precompilata per wxPython
+        pip install --verbose wxPython
+        pip install pyinstaller
 
     - name: Build executable with PyInstaller
       shell: bash # Usa bash per comandi consistenti
