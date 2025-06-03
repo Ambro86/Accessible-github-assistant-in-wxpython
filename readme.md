@@ -1,151 +1,163 @@
-# Assistente Git Semplice
+# Simple Git Assistant
 
-## Introduzione
+## Introduction
 
-Assistente Git Semplice è un'applicazione desktop con interfaccia grafica (GUI) progettata per semplificare l'esecuzione dei comandi Git più comuni. Nasce con l'obiettivo di rendere Git più accessibile, specialmente per chi preferisce un approccio visuale o è nuovo al controllo di versione. L'applicazione fornisce una lista categorizzata di comandi Git, permette di specificare input quando necessario e visualizza l'output direttamente nell'interfaccia.
+Simple Git Assistant is a desktop application with a graphical user interface (GUI) designed to simplify the execution of common Git commands. It was created with the aim of making Git more accessible, especially for those who prefer a visual approach or are new to version control. The application provides a categorized list of Git commands, allows specifying input when necessary, and displays the output directly in the interface.
 
-**Versione corrente:** v5.0 - Gestione Push Upstream
+**Current version:** v5.0 - Upstream Push Management
 
-## Accessibilità
+## Accessibility
 
-Questa applicazione è sviluppata utilizzando la libreria **wxPython**. wxPython è noto per utilizzare i widget nativi del sistema operativo sottostante, il che generalmente garantisce un buon livello di accessibilità per gli utenti non vedenti che utilizzano screen reader e altre tecnologie assistive per interagire con le applicazioni desktop.
+This application is developed using the **wxPython** library. wxPython is known for using the native widgets of the underlying operating system, which generally ensures a good level of accessibility for visually impaired users who use screen readers and other assistive technologies to interact with desktop applications. The interface is designed to be navigable via keyboard as well.
 
-## Prerequisiti
+## Internationalization
 
--   **Git**: È fondamentale avere Git installato correttamente sul proprio sistema e la sua directory eseguibile deve essere inclusa nella variabile d'ambiente PATH del sistema. L'applicazione verifica la presenza di Git al suo avvio e segnala eventuali problemi.
+The application will attempt to use your system's default language. Currently, it includes support for the following languages:
+* English
+* Italian
+* Spanish
+* French
+* German
+* Russian
 
-## Come si Usa
+If your system language is one of these and the corresponding translation file is present, the application will display in that language. Otherwise, it will default to Italian (the original language of the strings in the source code if no other translation is found).
 
-1.  **Selezione della Cartella del Repository**:
-    * All'avvio, l'applicazione imposta come cartella di lavoro la directory da cui è stata lanciata.
-    * È possibile (e spesso necessario) specificare il percorso della cartella del proprio repository Git locale utilizzando il campo "Percorso" e il pulsante "Sfoglia...". Molti comandi Git richiedono di essere eseguiti all'interno di un repository Git valido.
+## Prerequisites
 
-2.  **Navigazione e Selezione dei Comandi**:
-    * I comandi Git sono organizzati in categorie all'interno di una struttura ad albero.
-    * Premere la freccia destra o fare clic su una categoria per espanderla e visualizzare i comandi al suo interno, o la freccia sinistra per chiuderla.
-    * Selezionando un comando con le frecce (o con singolo clic), una breve descrizione della sua funzione apparirà nella barra di stato in fondo alla finestra.
-    * Per informazioni più dettagliate su una categoria o un comando selezionato, premere la **barra spaziatrice**: si aprirà una finestra di dialogo con la descrizione completa.
+-   **Git**: It is essential to have Git installed correctly on your system, and its executable directory must be included in the system's PATH environment variable. The application checks for Git's presence at startup and reports any issues.
 
-3.  **Esecuzione di un Comando**:
-    * Per eseguire un comando, spostarsi con freccia giù o su per selezionarlo, e poi premere il tasto **invio** o fare doppio clic su di esso nella struttura ad albero.
-    * Se il comando selezionato richiede un input da parte dell'utente (ad esempio, un URL per clonare, un messaggio di commit, il nome di un branch, ecc.), verrà visualizzata una finestra di dialogo apposita. Seguire le istruzioni e inserire il valore richiesto.
-    * Per alcuni comandi che possono avere un impatto significativo o potenzialmente distruttivo sul repository (come `reset --hard` o eliminazioni forzate), l'applicazione richiederà un'ulteriore conferma prima di procedere.
+## How to Use
 
-4.  **Visualizzazione dell'Output**:
-    * L'output generato dall'esecuzione del comando Git (inclusi messaggi di successo, informazioni, avvisi o errori) sarà mostrato in tempo reale nell'area di testo "Output del Comando" nella parte inferiore dell'interfaccia. Per raggiungerla con la tastiera è sufficiente premere **il tasto tab**.
+1.  **Selecting the Repository Folder**:
+    * Upon startup, the application sets the current directory it was launched from as the working folder.
+    * It is possible (and often necessary) to specify the path to your local Git repository folder using the "Path" field and the "Browse..." button. Many Git commands require being executed within a valid Git repository.
 
-## Funzionalità Principali
+2.  **Navigating and Selecting Commands**:
+    * Git commands are organized into categories within a tree structure.
+    * Press the right arrow key or click on a category to expand it and view the commands within, or the left arrow key to collapse it.
+    * When selecting a command with the arrow keys (or with a single click), a brief description of its function will appear in the status bar at the bottom of the window.
+    * For more detailed information about a selected category or command, press the **spacebar**: a dialog box with the full description will open.
 
-Di seguito sono elencate le categorie di comandi disponibili nell'Assistente Git:
+3.  **Executing a Command**:
+    * To execute a command, navigate to it using the up/down arrow keys to select it, and then press the **Enter** key or double-click it in the tree structure.
+    * If the selected command requires user input (e.g., a URL to clone, a commit message, a branch name, etc.), a specific dialog box will appear. Follow the instructions and enter the required value.
+    * For some commands that can have a significant or potentially destructive impact on the repository (such as `reset --hard` or forced deletions), the application will request additional confirmation before proceeding.
 
----
+4.  **Viewing the Output**:
+    * The output generated by the execution of the Git command (including success messages, information, warnings, or errors) will be displayed in real-time in the "Command Output" text area at the bottom of the interface. To reach it with the keyboard, simply press the **Tab key**.
 
-### Operazioni di Base sul Repository
-*Comandi fondamentali per iniziare, clonare, configurare file da ignorare e controllare lo stato generale del repository.*
+## Main Features
 
-* **Clona un repository (nella cartella corrente)**: Clona un repository remoto specificato dall'URL in una nuova sottocartella all'interno della 'Cartella Repository' attualmente selezionata. Utile per iniziare a lavorare su un progetto esistente. (Richiede: URL del Repository)
-* **Inizializza un nuovo repository qui**: Crea un nuovo repository Git vuoto nella 'Cartella Repository' specificata. Questo è il primo passo per iniziare un nuovo progetto sotto controllo di versione.
-* **Aggiungi cartella/file da ignorare a .gitignore**: Permette di selezionare una cartella o un file da aggiungere al file `.gitignore`. I file e le cartelle elencati in `.gitignore` vengono ignorati da Git e non verranno tracciati o committati.
-* **Controlla lo stato del repository**: Mostra lo stato attuale della directory di lavoro e dell'area di stage. Indica quali file sono stati modificati, quali sono in stage (pronti per il commit) e quali non sono tracciati da Git.
-
----
-
-### Modifiche Locali e Commit
-*Comandi per visualizzare le differenze, aggiungere file all'area di stage, creare e modificare commit, e ispezionare la cronologia.*
-
-* **Visualizza modifiche non in stage (diff)**: Mostra le modifiche apportate ai file tracciati che non sono ancora state aggiunte all'area di stage (cioè, prima di 'git add'). Utile per rivedere le modifiche prima di prepararle per un commit.
-* **Visualizza modifiche in stage (diff --staged)**: Mostra le modifiche che sono state aggiunte all'area di stage e sono pronte per essere incluse nel prossimo commit. Utile per una revisione finale prima di committare.
-* **Aggiungi tutte le modifiche all'area di stage**: Aggiunge tutte le modifiche correnti (file nuovi, modificati, cancellati) nella directory di lavoro all'area di stage, preparandole per il prossimo commit. Usato anche per marcare conflitti di merge come risolti.
-* **Crea un commit (salva modifiche)**: Salva istantanea delle modifiche presenti nell'area di stage nel repository locale. Ogni commit ha un messaggio descrittivo. Per completare un merge, lascia il messaggio vuoto se Git ne propone uno. (Richiede: Messaggio di Commit)
-* **Rinomina ultimo commit (amend)**: Modifica il messaggio e/o i file dell'ultimo commit. ATTENZIONE: Non usare se il commit è già stato inviato (push) a un repository condiviso, a meno che tu non sappia esattamente cosa stai facendo (richiede un push forzato e può creare problemi ai collaboratori). (Richiede: Nuovo messaggio per l'ultimo commit)
-* **Mostra dettagli di un commit specifico**: Mostra informazioni dettagliate su un commit specifico, inclusi l'autore, la data, il messaggio di commit e le modifiche introdotte. (Richiede: Hash, tag o riferimento del commit)
-* **Visualizza cronologia commit (numero personalizzato)**: Mostra la cronologia dei commit. Puoi specificare quanti commit visualizzare. Il formato è compatto e mostra la struttura dei branch. (Richiede: Numero di commit da visualizzare)
+Below are the categories of commands available in the Git Assistant:
 
 ---
 
-### Branch e Tag
-*Comandi per la gestione dei branch (creazione, visualizzazione, cambio, unione, eliminazione) e dei tag.*
+### Basic Repository Operations
+*Fundamental commands to start, clone, configure ignored files, and check the general status of the repository.*
 
-* **Visualizza tutti i branch (locali e remoti)**: Elenca tutti i branch locali e tutti i branch remoti tracciati.
-* **Controlla branch corrente**: Mostra il nome del branch Git su cui stai attualmente lavorando.
-* **Crea nuovo branch (senza cambiare)**: Crea un nuovo branch locale basato sul commit corrente, ma non ti sposta automaticamente su di esso. (Richiede: Nome del nuovo branch)
-* **Crea e passa a un nuovo branch**: Crea un nuovo branch locale e ti sposta immediatamente su di esso. (Richiede: Nome del nuovo branch)
-* **Passa a un branch esistente**: Ti sposta su un altro branch locale esistente. (Richiede: Nome del branch)
-* **Unisci branch specificato nel corrente (merge)**: Integra le modifiche da un altro branch nel tuo branch corrente. Se ci sono conflitti, verranno segnalati e potrai scegliere una strategia di risoluzione. (Richiede: Nome del branch da unire)
-* **Elimina branch locale (sicuro, -d)**: Elimina un branch locale solo se è stato completamente unito. Se fallisce perché non mergiato, ti verrà chiesto se vuoi forzare. (Richiede: Nome del branch locale da eliminare; richiede conferma)
-* **Elimina branch locale (forzato, -D)**: ATTENZIONE: Elimina un branch locale forzatamente, anche se contiene commit non mergiati. (Richiede: Nome del branch locale da eliminare; richiede conferma e attenzione massima)
-* **Crea nuovo Tag (leggero)**: Crea un tag leggero per marcare un punto specifico nella cronologia, solitamente usato per le release (es. v1.0). Può essere applicato al commit corrente (HEAD) o a un commit specifico. (Richiede: Nome Tag [opz: HashCommit/Rif])
+* **Clone a repository (in the current folder)**: Clones a remote repository specified by the URL into a new subfolder within the currently selected 'Repository Folder'. Useful for starting work on an existing project. (Requires: Repository URL)
+* **Initialize a new repository here**: Creates a new empty Git repository in the specified 'Repository Folder'. This is the first step to start a new project under version control.
+* **Add folder/file to ignore to .gitignore**: Allows selecting a folder or file to add to the `.gitignore` file. Files and folders listed in `.gitignore` are ignored by Git and will not be tracked or committed.
+* **Check repository status**: Shows the current status of the working directory and staging area. Indicates which files have been modified, which are staged (ready for commit), and which are not tracked by Git.
 
 ---
 
-### Operazioni con Repository Remoti
-*Comandi per interagire con i repository remoti: scaricare (fetch/pull), inviare (push), configurare remoti ed eliminare branch remoti.*
+### Local Changes and Commits
+*Commands to view differences, add files to the staging area, create and modify commits, and inspect history.*
 
-* **Scarica da remoto 'origin' (fetch)**: Scarica tutte le novità (commit, branch, tag) dal repository remoto specificato (solitamente 'origin') ma non unisce automaticamente queste modifiche al tuo lavoro locale.
-* **Scarica le modifiche dal server e unisci (pull)**: Equivalente a un 'git fetch' seguito da un 'git merge' del branch remoto tracciato nel tuo branch locale corrente.
-* **Invia le modifiche al server (push)**: Invia i commit del tuo branch locale al repository remoto corrispondente.
-* **Aggiungi repository remoto 'origin'**: Collega il tuo repository locale a un repository remoto. (Richiede: URL del repository remoto)
-* **Modifica URL del repository remoto 'origin'**: Modifica l'URL di un repository remoto esistente. (Richiede: Nuovo URL del repository remoto)
-* **Controlla indirizzi remoti configurati**: Mostra l'elenco dei repository remoti configurati.
-* **Elimina branch remoto ('origin')**: Elimina un branch dal repository remoto 'origin'. (Richiede: Nome del branch su 'origin'; richiede conferma)
-
----
-
-### Salvataggio Temporaneo (Stash)
-*Comandi per mettere temporaneamente da parte le modifiche non committate.*
-
-* **Salva modifiche temporaneamente (stash)**: Mette da parte le modifiche non committate per pulire la directory di lavoro.
-* **Applica ultime modifiche da stash (stash pop)**: Applica le modifiche dall'ultimo stash e lo rimuove dalla lista.
+* **View unstaged changes (diff)**: Shows changes made to tracked files that have not yet been added to the staging area (i.e., before 'git add'). Useful for reviewing changes before preparing them for a commit.
+* **View staged changes (diff --staged)**: Shows changes that have been added to the staging area and are ready to be included in the next commit. Useful for a final review before committing.
+* **Add all changes to the staging area**: Adds all current changes (new, modified, deleted files) in the working directory to the staging area, preparing them for the next commit. Also used to mark merge conflicts as resolved.
+* **Create a commit (save changes)**: Saves a snapshot of the changes present in the staging area to the local repository. Each commit has a descriptive message. To complete a merge, leave the message empty if Git proposes one. (Requires: Commit Message)
+* **Rename last commit (amend)**: Modifies the message and/or files of the last commit. WARNING: Do not use if the commit has already been pushed to a shared repository, unless you know exactly what you are doing (requires a forced push and can create problems for collaborators). (Requires: New message for the last commit)
+* **Show details of a specific commit**: Shows detailed information about a specific commit, including author, date, commit message, and changes introduced. (Requires: Commit hash, tag, or reference)
+* **View commit history (custom number)**: Shows the commit history. You can specify how many commits to display. The format is compact and shows the branch structure. (Requires: Number of commits to display)
 
 ---
 
-### Ricerca e Utilità
-*Comandi per cercare testo all'interno dei file del progetto e per trovare file specifici tracciati da Git.*
+### Branch and Tag
+*Commands for branch management (creation, viewing, switching, merging, deletion) and tags.*
 
-* **Cerca testo nei file (git grep)**: Cerca un pattern di testo (case-insensitive) nei file tracciati da Git. Mostra nome file e numero di riga delle corrispondenze. (Richiede: Testo da cercare)
-* **Cerca file nel progetto (tracciati da Git)**: Elenca i file tracciati da Git. Puoi fornire un pattern (case-insensitive, cerca come sottostringa) per filtrare i risultati. Lascia vuoto per vedere tutti i file. (Input opzionale: Pattern nome file)
-
----
-
-### Ripristino e Reset (Usare con Cautela!)
-*Comandi potenti per annullare modifiche, ripristinare file a versioni precedenti o resettare lo stato del repository. Queste azioni possono portare alla perdita di dati se non usate correttamente.*
-
-* **Annulla modifiche su file specifico (restore)**: Annulla le modifiche non ancora in stage per un file specifico (selezionato tramite dialogo), riportandolo allo stato dell'ultimo commit.
-* **Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)**: ATTENZIONE: Sovrascrive i file con le versioni del commit E RIMUOVE i file/directory non tracciati. (Richiede: Hash/riferimento del commit; richiede conferma e attenzione massima)
-* **Ripristina file modificati e pulisci file non tracciati**: Annulla modifiche nei file tracciati e rimuove file/directory non tracciati. (Richiede conferma e attenzione massima)
-* **Annulla modifiche locali (reset --hard HEAD)**: Resetta il branch corrente all'ultimo commit, scartando tutte le modifiche locali non committate. (Richiede conferma e attenzione massima)
-* **Annulla tentativo di merge (abort)**: Annulla un tentativo di merge fallito a causa di conflitti, riportando il repository allo stato precedente al merge. (Richiede conferma)
-* **Ispeziona commit specifico (checkout - detached HEAD)**: Ti sposta su un commit specifico in uno stato 'detached HEAD'. Nuove modifiche non apparterranno a nessun branch a meno che non ne crei uno. (Richiede: Hash/riferimento del commit; richiede conferma)
-* **Resetta branch locale a versione remota (origin/nome-branch)**: ATTENZIONE: Resetta il branch locale CORRENTE allo stato del branch remoto 'origin/<nome-branch>'. Modifiche e commit locali non inviati verranno PERSI. (Richiede: Nome del branch remoto; richiede conferma estremamente pericolosa)
-* **Resetta branch corrente a commit specifico (reset --hard)**: ATTENZIONE MASSIMA: Sposta il puntatore del branch corrente al commit specificato e PERDE TUTTI i commit e le modifiche locali successive. (Richiede: Hash/riferimento del commit; richiede conferma estremamente pericolosa)
+* **View all branches (local and remote)**: Lists all local branches and all tracked remote branches.
+* **Check current branch**: Shows the name of the Git branch you are currently working on.
+* **Create new branch (without switching)**: Creates a new local branch based on the current commit, but does not automatically switch to it. (Requires: Name of the new branch)
+* **Create and switch to a new branch**: Creates a new local branch and immediately switches to it. (Requires: Name of the new branch)
+* **Switch to an existing branch**: Switches you to another existing local branch. (Requires: Name of the branch)
+* **Merge specified branch into current (merge)**: Integrates changes from another branch into your current branch. If there are conflicts, they will be reported, and you can choose a resolution strategy. (Requires: Name of the branch to merge)
+* **Delete local branch (safe, -d)**: Deletes a local branch only if it has been fully merged. If it fails because it's not merged, you will be asked if you want to force it. (Requires: Name of the local branch to delete; requires confirmation)
+* **Delete local branch (forced, -D)**: WARNING: Forcibly deletes a local branch, even if it contains unmerged commits. (Requires: Name of the local branch to delete; requires confirmation and maximum attention)
+* **Create new Tag (lightweight)**: Creates a lightweight tag to mark a specific point in history, usually used for releases (e.g., v1.0). It can be applied to the current commit (HEAD) or a specific commit. (Requires: Tag Name [opt: CommitHash/Ref])
 
 ---
 
-## Casi Speciali Gestiti e Funzionalità Avanzate
+### Remote Repository Operations
+*Commands for interacting with remote repositories: download (fetch/pull), send (push), configure remotes, and delete remote branches.*
 
-L'assistente include logica specifica per migliorare l'esperienza utente in determinate situazioni:
+* **Download from remote 'origin' (fetch)**: Downloads all updates (commits, branches, tags) from the specified remote repository (usually 'origin') but does not automatically merge these changes into your local work.
+* **Download changes from server and merge (pull)**: Equivalent to a 'git fetch' followed by a 'git merge' of the tracked remote branch into your current local branch.
+* **Send changes to the server (push)**: Sends commits from your local branch to the corresponding remote repository.
+* **Add remote repository 'origin'**: Connects your local repository to a remote repository. (Requires: Remote repository URL)
+* **Modify URL of remote repository 'origin'**: Modifies the URL of an existing remote repository. (Requires: New URL of the remote repository)
+* **Check configured remote addresses**: Shows the list of configured remote repositories.
+* **Delete remote branch ('origin')**: Deletes a branch from the 'origin' remote repository. (Requires: Name of the branch on 'origin'; requires confirmation)
 
-* **Push su Branch Senza Upstream Remoto**: Se si tenta di eseguire un `push` su un branch locale che non ha un branch upstream remoto corrispondente (errore comune "no upstream branch"), l'applicazione rileva questa situazione. Chiederà all'utente se desidera impostare automaticamente il branch remoto come upstream ed eseguire nuovamente il push con il comando `git push --set-upstream origin <nome-branch>`.
-* **Gestione dei Conflitti di Merge**: Durante un'operazione di `merge` (`Unisci branch specificato nel corrente`), se vengono rilevati conflitti tra i file, l'applicazione:
-    * Notifica l'utente e mostra i file in conflitto.
-    * Offre diverse opzioni per procedere:
-        1.  **Risolvere manualmente i conflitti**: L'utente dovrà modificare i file manualmente, per poi usare i comandi "Aggiungi tutte le modifiche all'area di stage" e "Crea un commit".
-        2.  **Usare la versione del branch corrente (`--ours`)**: Per tutti i file in conflitto, verranno mantenute le modifiche del branch su cui si sta lavorando.
-        3.  **Usare la versione del branch da unire (`--theirs`)**: Per tutti i file in conflitto, verranno accettate le modifiche provenienti dal branch che si sta cercando di unire.
-        4.  **Annullare il tentativo di merge (`git merge --abort`)**: Ripristina lo stato precedente al tentativo di merge.
-* **Eliminazione Sicura di Branch Locali**: Se si tenta di eliminare un branch locale usando l'opzione sicura (`Elimina branch locale (sicuro, -d)`) e il branch contiene commit non ancora integrati (merged) in altri branch, Git impedirà l'eliminazione. L'assistente intercetterà questo avviso e chiederà all'utente se desidera forzare l'eliminazione del branch (equivalente a `git branch -D <nome-branch>`), avvisando della potenziale perdita di lavoro.
-* **Modifica dell'Ultimo Commit (Amend) e Push Forzato**: Dopo aver modificato l'ultimo commit con il comando `Rinomina ultimo commit (amend)`, l'applicazione chiederà se si desidera tentare un `push --force` verso 'origin'. Verrà mostrato un avviso che tale operazione sovrascrive la cronologia sul server e può causare problemi ai collaboratori.
-* **Interazione con `.gitignore`**: Il comando `Aggiungi cartella/file da ignorare a .gitignore` permette di selezionare interattivamente un file o una cartella. L'applicazione si occupa di:
-    * Convertire il percorso assoluto in un percorso relativo al repository.
-    * Aggiungere una barra `/` finale se si tratta di una cartella.
-    * Verificare se l'elemento è già presente nel file `.gitignore` per evitare duplicati.
-    * Assicurare che ci sia un newline prima di aggiungere la nuova riga se il file `.gitignore` esiste e non è vuoto.
-* **Ricerca File nel Progetto (`git ls-files`)**: Oltre a elencare tutti i file tracciati da Git, questo comando permette di inserire un pattern per filtrare i risultati (es. `*.py`, `docs/*`). L'applicazione verifica prima se la directory selezionata è un repository Git valido.
-* **Aggiornamento Automatico del Percorso dopo il Clone**: Dopo aver clonato con successo un repository, l'Assistente Git aggiornerà automaticamente il campo "Percorso Cartella Repository" per puntare alla nuova cartella appena creata.
+---
 
-## Compilazione (Build)
+### Temporary Save (Stash)
+*Commands to temporarily set aside uncommitted changes.*
 
-Per creare un file eseguibile standalone (ad esempio, un singolo file `.exe` su Windows) a partire dal codice sorgente `assistente-git.py`, è possibile utilizzare **PyInstaller**. Aprire un terminale o prompt dei comandi nella directory contenente il file Python ed eseguire:
+* **Temporarily save changes (stash)**: Sets aside uncommitted changes to clean the working directory.
+* **Apply latest changes from stash (stash pop)**: Applies changes from the last stash and removes it from the list.
+
+---
+
+### Search and Utility
+*Commands for searching text within project files and for finding specific files tracked by Git.*
+
+* **Search text in files (git grep)**: Searches for a text pattern (case-insensitive) in Git-tracked files. Shows filename and line number of matches. (Requires: Text to search)
+* **Search files in project (tracked by Git)**: Lists files tracked by Git. You can provide a pattern (case-insensitive, searches as substring) to filter results. Leave empty to see all files. (Optional input: Filename pattern)
+
+---
+
+### Restore and Reset (Use with Caution!)
+*Powerful commands to undo changes, restore files to previous versions, or reset the repository state. These actions can lead to data loss if not used correctly.*
+
+* **Discard changes on specific file (restore)**: Discards changes not yet staged for a specific file (selected via dialog), restoring it to the state of the last commit.
+* **Overwrite files with commit and clean (checkout <commit> . && clean -fd)**: WARNING: Overwrites files with versions from the commit AND REMOVES untracked files/directories. (Requires: Commit hash/reference; requires confirmation and maximum attention)
+* **Restore modified files and clean untracked files**: Discards changes in tracked files and removes untracked files/directories. (Requires confirmation and maximum attention)
+* **Discard local changes (reset --hard HEAD)**: Resets the current branch to the last commit, discarding all uncommitted local changes. (Requires confirmation and maximum attention)
+* **Abort merge attempt (abort)**: Aborts a failed merge attempt due to conflicts, returning the repository to the state before the merge. (Requires confirmation)
+* **Inspect specific commit (checkout - detached HEAD)**: Switches you to a specific commit in a 'detached HEAD' state. New changes will not belong to any branch unless you create one. (Requires: Commit hash/reference; requires confirmation)
+* **Reset local branch to remote version (origin/branch-name)**: WARNING: Resets the CURRENT local branch to the state of the remote branch 'origin/<branch-name>'. Local changes and unpushed commits will be LOST. (Requires: Remote branch name; requires extremely dangerous confirmation)
+* **Reset current branch to specific commit (reset --hard)**: MAXIMUM ATTENTION: Moves the current branch pointer to the specified commit and LOSES ALL subsequent local commits and changes. (Requires: Commit hash/reference; requires extremely dangerous confirmation)
+
+---
+
+## Special Cases Handled and Advanced Features
+
+The assistant includes specific logic to improve the user experience in certain situations:
+
+* **Push on Branch Without Remote Upstream**: If you attempt to `push` a local branch that does not yet have a corresponding remote upstream branch configured (common "no upstream branch" error), the application detects this situation. It will ask the user if they want to automatically set the remote branch as upstream and re-execute the push with the command `git push --set-upstream origin <branch-name>`.
+* **Merge Conflict Management**: During a `merge` operation (`Merge specified branch into current`), if file conflicts are detected, the application:
+    * Notifies the user and shows the conflicting files.
+    * Offers several options to proceed:
+        1.  **Resolve conflicts manually**: The user will need to edit the files manually, then use the "Add all changes to the staging area" and "Create a commit" commands.
+        2.  **Use current branch version (`--ours`)**: For all conflicting files, the changes from the branch you are working on (HEAD) will be kept.
+        3.  **Use incoming branch version (`--theirs`)**: For all conflicting files, the changes from the branch you are trying to merge will be accepted.
+        4.  **Abort the merge attempt (`git merge --abort`)**: Restores the state before the merge attempt.
+* **Safe Deletion of Local Branches**: If you try to delete a local branch using the safe option (`Delete local branch (safe, -d)`) and the branch contains commits not yet integrated (merged) into other branches, Git will prevent the deletion. The assistant will intercept this warning and ask the user if they want to force the deletion of the branch (equivalent to `git branch -D <branch-name>`), warning about potential loss of work.
+* **Amending Last Commit and Forced Push**: After modifying the last commit with the `Rename last commit (amend)` command, the application will ask if you want to attempt a `push --force` to 'origin'. A warning will be displayed that such an operation overwrites history on the server and can cause problems for collaborators.
+* **Interaction with `.gitignore`**: The `Add folder/file to ignore to .gitignore` command allows interactive selection of a file or folder. The application handles:
+    * Converting the absolute path to a repository-relative path.
+    * Adding a trailing slash `/` if it's a folder.
+    * Checking if the item is already present in the `.gitignore` file to avoid duplicates.
+    * Ensuring there is a newline before adding the new line if the `.gitignore` file exists and is not empty.
+* **Search Files in Project (`git ls-files`)**: Besides listing all Git-tracked files, this command allows entering a pattern to filter results (e.g., `*.py`, `docs/*`). The application first checks if the selected directory is a valid Git repository.
+* **Automatic Path Update After Clone**: After successfully cloning a repository, the Git Assistant will automatically update the "Repository Folder Path" field to point to the newly created folder.
+
+## Compilation (Build)
+
+To create a standalone executable file (e.g., a single `.exe` file on Windows) from the `assistente-git.py` source code, you can use **PyInstaller**. Open a terminal or command prompt in the directory containing the Python file and run:
 
 ```bash
 pyinstaller --onefile --windowed --name AssistenteGit assistente-git.py
