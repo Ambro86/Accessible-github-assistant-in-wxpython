@@ -1,4 +1,4 @@
-#To create an executable use pyinstaller --onefile --windowed --name AssistenteGit assistente-git.py
+#To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
 import wx
 import os
 import subprocess
@@ -324,7 +324,7 @@ class GitFrame(wx.Frame):
         self.SetMinSize((750, 700))
         self.Centre()
         # Version updated and string marked for translation
-        self.SetTitle(_("Assistente Git Semplice v5.0 - Gestione Push Upstream"))
+        self.SetTitle(_("Assistente Git Semplice v1.0"))
         self.Show(True)
 
         if not self.git_available:
