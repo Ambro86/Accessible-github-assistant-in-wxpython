@@ -665,106 +665,159 @@ class GitFrame(wx.Frame):
             # In un'app reale, vorresti anche pulire self.test_timer_instance e self.test_run_id_monitored
             # o rimuovere il run_id da un dizionario di monitoraggio.
     def start_monitoring_run(self, run_id, owner, repo):
-        print(f"DEBUG_MONITOR: TEST AVANZATO - Chiamata a start_monitoring_run per run_id: {run_id}")
+        print(f"DEBUG_MONITOR: Avvio monitoraggio per run_id: {run_id}")
 
-        if run_id in self.monitoring_timers and self.monitoring_timers[run_id]['timer'].IsRunning():
-            self.output_text_ctrl.AppendText(_("L'esecuzione ID {} è già sotto monitoraggio.\n").format(run_id))
-            print(f"DEBUG_MONITOR: TEST AVANZATO - Monitoraggio per run_id {run_id} già attivo.")
-            return
+        # Se esiste già un timer per questo run_id, fermalo
+        if run_id in self.monitoring_timers:
+            existing_timer_info = self.monitoring_timers[run_id]
+            if existing_timer_info['timer'].IsRunning():
+                existing_timer_info['timer'].Stop()
+                self.output_text_ctrl.AppendText(_("Timer esistente per ID {} fermato e sostituito.\n").format(run_id))
 
-        # Creiamo un attributo di istanza TEMPORANEO per questo test specifico
-        # per assicurarci che il timer non venga raccolto dal garbage collector.
-        # In una situazione reale con più timer, self.monitoring_timers è il modo giusto.
+        # Crea un nuovo timer
+        timer = wx.Timer(self)
+        polling_interval_ms = 30 * 1000  # 30 secondi
+
+        # Memorizza le informazioni del timer
+        self.monitoring_timers[run_id] = {
+            'timer': timer,
+            'owner': owner,
+            'repo': repo,
+            'poll_count': 0,
+            'polling_interval_ms': polling_interval_ms
+        }
+
+        # Bind del timer usando una lambda per passare run_id
+        timer.Bind(wx.EVT_TIMER, lambda evt, rid=run_id: self.OnMonitorRunTimer(evt, rid))
         
-        # Se esiste già un timer di test, fermalo prima
-        if hasattr(self, 'test_timer_instance') and self.test_timer_instance.IsRunning():
-            self.test_timer_instance.Stop()
-            print("DEBUG_MONITOR: TEST AVANZATO - Fermato un test_timer_instance precedente.")
-            
-        self.test_timer_instance = wx.Timer(self) # Timer di test
-        self.test_run_id_monitored = run_id # Memorizza l'ID per il test handler
-        self.test_poll_count = 0 # Contatore per il test
+        # Avvia il timer
+        timer.Start(polling_interval_ms)
 
-        print(f"DEBUG_MONITOR: TEST AVANZATO - Creato self.test_timer_instance, run_id: {self.test_run_id_monitored}")
-
-        # Collega a un gestore di test ultra-semplice
-        self.test_timer_instance.Bind(wx.EVT_TIMER, self.OnTestTimerEvent)
-        
-        polling_interval_ms = 5 * 1000 # Intervallo più breve per il test: 5 secondi
-
-        self.test_timer_instance.Start(polling_interval_ms)
-
-        if self.test_timer_instance.IsRunning():
-            print(f"DEBUG_MONITOR: TEST AVANZATO - self.test_timer_instance avviato e IsRunning() == True. Intervallo: {polling_interval_ms}ms")
+        if timer.IsRunning():
+            print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval_ms}ms")
             self.output_text_ctrl.AppendText(
-                _("TEST AVANZATO: Monitoraggio (semplificato) avviato per ID {}. Controllo ogni {} secondi.\n").format(
+                _("Monitoraggio avviato per ID {}. Controllo ogni {} secondi.\n").format(
                     run_id, polling_interval_ms // 1000
                 )
             )
         else:
-            print(f"DEBUG_MONITOR: TEST AVANZATO - ERRORE: self.test_timer_instance NON è partito!")
-        
+            print(f"DEBUG_MONITOR: ERRORE: Timer NON avviato per run_id {run_id}")
+            # Pulisci se non è partito
+            if run_id in self.monitoring_timers:
+                del self.monitoring_timers[run_id]
+                
     def OnMonitorRunTimer(self, event, run_id):
-        # PRIMISSIMA COSA DA FARE: STAMPARE PER CONFERMARE L'ESECUZIONE
-        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Ora con millisecondi
-        print(f"DEBUG_MONITOR: !!! Evento OnMonitorRunTimer SCATTATO per run_id: {run_id} alle {timestamp_ora} !!!")
+        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        print(f"DEBUG_MONITOR: Timer scattato per run_id: {run_id} alle {timestamp_ora}")
 
-        # Per questo test, ci assicuriamo che il timer si fermi dopo alcuni scatti
-        # per non riempire la console indefinitamente se funziona.
-        if run_id in self.monitoring_timers:
-            timer_info = self.monitoring_timers[run_id]
-            timer_info['poll_count'] += 1 # Incrementiamo il contatore dei poll
+        if run_id not in self.monitoring_timers:
+            print(f"DEBUG_MONITOR: ERRORE - run_id {run_id} non trovato in monitoring_timers")
+            timer = event.GetTimer()
+            if timer and timer.IsRunning():
+                timer.Stop()
+            return
+
+        timer_info = self.monitoring_timers[run_id]
+        timer_info['poll_count'] += 1
+        
+        try:
+            self.output_text_ctrl.AppendText(
+                _("Controllo stato #{} per run ID {} alle {}.\n").format(
+                    timer_info['poll_count'], run_id, timestamp_ora
+                )
+            )
+        except Exception as e_gui:
+            print(f"DEBUG_MONITOR: Errore scrittura GUI: {e_gui}")
+
+        # Controlla lo stato dell'esecuzione
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+        
+        run_status_url = f"https://api.github.com/repos/{timer_info['owner']}/{timer_info['repo']}/actions/runs/{run_id}"
+        
+        try:
+            response = requests.get(run_status_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            run_data = response.json()
             
-            # Scriviamo un messaggio anche nell'output dell'app per vedere se arriva lì
-            try:
+            current_status = run_data.get('status', 'unknown').lower()
+            current_conclusion = run_data.get('conclusion')
+            
+            print(f"DEBUG_MONITOR: Stato API per run_id {run_id}: {current_status}, conclusione: {current_conclusion}")
+            
+            # Stati che indicano esecuzione completata
+            if current_status == 'completed':
                 self.output_text_ctrl.AppendText(
-                    _("Timer check #{} per run ID {} alle {}.\n").format(
-                        timer_info['poll_count'], run_id, timestamp_ora
+                    _("✓ Esecuzione ID {} completata! Stato: {}, Conclusione: {}\n").format(
+                        run_id, current_status, current_conclusion or _("N/D")
                     )
                 )
-            except Exception as e_gui:
-                print(f"DEBUG_MONITOR: Errore scrittura su output_text_ctrl: {e_gui}")
-
-
-            if timer_info['poll_count'] >= 5: # Fermiamoci dopo 5 scatti di prova
-                print(f"DEBUG_MONITOR: Raggiunto limite di poll ({timer_info['poll_count']}) per run_id {run_id}. ARRESTO TIMER DI PROVA.")
+                # Ferma il monitoraggio
                 timer_info['timer'].Stop()
-                # Non rimuoviamo ancora da self.monitoring_timers per questo test specifico,
-                # vogliamo solo vedere se si ferma.
-                # Se vuoi che si possa riavviare il monitoraggio dopo, dovresti rimuoverlo:
-                # del self.monitoring_timers[run_id]
-        else:
-            # Questo non dovrebbe accadere se il timer è ancora attivo e run_id dovrebbe essere lì
-            print(f"DEBUG_MONITOR: ERRORE CRITICO - run_id {run_id} non trovato in self.monitoring_timers dentro OnMonitorRunTimer. Arresto timer dell'evento.")
-            timer_che_ha_scatenato_evento = event.GetTimer()
-            if timer_che_ha_scatenato_evento and timer_che_ha_scatenato_evento.IsRunning():
-                timer_che_ha_scatenato_evento.Stop()
+                del self.monitoring_timers[run_id]
+                print(f"DEBUG_MONITOR: Monitoraggio completato e rimosso per run_id {run_id}")
+                return
+            
+            # Limita il numero di controlli per evitare loop infiniti
+            if timer_info['poll_count'] >= 20:  # Circa 10 minuti con intervallo di 30s
+                self.output_text_ctrl.AppendText(
+                    _("⏰ Limite di controlli raggiunto per ID {}. Monitoraggio fermato.\n").format(run_id)
+                )
+                timer_info['timer'].Stop()
+                del self.monitoring_timers[run_id]
+                return
+                
+        except requests.exceptions.RequestException as e:
+            print(f"DEBUG_MONITOR: Errore API per run_id {run_id}: {e}")
+            self.output_text_ctrl.AppendText(
+                _("⚠ Errore controllo stato per ID {}: {}\n").format(run_id, str(e)[:100])
+            )
+            
+            # Ferma il monitoraggio in caso di errore persistente
+            if timer_info['poll_count'] >= 5:
+                timer_info['timer'].Stop()
+                del self.monitoring_timers[run_id]
+                return
         
-        # Non fare altro per ora in questa versione di test (niente chiamate API)
+        except Exception as e:
+            print(f"DEBUG_MONITOR: Errore generico per run_id {run_id}: {e}")
+            timer_info['timer'].Stop()
+            del self.monitoring_timers[run_id]
+            
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
-        print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'") # NUOVO DEBUG
+        print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'")
         try:
+            # Gestisce diversi formati di timestamp UTC
             if utc_str.endswith('Z'):
                 # Sostituisci 'Z' con '+00:00' per datetime.fromisoformat()
-                # datetime.fromisoformat() gestisce correttamente i millisecondi se presenti
                 utc_dt = datetime.fromisoformat(utc_str[:-1] + '+00:00')
-                print(f"DEBUG_TIMESTAMP: Parsed UTC datetime: {utc_dt}") # NUOVO DEBUG
+            elif '+00:00' in utc_str:
+                utc_dt = datetime.fromisoformat(utc_str)
+            elif utc_str.endswith('+0000'):
+                # Formato senza due punti nel fuso orario
+                utc_dt = datetime.fromisoformat(utc_str[:-5] + '+00:00')
             else:
-                print(f"DEBUG_TIMESTAMP: Timestamp '{utc_str}' non termina con 'Z', non converto.") # NUOVO DEBUG
-                return ts_match.group(0)
-
-            local_dt = utc_dt.astimezone(None)
-            print(f"DEBUG_TIMESTAMP: Converted to local datetime: {local_dt}") # NUOVO DEBUG
+                # Assume UTC se non c'è indicazione di fuso orario
+                utc_dt = datetime.fromisoformat(utc_str).replace(tzinfo=timezone.utc)
+                
+            print(f"DEBUG_TIMESTAMP: Parsed UTC datetime: {utc_dt}")
+            
+            # Converte al fuso orario locale del sistema
+            local_dt = utc_dt.astimezone()
+            print(f"DEBUG_TIMESTAMP: Converted to local datetime: {local_dt}")
+            
             formatted_local_dt = local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)')
-            print(f"DEBUG_TIMESTAMP: Formattato localmente come: '{formatted_local_dt}'") # NUOVO DEBUG
+            print(f"DEBUG_TIMESTAMP: Formattato localmente come: '{formatted_local_dt}'")
             return formatted_local_dt
+            
         except ValueError as e:
             print(f"DEBUG_TIMESTAMP: Errore parsing/conversione timestamp: {e} per '{utc_str}'")
             return ts_match.group(0)
-        except Exception as ex: # Catch generico per altri problemi
+        except Exception as ex:
             print(f"DEBUG_TIMESTAMP: Errore generico in conversione: {ex} per '{utc_str}'")
-            return ts_match.group(0)   
+            return ts_match.group(0)
             # --- Metodi per la gestione della configurazione sicura e delle opzioni ---
     def _get_app_config_dir(self):
         sp = wx.StandardPaths.Get()
@@ -2120,7 +2173,7 @@ class GitFrame(wx.Frame):
                             log_data = log_data_bytes.decode('utf-8', errors='replace')
 
                             if not self.github_strip_log_timestamps:
-                                log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z)',
+                                    log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})?)',
                                                   self.convert_utc_to_local_timestamp_match, log_data, flags=re.MULTILINE)
                             elif self.github_strip_log_timestamps:
                                 log_data = re.sub(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\s*', '', log_data, flags=re.MULTILINE)
