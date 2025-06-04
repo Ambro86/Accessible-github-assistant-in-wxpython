@@ -1,8 +1,6 @@
 name: Build AssistenteGit Multi-OS
 
 on:
-  push:
-    branches: [ main, master ] # Modifica se il tuo ramo principale ha un nome diverso
   workflow_dispatch: # Permette l'avvio manuale dalla tab Azioni di GitHub
 
 jobs:

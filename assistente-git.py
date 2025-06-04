@@ -1,4 +1,4 @@
-    #To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
+#To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
 import wx
 import os, time
 import subprocess
@@ -155,6 +155,8 @@ CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT = _("Elenca e Scarica Artefatti Esecuzione
 # --- NUOVO COMANDO PER CREAZIONE RELEASE ---
 CMD_GITHUB_CREATE_RELEASE = _("Crea Nuova Release GitHub con Asset")
 CMD_GITHUB_DELETE_RELEASE = _("Elimina Release GitHub (per ID o Tag)")
+CMD_GITHUB_TRIGGER_WORKFLOW = "Trigger Workflow Manuale"
+CMD_GITHUB_CANCEL_WORKFLOW = "Cancella Workflow in Esecuzione"
 # --- FINE NUOVO COMANDO ---
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
@@ -385,6 +387,111 @@ class GitHubConfigDialog(wx.Dialog):
             "ask_pass_on_startup": self.ask_pass_startup_cb.GetValue(),
             "strip_log_timestamps": self.strip_timestamps_cb.GetValue()
         }
+class WorkflowInputDialog(wx.Dialog):
+    def __init__(self, parent, title, workflow_name):
+        super().__init__(parent, title=title, size=(500, 400))
+        
+        self.workflow_name = workflow_name
+        self.inputs_data = {}
+        
+        self.create_ui()
+        self.Center()
+    
+    def create_ui(self):
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Titolo
+        title_label = wx.StaticText(self, label=f"Trigger Workflow: {self.workflow_name}")
+        title_font = title_label.GetFont()
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        title_label.SetFont(title_font)
+        main_sizer.Add(title_label, 0, wx.ALL|wx.CENTER, 10)
+        
+        # Branch selection
+        branch_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        branch_label = wx.StaticText(self, label="Branch/Ref:")
+        self.branch_ctrl = wx.TextCtrl(self, value="main", size=(200, -1))
+        branch_sizer.Add(branch_label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        branch_sizer.Add(self.branch_ctrl, 1, wx.ALL|wx.EXPAND, 5)
+        main_sizer.Add(branch_sizer, 0, wx.ALL|wx.EXPAND, 5)
+        
+        # Inputs section
+        inputs_label = wx.StaticText(self, label="Input Parameters (JSON format):")
+        main_sizer.Add(inputs_label, 0, wx.ALL, 5)
+        
+        self.inputs_ctrl = wx.TextCtrl(self, 
+                                       style=wx.TE_MULTILINE,
+                                       size=(-1, 150),
+                                       value='{}')
+        main_sizer.Add(self.inputs_ctrl, 1, wx.ALL|wx.EXPAND, 5)
+        
+        # Help text
+        help_text = wx.StaticText(self, 
+                                  label="💡 Tip: Lascia vuoto {} se il workflow non richiede input")
+        help_text.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_NORMAL))
+        main_sizer.Add(help_text, 0, wx.ALL, 5)
+        
+        # Buttons
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.validate_btn = wx.Button(self, label="Valida JSON")
+        self.trigger_btn = wx.Button(self, wx.ID_OK, "Trigger Workflow")
+        cancel_btn = wx.Button(self, wx.ID_CANCEL, "Annulla")
+        
+        button_sizer.Add(self.validate_btn, 0, wx.ALL, 5)
+        button_sizer.AddStretchSpacer()
+        button_sizer.Add(self.trigger_btn, 0, wx.ALL, 5)
+        button_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(button_sizer, 0, wx.ALL|wx.EXPAND, 10)
+        
+        # Bind events
+        self.Bind(wx.EVT_BUTTON, self.OnValidateJSON, self.validate_btn)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.trigger_btn)
+        
+        self.SetSizer(main_sizer)
+    
+    def OnValidateJSON(self, event):
+        """Valida il JSON degli input."""
+        try:
+            json_text = self.inputs_ctrl.GetValue().strip()
+            if not json_text or json_text == "{}":
+                wx.MessageBox("JSON vuoto - OK per workflow senza input", "Validazione", wx.OK | wx.ICON_INFORMATION)
+                return
+            
+            parsed = json.loads(json_text)
+            wx.MessageBox(f"✅ JSON valido!\nParsed: {len(parsed)} parametri", "Validazione", wx.OK | wx.ICON_INFORMATION)
+        except json.JSONDecodeError as e:
+            wx.MessageBox(f"❌ JSON non valido:\n{e}", "Errore Validazione", wx.OK | wx.ICON_ERROR)
+        except Exception as e:
+            wx.MessageBox(f"❌ Errore imprevisto:\n{e}", "Errore", wx.OK | wx.ICON_ERROR)
+    
+    def OnOK(self, event):
+        """Valida e chiude il dialog."""
+        branch = self.branch_ctrl.GetValue().strip()
+        if not branch:
+            wx.MessageBox("Il branch/ref è obbligatorio", "Errore", wx.OK | wx.ICON_ERROR)
+            return
+        
+        # Valida JSON
+        try:
+            json_text = self.inputs_ctrl.GetValue().strip()
+            if json_text and json_text != "{}":
+                self.inputs_data = json.loads(json_text)
+            else:
+                self.inputs_data = {}
+        except json.JSONDecodeError as e:
+            wx.MessageBox(f"JSON non valido:\n{e}", "Errore", wx.OK | wx.ICON_ERROR)
+            return
+        
+        self.EndModal(wx.ID_OK)
+    
+    def GetValues(self):
+        """Restituisce i valori inseriti."""
+        return {
+            'branch': self.branch_ctrl.GetValue().strip(),
+            'inputs': self.inputs_data
+        }
 
 # --- NUOVA FINESTRA DI DIALOGO PER CREAZIONE RELEASE ---
 class CreateReleaseDialog(wx.Dialog):
@@ -557,13 +664,24 @@ ORIGINAL_COMMANDS = {
     CMD_GITHUB_SELECTED_RUN_LOGS: {"type": "github", "input_needed": False, "info": _("Scarica e visualizza i log dell'esecuzione del workflow precedentemente selezionata.")},
     CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT: {"type": "github", "input_needed": False, "info": _("Elenca gli artefatti dell'esecuzione del workflow selezionata e permette di scaricarli.")},
     CMD_GITHUB_CREATE_RELEASE: {"type": "github", "input_needed": False, "info": _("Crea una nuova release su GitHub, con opzione per caricare asset.")},
-CMD_GITHUB_DELETE_RELEASE: {
+    CMD_GITHUB_DELETE_RELEASE: {
         "type": "github",
         "input_needed": False, # Non più input testuale diretto
         "info": _("Elenca le release esistenti su GitHub e permette di selezionarne una per l'eliminazione. L'eliminazione del tag Git associato è un'opzione aggiuntiva post-eliminazione della release."), # Info aggiornata
         # Il messaggio di conferma verrà formattato dinamicamente con il nome della release selezionata
         "confirm_template": _("ATTENZIONE: Stai per eliminare la release GitHub '{release_display_name}'. Questa azione è generalmente irreversibile sul sito di GitHub. Sei sicuro di voler procedere con l'eliminazione?")
-    }
+    },
+    CMD_GITHUB_TRIGGER_WORKFLOW: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Avvia manualmente un workflow GitHub Actions dal repository configurato. Permette di selezionare il workflow e specificare parametri di input.")
+    },
+    CMD_GITHUB_CANCEL_WORKFLOW: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Cancella un workflow GitHub Actions attualmente in esecuzione. Mostra una lista dei workflow in corso e permette di selezionarne uno da interrompere.")
+    },
+
 }
 CATEGORIZED_COMMANDS = {
     CAT_REPO_OPS: {"info": _("Comandi fondamentali..."), "order": [ CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS]}},
@@ -577,6 +695,8 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
+            CMD_GITHUB_TRIGGER_WORKFLOW,      # ← AGGIUNGI QUI
+            CMD_GITHUB_CANCEL_WORKFLOW,       # ← AGGIUNGI QUI  
             CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
         ],
@@ -652,26 +772,7 @@ class GitFrame(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-    def OnTestTimerEvent(self, event):
-        self.test_poll_count += 1
-        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         
-        # Stampa SEMPRE sulla console
-        print(f"DEBUG_MONITOR: !!!!! TEST TIMER SCATTATO !!!!! Conteggio: {self.test_poll_count}, Run ID (test): {getattr(self, 'test_run_id_monitored', 'N/D')}, Ora: {timestamp_ora}")
-        
-        # Prova a scrivere anche sulla GUI
-        try:
-            self.output_text_ctrl.AppendText(f"TEST TIMER SCATTATO #{self.test_poll_count} alle {timestamp_ora}\n")
-        except Exception as e_gui_test:
-            print(f"DEBUG_MONITOR: Errore scrittura GUI in OnTestTimerEvent: {e_gui_test}")
-
-        if self.test_poll_count >= 7: # Fermati dopo 7 scatti (circa 35 secondi)
-            print(f"DEBUG_MONITOR: TEST AVANZATO - Limite raggiunto. Fermo self.test_timer_instance.")
-            if hasattr(self, 'test_timer_instance') and self.test_timer_instance.IsRunning():
-                self.test_timer_instance.Stop()
-            # In un'app reale, vorresti anche pulire self.test_timer_instance e self.test_run_id_monitored
-            # o rimuovere il run_id da un dizionario di monitoraggio.
-
     def start_monitoring_run(self, run_id, owner, repo):
         """Avvia il monitoraggio periodico di un workflow run."""
         print(f"DEBUG_MONITOR: Avvio monitoraggio per run_id: {run_id}")
@@ -1838,7 +1939,103 @@ class GitFrame(wx.Frame):
                 self.selected_run_id = None
 
         self._last_processed_path_for_context = current_repo_dir_from_ctrl
+    def get_available_workflows(self):
+        """Recupera la lista dei workflow disponibili nel repository."""
+        if not self.github_owner or not self.github_repo:
+            return []
+        
+        headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+        
+        workflows_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/workflows"
+        
+        try:
+            response = requests.get(workflows_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            workflows_data = response.json()
+            
+            workflows = []
+            for workflow in workflows_data.get('workflows', []):
+                if workflow.get('state') == 'active':  # Solo workflow attivi
+                    workflows.append({
+                        'id': workflow['id'],
+                        'name': workflow['name'],
+                        'path': workflow['path'],
+                        'badge_url': workflow.get('badge_url', ''),
+                        'html_url': workflow.get('html_url', '')
+                    })
+            return workflows
+        except Exception as e:
+            print(f"DEBUG_WORKFLOWS: Errore recupero workflow: {e}")
+            return []
+    def auto_find_and_monitor_latest_run(self):
+        """Trova automaticamente l'ultima run e avvia il monitoraggio."""
+        try:
+            api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
+            headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
+            if self.github_token:
+                headers["Authorization"] = f"Bearer {self.github_token}"
+            
+            params = {'per_page': 5}  # Solo le prime 5
+            response = requests.get(api_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            
+            runs_data = response.json()
+            latest_runs = runs_data.get('workflow_runs', [])
+            
+            if latest_runs:
+                latest_run = latest_runs[0]  # La più recente
+                run_id = latest_run['id']
+                run_name = latest_run.get('name', 'Sconosciuto')
+                status = latest_run.get('status', 'unknown')
+                
+                self.output_text_ctrl.AppendText(
+                    _("🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n").format(run_name, run_id, status)
+                )
+                
+                if status.lower() in ['queued', 'in_progress', 'waiting', 'requested', 'pending']:
+                    self.selected_run_id = run_id
+                    self.start_monitoring_run(run_id, self.github_owner, self.github_repo)
+                    self.output_text_ctrl.AppendText(_("🔄 Monitoraggio automatico avviato!\n"))
+                else:
+                    self.output_text_ctrl.AppendText(_("ℹ️ Il workflow è già terminato ({})\n").format(status))
+            else:
+                self.output_text_ctrl.AppendText(_("❌ Nessuna esecuzione recente trovata\n"))
+                
+        except Exception as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore nel recupero automatico: {}\n").format(e))
 
+    def verify_workflow_cancellation(self, run_id, run_name):
+        """Verifica lo stato di un workflow dopo la cancellazione."""
+        try:
+            headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
+            if self.github_token:
+                headers["Authorization"] = f"Bearer {self.github_token}"
+            
+            status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{run_id}"
+            response = requests.get(status_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            run_data = response.json()
+            current_status = run_data.get('status', 'unknown')
+            current_conclusion = run_data.get('conclusion', 'N/D')
+            
+            self.output_text_ctrl.AppendText(
+                _("🔍 Verifica stato workflow '{}': Status={}, Conclusion={}\n").format(
+                    run_name, current_status, current_conclusion
+                )
+            )
+            
+            if current_status == 'completed' and current_conclusion == 'cancelled':
+                self.output_text_ctrl.AppendText(_("✅ Workflow effettivamente cancellato!\n"))
+            elif current_status in ['in_progress', 'queued']:
+                self.output_text_ctrl.AppendText(_("⏳ Workflow ancora in esecuzione, cancellazione in corso...\n"))
+            else:
+                self.output_text_ctrl.AppendText(_("ℹ️ Stato workflow: {}\n").format(current_status))
+                
+        except Exception as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore verifica stato: {}\n").format(e))
     def ExecuteGithubCommand(self, command_name_key, command_details):
         self.output_text_ctrl.AppendText(_("Esecuzione comando GitHub: {}...\n").format(command_name_key))
 
@@ -1978,6 +2175,214 @@ class GitFrame(wx.Frame):
             else: self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
             return
+        elif command_name_key == CMD_GITHUB_TRIGGER_WORKFLOW:
+            self.output_text_ctrl.AppendText(_("Recupero lista workflow disponibili...\n")); wx.Yield()
+            
+            workflows = self.get_available_workflows()
+            if not workflows:
+                self.output_text_ctrl.AppendText(_("Nessun workflow attivo trovato nel repository {}/{}.\n").format(self.github_owner, self.github_repo))
+                return
+            
+            # Dialog per selezionare il workflow
+            workflow_choices = []
+            workflow_map = {}
+            for wf in workflows:
+                choice_str = f"{wf['name']} ({wf['path']})"
+                workflow_choices.append(choice_str)
+                workflow_map[choice_str] = wf
+            
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona il workflow da avviare:"),
+                                             _("Trigger Workflow per {}/{}").format(self.github_owner, self.github_repo),
+                                             workflow_choices,
+                                             wx.CHOICEDLG_STYLE)
+            
+            if select_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Selezione workflow annullata.\n"))
+                select_dlg.Destroy()
+                return
+            
+            selected_choice = select_dlg.GetStringSelection()
+            selected_workflow = workflow_map.get(selected_choice)
+            select_dlg.Destroy()
+            
+            if not selected_workflow:
+                self.output_text_ctrl.AppendText(_("Errore nella selezione del workflow.\n"))
+                return
+            
+            # Dialog per input del workflow
+            input_dlg = WorkflowInputDialog(self, _("Trigger Workflow"), selected_workflow['name'])
+            
+            if input_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Trigger workflow annullato.\n"))
+                input_dlg.Destroy()
+                return
+            
+            values = input_dlg.GetValues()
+            input_dlg.Destroy()
+            
+            # Trigger del workflow
+            workflow_id = selected_workflow['id']
+            trigger_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/workflows/{workflow_id}/dispatches"
+            
+            payload = {
+                'ref': values['branch'],
+                'inputs': values['inputs']
+            }
+            
+            self.output_text_ctrl.AppendText(
+                _("🚀 Avvio workflow '{}' sul branch '{}' con {} input...\n").format(
+                    selected_workflow['name'], values['branch'], len(values['inputs'])
+                )
+            ); wx.Yield()
+            
+            try:
+                response = requests.post(trigger_url, headers=headers, json=payload, timeout=15)
+                response.raise_for_status()
+                
+                self.output_text_ctrl.AppendText(
+                    _("✅ Workflow '{}' avviato con successo!\n").format(selected_workflow['name'])
+                )
+                self.output_text_ctrl.AppendText(
+                    _("🔍 Usa '{}' per vedere le nuove esecuzioni.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)
+                )
+                
+                # Suggerisci di monitorare
+                suggest_msg = _("Vuoi monitorare automaticamente la nuova esecuzione quando sarà disponibile?")
+                suggest_dlg = wx.MessageDialog(self, suggest_msg, _("Monitoraggio Automatico"), 
+                                             wx.YES_NO | wx.ICON_QUESTION)
+                suggest_response = suggest_dlg.ShowModal()
+                suggest_dlg.Destroy()
+                
+                if suggest_response == wx.ID_YES or suggest_response == 2:
+                    # Attendi un po' e poi cerca la nuova run
+                    self.output_text_ctrl.AppendText(_("⏳ Attesa 5 secondi per la nuova esecuzione...\n"))
+                    wx.CallLater(5000, self.auto_find_and_monitor_latest_run)
+            
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 422:
+                    self.output_text_ctrl.AppendText(_("❌ Errore 422: Il workflow potrebbe non supportare il dispatch manuale o i parametri sono incorretti.\n"))
+                else:
+                    self.output_text_ctrl.AppendText(_("❌ Errore HTTP {}: {}\n").format(e.response.status_code, e.response.text[:300]))
+            except requests.exceptions.RequestException as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore di rete: {}\n").format(e))
+            except Exception as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore imprevisto: {}\n").format(e))
+
+        elif command_name_key == CMD_GITHUB_CANCEL_WORKFLOW:
+            # Recupera workflow runs in esecuzione
+            api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
+            params = {'status': 'in_progress', 'per_page': 20}
+            
+            self.output_text_ctrl.AppendText(_("🔍 Ricerca workflow in esecuzione...\n")); wx.Yield()
+            
+            try:
+                response = requests.get(api_url, headers=headers, params=params, timeout=15)
+                response.raise_for_status()
+                runs_data = response.json()
+                
+                running_runs = runs_data.get('workflow_runs', [])
+                if not running_runs:
+                    self.output_text_ctrl.AppendText(_("ℹ️ Nessun workflow attualmente in esecuzione nel repository {}/{}.\n").format(self.github_owner, self.github_repo))
+                    return
+                
+                # Prepara lista per selezione
+                run_choices = []
+                run_map = {}
+                
+                for run in running_runs:
+                    status = run.get('status', 'unknown')
+                    name = run.get('name', 'Workflow Sconosciuto')
+                    created_at_raw = run.get('created_at', 'N/D')
+                    
+                    # Converti timestamp
+                    try:
+                        if created_at_raw != 'N/D':
+                            if created_at_raw.endswith('Z'):
+                                utc_dt = datetime.fromisoformat(created_at_raw[:-1] + '+00:00')
+                            else:
+                                utc_dt = datetime.fromisoformat(created_at_raw).replace(tzinfo=timezone.utc)
+                            local_dt = utc_dt.astimezone()
+                            created_display = local_dt.strftime('%Y-%m-%d %H:%M:%S')
+                        else:
+                            created_display = 'N/D'
+                    except:
+                        created_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
+                    
+                    choice_str = f"🏃 {name} (ID: {run['id']}, Status: {status}, Avviato: {created_display})"
+                    run_choices.append(choice_str)
+                    run_map[choice_str] = run
+                
+                # Dialog di selezione
+                cancel_dlg = wx.SingleChoiceDialog(self,
+                                                 _("Seleziona il workflow da cancellare:"),
+                                                 _("Cancella Workflow in Esecuzione"),
+                                                 run_choices,
+                                                 wx.CHOICEDLG_STYLE)
+                
+                if cancel_dlg.ShowModal() != wx.ID_OK:
+                    self.output_text_ctrl.AppendText(_("Cancellazione workflow annullata.\n"))
+                    cancel_dlg.Destroy()
+                    return
+                
+                selected_choice = cancel_dlg.GetStringSelection()
+                selected_run = run_map.get(selected_choice)
+                cancel_dlg.Destroy()
+                
+                if not selected_run:
+                    self.output_text_ctrl.AppendText(_("Errore nella selezione del workflow.\n"))
+                    return
+                
+                # Conferma cancellazione
+                run_id = selected_run['id']
+                run_name = selected_run.get('name', 'Sconosciuto')
+                
+                confirm_msg = _("⚠️ Sei sicuro di voler cancellare il workflow in esecuzione?\n\n"
+                               "Nome: {}\n"
+                               "ID: {}\n"
+                               "Status: {}\n\n"
+                               "Questa azione non può essere annullata.").format(
+                    run_name, run_id, selected_run.get('status', 'unknown')
+                )
+                
+                confirm_dlg = wx.MessageDialog(self, confirm_msg, _("Conferma Cancellazione"), 
+                                             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+                confirm_response = confirm_dlg.ShowModal()
+                confirm_dlg.Destroy()
+                
+                if not (confirm_response == wx.ID_YES or confirm_response == 2):
+                    self.output_text_ctrl.AppendText(_("Cancellazione workflow annullata dall'utente.\n"))
+                    return
+                
+                # Esegui cancellazione
+                cancel_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{run_id}/cancel"
+                
+                self.output_text_ctrl.AppendText(_("🛑 Cancellazione workflow '{}' (ID: {})...\n").format(run_name, run_id)); wx.Yield()
+                
+                cancel_response = requests.post(cancel_url, headers=headers, timeout=15)
+                cancel_response.raise_for_status()
+                
+                self.output_text_ctrl.AppendText(_("✅ Workflow '{}' cancellato con successo!\n").format(run_name))
+                self.output_text_ctrl.AppendText(_("ℹ️ Potrebbe essere necessario qualche secondo perché la cancellazione sia effettiva.\n"))
+                
+                # Offri di verificare lo stato
+                verify_msg = _("Vuoi verificare lo stato del workflow tra qualche secondo?")
+                verify_dlg = wx.MessageDialog(self, verify_msg, _("Verifica Stato"), wx.YES_NO | wx.ICON_QUESTION)
+                verify_response = verify_dlg.ShowModal()
+                verify_dlg.Destroy()
+                
+                if verify_response == wx.ID_YES or verify_response == 2:
+                    wx.CallLater(3000, lambda: self.verify_workflow_cancellation(run_id, run_name))
+            
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 409:
+                    self.output_text_ctrl.AppendText(_("❌ Errore 409: Il workflow non può essere cancellato (potrebbe essere già terminato).\n"))
+                else:
+                    self.output_text_ctrl.AppendText(_("❌ Errore HTTP {}: {}\n").format(e.response.status_code, e.response.text[:300]))
+            except requests.exceptions.RequestException as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore di rete: {}\n").format(e))
+            except Exception as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore imprevisto: {}\n").format(e))
 
         elif command_name_key == CMD_GITHUB_DELETE_RELEASE:
             self.output_text_ctrl.AppendText(_("Recupero elenco release da GitHub per {}/{}\n").format(self.github_owner, self.github_repo)); wx.Yield()
@@ -2088,8 +2493,7 @@ class GitFrame(wx.Frame):
                 if hasattr(e_list, 'response') and e_list.response is not None: self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(e_list.response.text[:500]))
             except Exception as e_generic_list: self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante l'elenco delle release: {}\n").format(e_generic_list))
             return
-
-        elif command_name_key == CMD_GITHUB_LIST_WORKFLOW_RUNS:
+        if command_name_key == CMD_GITHUB_LIST_WORKFLOW_RUNS:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
             params = {'per_page': 20}; branches_to_try = ['main', 'master']; all_runs_from_branches = []
             for branch_name in branches_to_try:
@@ -2155,7 +2559,7 @@ class GitFrame(wx.Frame):
             else: self.output_text_ctrl.AppendText(_("Selezione annullata.\n")); self.selected_run_id = None
             dlg.Destroy(); return
 
-        elif command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
+        if command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: Nessuna esecuzione workflow selezionata. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
 
