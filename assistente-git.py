@@ -186,7 +186,7 @@ class InputDialog(wx.Dialog):
 # --- Finestra di Dialogo per Configurazione GitHub (MODIFICATA) ---
 class GitHubConfigDialog(wx.Dialog):
     def __init__(self, parent, title, current_owner, current_repo,
-                 current_token_present, current_ask_pass_on_startup, current_strip_timestamps):
+                 current_token_present, current_ask_pass_on_startup, current_strip_timestamps, current_monitoring_beep):
         super(GitHubConfigDialog, self).__init__(parent, title=title)
         self.parent_frame = parent
         panel = wx.Panel(self)
@@ -232,7 +232,9 @@ class GitHubConfigDialog(wx.Dialog):
         self.strip_timestamps_cb = wx.CheckBox(panel, label=_("Rimuovi timestamp dai log di GitHub Actions"))
         self.strip_timestamps_cb.SetValue(current_strip_timestamps)
         main_sizer.Add(self.strip_timestamps_cb, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-
+        self.monitoring_beep_cb = wx.CheckBox(panel, label=_("Beep sonoro durante monitoraggio workflow"))
+        self.monitoring_beep_cb.SetValue(current_monitoring_beep)
+        main_sizer.Add(self.monitoring_beep_cb, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         btn_panel = wx.Panel(panel)
         btn_sizer_h = wx.BoxSizer(wx.HORIZONTAL)
         self.delete_config_button = wx.Button(btn_panel, label=_("Elimina Configurazione Salvata"))
@@ -385,7 +387,8 @@ class GitHubConfigDialog(wx.Dialog):
             "token": self.token_ctrl.GetValue(),
             "password": self.password_ctrl.GetValue(),
             "ask_pass_on_startup": self.ask_pass_startup_cb.GetValue(),
-            "strip_log_timestamps": self.strip_timestamps_cb.GetValue()
+            "strip_log_timestamps": self.strip_timestamps_cb.GetValue(),
+            "monitoring_beep": self.monitoring_beep_cb.GetValue()
         }
 class WorkflowInputDialog(wx.Dialog):
     def __init__(self, parent, title, workflow_name):
@@ -742,6 +745,7 @@ class GitFrame(wx.Frame):
         self.app_settings_path = os.path.join(self._get_app_config_dir(), APP_SETTINGS_FILE_NAME)
         self.github_ask_pass_on_startup = True
         self.github_strip_log_timestamps = False
+        self.github_monitoring_beep = True
         self._last_processed_path_for_context = None # Usato per tracciare l'ultimo path processato
         self.InitUI()
         self.SetMinSize((800, 700))
@@ -793,7 +797,7 @@ class GitFrame(wx.Frame):
         self.Bind(wx.EVT_TIMER, self.on_monitoring_timer, self.monitoring_timer)
         
         # Polling ogni 30 secondi
-        polling_interval = 30000  # milliseconds
+        polling_interval = 10000  # milliseconds
         self.monitoring_timer.Start(polling_interval)
         
         print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval}ms")
@@ -820,8 +824,19 @@ class GitFrame(wx.Frame):
         self.monitoring_poll_count = 0
 
     def on_monitoring_timer(self, event):
-        """Callback del timer per il monitoraggio del workflow run."""
+        """Callback del timer per il monitoraggio del workflow run."""        
         try:
+            if getattr(self, 'github_monitoring_beep', True):
+                if os.name == 'nt':  # Windows
+                    try:
+                        import winsound
+                        # Beep a 800Hz per 150ms (più piacevole del bell di sistema)
+                        winsound.Beep(800, 150)
+                    except ImportError:
+                        wx.Bell()
+                else:
+                    # Fallback per Linux/macOS
+                    wx.Bell()
             self.monitoring_poll_count += 1
             elapsed_time = time.time() - self.monitoring_start_time if self.monitoring_start_time else 0
             
@@ -1056,7 +1071,8 @@ class GitFrame(wx.Frame):
         """Salva le opzioni non sensibili in settings.json."""
         settings_data = {
             "ask_pass_on_startup": self.github_ask_pass_on_startup,
-            "strip_log_timestamps": self.github_strip_log_timestamps
+            "strip_log_timestamps": self.github_strip_log_timestamps,
+            "monitoring_beep": self.github_monitoring_beep
         }
         try:
             with open(self.app_settings_path, 'w') as f:
@@ -1074,21 +1090,24 @@ class GitFrame(wx.Frame):
                     settings_data = json.load(f)
                     self.github_ask_pass_on_startup = settings_data.get("ask_pass_on_startup", True)
                     self.github_strip_log_timestamps = settings_data.get("strip_log_timestamps", False)
+                    self.github_monitoring_beep = settings_data.get("monitoring_beep", True)  # ← 
                     print(f"DEBUG: Opzioni caricate da settings.json: ask_pass={self.github_ask_pass_on_startup}, strip_ts={self.github_strip_log_timestamps}")
             except (IOError, json.JSONDecodeError) as e:
                 print(f"DEBUG: Errore nel caricare settings.json: {e}. Uso i default.")
                 self.github_ask_pass_on_startup = True
                 self.github_strip_log_timestamps = False
+                self.github_monitoring_beep = True
         else:
             print("DEBUG: settings.json non trovato. Uso i default per le opzioni.")
             self.github_ask_pass_on_startup = True
             self.github_strip_log_timestamps = False
+            self.github_monitoring_beep = True
 
         self.output_text_ctrl.AppendText(_("Opzione 'Richiedi password all'avvio': {}.\n").format(
             _("Abilitata") if self.github_ask_pass_on_startup else _("Disabilitata")
         ))    
     def _save_github_config(self, owner: str, repo: str, token: str, password: str, # password is from dialog
-                                ask_pass_startup: bool, strip_timestamps: bool): # ask_pass_startup is from dialog
+                                ask_pass_startup: bool, strip_timestamps: bool, monitoring_beep: bool): # ask_pass_startup is from dialog
             """Salva la configurazione GitHub. La password è usata per crittografare/ri-crittografare."""
             
             password_master_for_encryption: str
@@ -1151,6 +1170,7 @@ class GitFrame(wx.Frame):
                 self.github_owner = owner
                 self.github_repo = repo
                 self.github_token = token
+                self.github_monitoring_beep = monitoring_beep
                 # self.github_ask_pass_on_startup e self.github_strip_log_timestamps sono già stati aggiornati
                 # nell'istanza e salvati in settings.json prima di chiamare questa funzione.
                 # Li abbiamo inclusi in config_data per la (de)crittografia ma non è necessario riassegnarli qui.
@@ -2045,7 +2065,8 @@ class GitFrame(wx.Frame):
                                      self.github_repo,
                                      bool(self.github_token),
                                      self.github_ask_pass_on_startup,
-                                     self.github_strip_log_timestamps)
+                                     self.github_strip_log_timestamps,
+                                     self.github_monitoring_beep)
             
             if dlg.ShowModal() == wx.ID_OK:
                 values = dlg.GetValues()
@@ -2055,6 +2076,7 @@ class GitFrame(wx.Frame):
                 new_repo_val = values["repo"]
                 new_ask_pass_startup = values["ask_pass_on_startup"]
                 new_strip_timestamps = values["strip_log_timestamps"]
+                new_monitoring_beep = values["monitoring_beep"]
 
                 if not new_owner_val or not new_repo_val:
                     self.output_text_ctrl.AppendText(_("Proprietario e Nome Repository sono obbligatori.\n"))
@@ -2063,12 +2085,13 @@ class GitFrame(wx.Frame):
 
                 self.github_ask_pass_on_startup = new_ask_pass_startup
                 self.github_strip_log_timestamps = new_strip_timestamps
+                self.github_monitoring_beep = new_monitoring_beep
                 self._save_app_settings()
 
                 token_to_save = new_token_val if new_token_val else ""
 
                 if self._save_github_config(new_owner_val, new_repo_val, token_to_save,
-                                            dialog_password, new_ask_pass_startup, new_strip_timestamps):
+                                            dialog_password, new_ask_pass_startup, new_strip_timestamps, new_monitoring_beep):
                     self.output_text_ctrl.AppendText(_("Configurazione GitHub salvata/aggiornata su file.\n"))
                     if self.github_owner != new_owner_val or self.github_repo != new_repo_val:
                          self.selected_run_id = None
