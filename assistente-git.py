@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet, InvalidToken # Per la crittografia
-
+from datetime import datetime, timezone # Aggiungi timezone da datetime
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
@@ -605,7 +605,7 @@ class GitFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
         self.command_tree_ctrl = None
-
+        self.monitoring_timers = {} # Dizionario per tracciare i timer attivi
         self.github_owner = ""
         self.github_repo = ""
         self.github_token = ""
@@ -646,7 +646,150 @@ class GitFrame(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        
+    def start_monitoring_run(self, run_id, owner, repo):
+        if run_id in self.monitoring_timers and self.monitoring_timers[run_id]['timer'].IsRunning():
+            self.output_text_ctrl.AppendText(_("L'esecuzione ID {} è già sotto monitoraggio.\n").format(run_id))
+            return
 
+        timer = wx.Timer(self)
+        polling_interval_ms = 30 * 1000  # Controlla ogni 30 secondi
+
+        self.monitoring_timers[run_id] = {
+            'timer': timer,
+            'owner': owner,
+            'repo': repo,
+            'poll_count': 0,
+            'interval_ms': polling_interval_ms
+        }
+        
+        # Collega l'evento del timer al gestore, passando run_id
+        timer.Bind(wx.EVT_TIMER, lambda event, r_id=run_id: self.OnMonitorRunTimer(event, r_id))
+        timer.Start(polling_interval_ms)
+        self.output_text_ctrl.AppendText(
+            _("Monitoraggio avviato per l'esecuzione ID {}. Controllo ogni {} secondi.\n").format(
+                run_id, polling_interval_ms // 1000
+            )
+        )
+
+    def OnMonitorRunTimer(self, event, run_id):
+        if run_id not in self.monitoring_timers:
+            event.GetTimer().Stop()
+            return
+
+        timer_info = self.monitoring_timers[run_id]
+        owner = timer_info['owner']
+        repo = timer_info['repo']
+        timer_info['poll_count'] += 1
+        
+        self.output_text_ctrl.AppendText(
+            _("Controllo #{} per stato esecuzione ID {} (Repo: {}/{})...\n").format(
+                timer_info['poll_count'], run_id, owner, repo
+            )
+        )
+        wx.Yield()
+
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}"
+        headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
+        
+        # Usa il token GitHub corrente del frame, se disponibile
+        # Nota: _ensure_github_config_loaded può essere interattivo, il che non è ideale
+        # per un timer. Per ora, usiamo direttamente self.github_token.
+        # Se il token non è caricato o è errato, l'API fallirà.
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+        else:
+            self.output_text_ctrl.AppendText(_("AVVISO: Nessun token GitHub per il monitoraggio API dell'ID esecuzione {}. L'operazione potrebbe fallire se il repository è privato.\n").format(run_id))
+
+        final_notification_message = None
+        try:
+            # NOTA: In un'applicazione più complessa, questa chiamata API dovrebbe essere
+            # eseguita in un thread separato per non bloccare la GUI.
+            # Data la frequenza del timer, un breve blocco potrebbe essere tollerabile.
+            response = requests.get(api_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            run_data = response.json()
+            
+            current_status = run_data.get('status', 'unknown').lower()
+            conclusion = run_data.get('conclusion') # Può essere None se non ancora concluso
+
+            non_completed_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required', 'stale']
+
+            if current_status == 'completed' or current_status not in non_completed_states:
+                timer_info['timer'].Stop()
+                if run_id in self.monitoring_timers: # Rimuovi solo se ancora presente
+                    del self.monitoring_timers[run_id]
+
+                conclusion_str = str(conclusion).capitalize() if conclusion else _("N/D")
+                status_str = current_status.capitalize()
+                
+                final_notification_message = _(
+                    "Esecuzione Workflow ID {} TERMINATA.\n\n"
+                    "Repository: {}/{}\n"
+                    "Nome Esecuzione: {}\n"
+                    "Stato Finale: {}\n"
+                    "Conclusione: {}\n"
+                    "URL: {}"
+                ).format(
+                    run_id, owner, repo,
+                    run_data.get('name', _('Sconosciuto')),
+                    status_str,
+                    conclusion_str,
+                    run_data.get('html_url', _('N/D'))
+                )
+                self.output_text_ctrl.AppendText(
+                    _("Esecuzione ID {} terminata. Stato: {}, Conclusione: {}.\nMonitoraggio interrotto.\n").format(
+                        run_id, status_str, conclusion_str
+                    )
+                )
+            else: # Ancora in corso o in uno stato non finale
+                self.output_text_ctrl.AppendText(
+                    _("Esecuzione ID {} ancora '{}'. Prossimo controllo tra {} secondi.\n").format(
+                        run_id, current_status, timer_info['interval_ms'] // 1000
+                    )
+                )
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(
+                _("Errore API durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e)
+            )
+            timer_info['timer'].Stop()
+            if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
+            final_notification_message = _("Errore durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli.").format(run_id)
+        except Exception as e_gen:
+            self.output_text_ctrl.AppendText(
+                _("Errore generico durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e_gen)
+            )
+            timer_info['timer'].Stop()
+            if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
+            final_notification_message = _("Errore generico durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli.").format(run_id)
+
+        if final_notification_message:
+            # Assicurati che MessageBox sia chiamato dal thread principale (eventi wx.Timer lo sono)
+            wx.MessageBox(final_notification_message, _("Notifica Conclusione Workflow"), wx.OK | wx.ICON_INFORMATION, self)
+            
+    def convert_utc_to_local_timestamp_match(self, ts_match):
+        """
+        Converte un timestamp UTC (formato ISO 8601 con 'Z') trovato da una regex
+        nell'ora locale del sistema.
+        """
+        utc_str = ts_match.group(1)
+        try:
+            # datetime.fromisoformat() prima di Python 3.11 non gestisce 'Z' direttamente.
+            # Lo sostituiamo con +00:00 per compatibilità.
+            if utc_str.endswith('Z'):
+                utc_dt = datetime.fromisoformat(utc_str[:-1] + '+00:00')
+            else:
+                # Se il timestamp non finisce con Z, non tentiamo la conversione
+                # per evitare di alterare formati non riconosciuti.
+                return ts_match.group(0)
+
+            local_dt = utc_dt.astimezone(None) # Converte in timezone locale del sistema
+            return local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)') # Formato desiderato
+        except ValueError as e:
+            print(f"DEBUG: Errore parsing/conversione timestamp: {e} per '{utc_str}'")
+            return ts_match.group(0) # Restituisce l'originale in caso di errore
+            
     # --- Metodi per la gestione della configurazione sicura e delle opzioni ---
     def _get_app_config_dir(self):
         sp = wx.StandardPaths.Get()
@@ -1115,8 +1258,21 @@ class GitFrame(wx.Frame):
             return False
 
     def OnClose(self, event):
-        self.Destroy()
+        # Arresta tutti i timer di monitoraggio attivi
+        if hasattr(self, 'monitoring_timers'):
+            for run_id in list(self.monitoring_timers.keys()): # Itera su una copia delle chiavi
+                timer_info = self.monitoring_timers.get(run_id)
+                if timer_info and timer_info['timer'].IsRunning():
+                    timer_info['timer'].Stop()
+                    self.output_text_ctrl.AppendText(_("Timer di monitoraggio per run ID {} arrestato.\n").format(run_id)) # Feedback
+                if run_id in self.monitoring_timers: # Rimuovi la voce
+                     del self.monitoring_timers[run_id]
+            if self.monitoring_timers: # Se per qualche motivo non è vuoto
+                 print("DEBUG: Alcuni timer potrebbero non essere stati rimossi correttamente da monitoring_timers.")
+            else:
+                 print("DEBUG: Tutti i timer di monitoraggio workflow arrestati e rimossi.")
 
+        self.Destroy()
     def check_git_installation(self):
         try:
             process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -1899,70 +2055,127 @@ class GitFrame(wx.Frame):
                 else: self.output_text_ctrl.AppendText(_("Errore selezione esecuzione.\n")); self.selected_run_id = None
             else: self.output_text_ctrl.AppendText(_("Selezione annullata.\n")); self.selected_run_id = None
             dlg.Destroy(); return
-
         elif command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: Nessuna esecuzione workflow selezionata. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
+
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
             self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {}...\n").format(self.selected_run_id)); wx.Yield()
-            current_status_from_api = "unknown"; current_conclusion_from_api = None; allow_log_download_attempt = False
+            current_status_from_api = "unknown"
+            allow_log_download_attempt = False
+            
             try:
-                run_resp = requests.get(run_status_url, headers=headers, timeout=10); run_resp.raise_for_status()
-                run_data = run_resp.json(); current_status_from_api = run_data.get('status', 'unknown'); current_conclusion_from_api = run_data.get('conclusion')
-                self.output_text_ctrl.AppendText(_("Stato attuale API: {}, Conclusione API: {}\n").format(current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")))
-                if current_status_from_api.lower() == 'completed':
-                    allow_log_download_attempt = True
-                    if current_conclusion_from_api is None: self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione completata ma conclusione API non definita.\n"))
-                elif current_status_from_api.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']:
-                    self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione '{}'. Log potrebbero essere incompleti.\n").format(current_status_from_api)); allow_log_download_attempt = True
-                else: self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'.\n").format(current_status_from_api)); allow_log_download_attempt = True
-            except requests.exceptions.RequestException as e_stat: self.output_text_ctrl.AppendText(_("Errore verifica stato esecuzione: {}. Tento download log.\n").format(e_stat)); allow_log_download_attempt = True
-            if not allow_log_download_attempt: self.output_text_ctrl.AppendText(_("Download log interrotto.\n")); return
+                run_resp = requests.get(run_status_url, headers=headers, timeout=10)
+                run_resp.raise_for_status()
+                run_data = run_resp.json()
+                current_status_from_api = run_data.get('status', 'unknown').lower()
+                current_conclusion_from_api = run_data.get('conclusion')
 
+                self.output_text_ctrl.AppendText(_("Stato attuale API: {}, Conclusione API: {}\n").format(
+                    current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")
+                ))
+                
+                non_completed_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required', 'stale']
+                if current_status_from_api in non_completed_states:
+                    dlg_msg = _("L'esecuzione del workflow ID {} è ancora '{}'.\n"
+                                "I log potrebbero essere incompleti o non disponibili finché non sarà completata.\n\n"
+                                "Vuoi essere avvisato quando l'esecuzione termina?").format(self.selected_run_id, current_status_from_api)
+                    confirm_dialog = wx.MessageDialog(self, dlg_msg, _("Esecuzione in Corso"),
+                                                      wx.YES_NO | wx.ICON_QUESTION)
+                    response = confirm_dialog.ShowModal()
+                    confirm_dialog.Destroy()
+
+                    if response == wx.ID_YES:
+                        self.start_monitoring_run(self.selected_run_id, self.github_owner, self.github_repo)
+                        return # Non tentare di scaricare i log ora
+                    else:
+                        self.output_text_ctrl.AppendText(_("Monitoraggio non avviato. Si tenterà comunque il download dei log (potrebbero essere incompleti).\n"))
+                        allow_log_download_attempt = True
+                elif current_status_from_api == 'completed':
+                    allow_log_download_attempt = True
+                    if current_conclusion_from_api is None:
+                         self.output_text_ctrl.AppendText(_("AVVISO: L'esecuzione è completata ma la conclusione API non è definita. I log potrebbero essere disponibili.\n"))
+                else: # Altri stati (es. fallito, cancellato direttamente)
+                    self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'. Il download dei log potrebbe non riuscire o i log potrebbero riflettere questo stato.\n").format(current_status_from_api))
+                    allow_log_download_attempt = True
+
+            except requests.exceptions.RequestException as e_stat:
+                self.output_text_ctrl.AppendText(_("Errore durante la verifica dello stato aggiornato dell'esecuzione: {}. Procedo comunque al tentativo di download log.\n").format(e_stat))
+                allow_log_download_attempt = True # Tenta comunque se il controllo di stato fallisce
+
+            if not allow_log_download_attempt:
+                 self.output_text_ctrl.AppendText(_("Download dei log non tentato a causa dello stato dell'esecuzione o della scelta dell'utente.\n"))
+                 return
+            
+            # Procede al download dei log
             logs_zip_url_api = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}/logs"
-            self.output_text_ctrl.AppendText(_("Download log per esecuzione ID {}...\n").format(self.selected_run_id)); wx.Yield()
+            self.output_text_ctrl.AppendText(_("Download dei log per l'esecuzione ID {} (repo {}/{})...\n").format(self.selected_run_id, self.github_owner, self.github_repo)); wx.Yield()
             try:
-                response = requests.get(logs_zip_url_api, headers=headers, stream=True, allow_redirects=True, timeout=30); response.raise_for_status()
+                response = requests.get(logs_zip_url_api, headers=headers, stream=True, allow_redirects=True, timeout=30)
+                response.raise_for_status()
                 if 'application/zip' not in response.headers.get('Content-Type', '').lower():
-                    self.output_text_ctrl.AppendText(_("Errore: Risposta non è ZIP. Content-Type: {}\n").format(response.headers.get('Content-Type')))
+                    self.output_text_ctrl.AppendText(_("Errore: La risposta non è un file ZIP. Content-Type: {}\n").format(response.headers.get('Content-Type')))
                     try:
                         api_response_json = response.json()
                         if api_response_json and 'message' in api_response_json:
                              self.output_text_ctrl.AppendText(_("Messaggio API: {}\n").format(api_response_json['message']))
                     except json.JSONDecodeError: self.output_text_ctrl.AppendText(_("Risposta API non JSON: {}\n").format(response.text[:200]))
                     return
-                self.output_text_ctrl.AppendText(_("Archivio ZIP log scaricato. Estrazione...\n")); wx.Yield()
+                self.output_text_ctrl.AppendText(_("Archivio ZIP dei log scaricato. Estrazione in corso...\n")); wx.Yield()
                 log_content_found = False
                 with io.BytesIO(response.content) as zip_in_memory, zipfile.ZipFile(zip_in_memory, 'r') as zip_ref:
-                    file_list = zip_ref.namelist(); self.output_text_ctrl.AppendText(_("File in ZIP:\n") + "\n".join(f"  - {f}" for f in file_list) + "\n\n")
-                    log_file_to_display = None; preferred_log_candidates = []; other_txt_logs = []
+                    file_list = zip_ref.namelist()
+                    self.output_text_ctrl.AppendText(_("File nell'archivio ZIP:\n") + "\n".join(f"  - {f}" for f in file_list) + "\n\n")
+                    
+                    log_file_to_display = None
+                    preferred_log_candidates = []
+                    other_txt_logs = []
                     for f_name in file_list:
                         if f_name.endswith(".txt"):
-                            if not re.match(r"^\d+_[^/]+\.txt$", os.path.basename(f_name)): preferred_log_candidates.append(f_name)
-                            else: other_txt_logs.append(f_name)
+                            if not re.match(r"^\d+_[^/]+\.txt$", os.path.basename(f_name)): 
+                                preferred_log_candidates.append(f_name)
+                            else:
+                                other_txt_logs.append(f_name)
+                    
                     if preferred_log_candidates: log_file_to_display = preferred_log_candidates[0]
                     elif other_txt_logs: log_file_to_display = other_txt_logs[0]
                     elif file_list: log_file_to_display = file_list[0]
+                    
                     if log_file_to_display:
                         self.output_text_ctrl.AppendText(_("--- Contenuto di: {} ---\n").format(log_file_to_display))
                         try:
-                            log_data_bytes = zip_ref.read(log_file_to_display); log_data = log_data_bytes.decode('utf-8', errors='replace')
-                            if self.github_strip_log_timestamps:
+                            log_data_bytes = zip_ref.read(log_file_to_display)
+                            log_data = log_data_bytes.decode('utf-8', errors='replace')
+
+                            # MODIFICA PER TIMESTAMP:
+                            if not self.github_strip_log_timestamps:
+                                # Tenta di convertire i timestamp ISO 8601 con 'Z'
+                                # Il pattern cerca yyyy-mm-ddThh:mm:ss[.ffffff]Z
+                                log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z)',
+                                                  self.convert_utc_to_local_timestamp_match,
+                                                  log_data,
+                                                  flags=re.MULTILINE)
+                            elif self.github_strip_log_timestamps: # Logica di rimozione esistente
                                 log_data = re.sub(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\s*', '', log_data, flags=re.MULTILINE)
                                 log_data = re.sub(r'^\[[^\]]+\]\s*\[\d{2}:\d{2}:\d{2}(?:\.\d+)?\]\s*', '', log_data, flags=re.MULTILINE)
-                            self.output_text_ctrl.AppendText(log_data); log_content_found = True
-                        except Exception as e_decode: self.output_text_ctrl.AppendText(_("Errore decodifica/elaborazione log {}: {}\n").format(log_file_to_display, e_decode))
-                    else: self.output_text_ctrl.AppendText(_("Nessun file log testuale in ZIP.\n"))
-                if log_content_found: self.output_text_ctrl.AppendText(_("\n--- Fine log ---\n"))
-                else: self.output_text_ctrl.AppendText(_("\nNessun contenuto log visualizzato.\n"))
-            except requests.exceptions.HTTPError as e:
-                self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
-                if e.response.status_code == 404: self.output_text_ctrl.AppendText(_("Causa: Esecuzione/log scaduti o ID non valido.\n"))
-                elif e.response.status_code == 410: self.output_text_ctrl.AppendText(_("Errore 410: Log scaduti.\n"))
-            except requests.exceptions.RequestException as e: self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
-            except zipfile.BadZipFile: self.output_text_ctrl.AppendText(_("Errore: File scaricato non è ZIP valido.\n"))
-            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto recupero log: {}\n").format(e_generic))
 
+                            self.output_text_ctrl.AppendText(log_data)
+                            log_content_found = True
+                        except Exception as e_decode: 
+                            self.output_text_ctrl.AppendText(_("Errore nella decodifica o elaborazione del file di log {}: {}\n").format(log_file_to_display, e_decode))
+                    else: 
+                        self.output_text_ctrl.AppendText(_("Nessun file di log testuale trovato nell'archivio ZIP o archivio vuoto.\n"))
+                if log_content_found: self.output_text_ctrl.AppendText(_("\n--- Fine dei log ---\n"))
+                else: self.output_text_ctrl.AppendText(_("\nNessun contenuto di log visualizzato.\n"))
+            except requests.exceptions.HTTPError as e: 
+                self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
+                if e.response.status_code == 404:
+                     self.output_text_ctrl.AppendText(_("Possibile causa: L'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido per il repository corrente.\n"))
+                elif e.response.status_code == 410: 
+                     self.output_text_ctrl.AppendText(_("Errore 410: I log per questa esecuzione sono scaduti e non sono più disponibili.\n"))
+            except requests.exceptions.RequestException as e: self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
+            except zipfile.BadZipFile: self.output_text_ctrl.AppendText(_("Errore: Il file scaricato non è un archivio ZIP valido.\n"))
+            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero dei log: {}\n").format(e_generic))
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
