@@ -154,6 +154,7 @@ CMD_GITHUB_SELECTED_RUN_LOGS = _("Log Esecuzione Workflow Selezionata")
 CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT = _("Elenca e Scarica Artefatti Esecuzione Selezionata")
 # --- NUOVO COMANDO PER CREAZIONE RELEASE ---
 CMD_GITHUB_CREATE_RELEASE = _("Crea Nuova Release GitHub con Asset")
+CMD_GITHUB_DELETE_RELEASE = _("Elimina Release GitHub (per ID o Tag)")
 # --- FINE NUOVO COMANDO ---
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
@@ -252,36 +253,58 @@ class GitHubConfigDialog(wx.Dialog):
         self.delete_config_button.Bind(wx.EVT_BUTTON, self.OnDeleteConfig)
 
     def OnDeleteConfig(self, event):
-        print("DEBUG: OnDeleteConfig chiamato")
-        self.parent_frame.output_text_ctrl.AppendText("DEBUG: OnDeleteConfig invocato\n")
+        print("DEBUG: OnDeleteConfig chiamato") # Questo lo vedi già
+        # Tentiamo di scrivere anche nell'output GUI per conferma
+        if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+            self.parent_frame.output_text_ctrl.AppendText("DEBUG: OnDeleteConfig invocato (GUI)\n")
+        else:
+            print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio di debug GUI iniziale.")
 
         risposta = wx.MessageBox(
             _("Sei sicuro di voler eliminare tutta la configurazione GitHub salvata (incluso il token)?\n"
               "Questa azione è irreversibile."),
             _("Conferma Eliminazione Configurazione"),
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
-            self
+            self  # self è GitHubConfigDialog, il genitore del MessageBox
         )
-        if risposta != wx.ID_YES:
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha annullato eliminazione\n")
-            return
+        # Output di debug aggiuntivi per analizzare 'risposta'
+        print(f"DEBUG: wx.MessageBox ha restituito il valore: {risposta}")
+        print(f"DEBUG: Il valore atteso per wx.ID_YES è: {wx.ID_YES}")
+        print(f"DEBUG: Il valore atteso per wx.ID_NO è: {wx.ID_NO}")
 
-        self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha confermato eliminazione, apro PasswordEntryDialog\n")
+        if not (risposta == wx.ID_YES or risposta == 2):
+            print(f"DEBUG: La condizione 'risposta ({risposta}) non è né wx.ID_YES ({wx.ID_YES}) né 2' è VERA. L'utente NON ha premuto 'Sì' o il valore restituito è inatteso.")
+            if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+                self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Eliminazione annullata dall'utente o risposta inattesa ({risposta}) da MessageBox.\n")
+            return # Esce dal metodo se l'utente non ha premuto "Sì"
+
+        # Se arriviamo qui, l'utente ha premuto "Sì"
+        print(f"DEBUG: La condizione 'risposta ({risposta}) != wx.ID_YES ({wx.ID_YES})' è FALSA. L'utente HA premuto 'Sì'.")
+        if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+            self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha confermato eliminazione, apro PasswordEntryDialog\n")
+        else:
+            print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio GUI 'apro PasswordEntryDialog'.")
+
+
         password_dialog = wx.PasswordEntryDialog(
-            self,
+            self, # self è GitHubConfigDialog, il genitore del PasswordEntryDialog
             _("Inserisci la Password Master per confermare l'eliminazione della configurazione "
               "(lascia vuoto se hai disabilitato 'Richiedi password all'avvio'):"),
             _("Conferma Password per Eliminazione")
         )
 
         if password_dialog.ShowModal() != wx.ID_OK:
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare\n")
+            if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+                self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare\n")
+            else:
+                print("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare (messaggio GUI non disponibile).")
             password_dialog.Destroy()
             return
 
         pw = password_dialog.GetValue()
-        self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Password inserita: '{pw}'\n")
-        print(f"DEBUG: Password inserita in dialog: '{pw}'")
+        if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+            self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Password inserita: '{pw}'\n")
+        print(f"DEBUG: Password inserita nel dialogo di eliminazione: '{pw}'") # Aggiunto anche a console per sicurezza
         password_dialog.Destroy()
 
         risultato = self.parent_frame._remove_github_config(pw)
@@ -292,17 +315,26 @@ class GitHubConfigDialog(wx.Dialog):
                 wx.OK | wx.ICON_INFORMATION,
                 self
             )
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito True\n")
+            if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+                self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito True\n")
+            # Resetta i campi del dialogo
             self.owner_ctrl.SetValue("")
             self.repo_ctrl.SetValue("")
             self.token_ctrl.SetValue("")
+            # Le impostazioni sottostanti nel frame genitore vengono resettate da _remove_github_config
+            # self.parent_frame.github_ask_pass_on_startup = True
+            # self.parent_frame.github_strip_log_timestamps = False
+            # Aggiorniamo i checkbox nel dialogo per riflettere questi default
             self.ask_pass_startup_cb.SetValue(True)
             self.strip_timestamps_cb.SetValue(False)
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: Campi dialogo resettati\n")
-        else:
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito False\n")
-            print("DEBUG: _remove_github_config ha restituito False")
 
+            if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+                self.parent_frame.output_text_ctrl.AppendText("DEBUG: Campi dialogo resettati ai default dopo eliminazione.\n")
+        else:
+            # _remove_github_config dovrebbe mostrare il suo messaggio di errore se la password è errata etc.
+            if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
+                self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito False\n")
+            print("DEBUG: _remove_github_config ha restituito False (la funzione stessa dovrebbe aver mostrato un errore all'utente se necessario).")
     def GetValues(self):
         return {
             "owner": self.owner_ctrl.GetValue().strip(),
@@ -483,22 +515,39 @@ ORIGINAL_COMMANDS = {
     CMD_GITHUB_LIST_WORKFLOW_RUNS: {"type": "github", "input_needed": False, "info": _("Elenca le esecuzioni recenti del workflow per il branch principale e permette di selezionarne una.")},
     CMD_GITHUB_SELECTED_RUN_LOGS: {"type": "github", "input_needed": False, "info": _("Scarica e visualizza i log dell'esecuzione del workflow precedentemente selezionata.")},
     CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT: {"type": "github", "input_needed": False, "info": _("Elenca gli artefatti dell'esecuzione del workflow selezionata e permette di scaricarli.")},
-    # --- INFO PER NUOVO COMANDO ---
-    CMD_GITHUB_CREATE_RELEASE: {"type": "github", "input_needed": False, "info": _("Crea una nuova release su GitHub, con opzione per caricare asset.")}
-    # --- FINE INFO ---
+    CMD_GITHUB_CREATE_RELEASE: {"type": "github", "input_needed": False, "info": _("Crea una nuova release su GitHub, con opzione per caricare asset.")},
+CMD_GITHUB_DELETE_RELEASE: {
+        "type": "github",
+        "input_needed": False, # Non più input testuale diretto
+        "info": _("Elenca le release esistenti su GitHub e permette di selezionarne una per l'eliminazione. L'eliminazione del tag Git associato è un'opzione aggiuntiva post-eliminazione della release."), # Info aggiornata
+        # Il messaggio di conferma verrà formattato dinamicamente con il nome della release selezionata
+        "confirm_template": _("ATTENZIONE: Stai per eliminare la release GitHub '{release_display_name}'. Questa azione è generalmente irreversibile sul sito di GitHub. Sei sicuro di voler procedere con l'eliminazione?")
+    }
 }
-
 CATEGORIZED_COMMANDS = {
     CAT_REPO_OPS: {"info": _("Comandi fondamentali..."), "order": [ CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS]}},
     CAT_LOCAL_CHANGES: {"info": _("Comandi per modifiche locali..."), "order": [ CMD_DIFF, CMD_DIFF_STAGED, CMD_ADD_ALL, CMD_COMMIT, CMD_AMEND_COMMIT, CMD_SHOW_COMMIT, CMD_LOG_CUSTOM ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_DIFF, CMD_DIFF_STAGED, CMD_ADD_ALL, CMD_COMMIT, CMD_AMEND_COMMIT, CMD_SHOW_COMMIT, CMD_LOG_CUSTOM]}},
     CAT_BRANCH_TAG: {"info": _("Gestione branch e tag..."), "order": [ CMD_BRANCH_A, CMD_BRANCH_SHOW_CURRENT, CMD_BRANCH_NEW_NO_SWITCH, CMD_CHECKOUT_B, CMD_CHECKOUT_EXISTING, CMD_MERGE, CMD_BRANCH_D, CMD_BRANCH_FORCE_D, CMD_TAG_LIGHTWEIGHT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_BRANCH_A, CMD_BRANCH_SHOW_CURRENT, CMD_BRANCH_NEW_NO_SWITCH, CMD_CHECKOUT_B, CMD_CHECKOUT_EXISTING, CMD_MERGE, CMD_BRANCH_D, CMD_BRANCH_FORCE_D, CMD_TAG_LIGHTWEIGHT]}},
     CAT_REMOTE_OPS: {"info": _("Operazioni con remoti..."), "order": [ CMD_FETCH_ORIGIN, CMD_PULL, CMD_PUSH, CMD_REMOTE_ADD_ORIGIN, CMD_REMOTE_SET_URL, CMD_REMOTE_V, CMD_PUSH_DELETE_BRANCH ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_FETCH_ORIGIN, CMD_PULL, CMD_PUSH, CMD_REMOTE_ADD_ORIGIN, CMD_REMOTE_SET_URL, CMD_REMOTE_V, CMD_PUSH_DELETE_BRANCH]}},
-    CAT_GITHUB_ACTIONS: {
-        "info": _("Interagisci con GitHub Actions per il repository configurato."),
-        "order": [ CMD_GITHUB_CONFIGURE, CMD_GITHUB_CREATE_RELEASE, CMD_GITHUB_LIST_WORKFLOW_RUNS, CMD_GITHUB_SELECTED_RUN_LOGS, CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT ], # AGGIUNTO CMD_GITHUB_CREATE_RELEASE
-        "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_GITHUB_CONFIGURE, CMD_GITHUB_CREATE_RELEASE, CMD_GITHUB_LIST_WORKFLOW_RUNS, CMD_GITHUB_SELECTED_RUN_LOGS, CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT]} # AGGIUNTO CMD_GITHUB_CREATE_RELEASE
-    },
-    CAT_STASH: {"info": _("Salvataggio temporaneo..."), "order": [CMD_STASH_SAVE, CMD_STASH_POP], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_STASH_SAVE, CMD_STASH_POP]}},
+CAT_GITHUB_ACTIONS: {
+        "info": _("Interagisci con GitHub Actions e Releases per il repository configurato."), # Info aggiornata
+        "order": [
+            CMD_GITHUB_CONFIGURE,
+            CMD_GITHUB_CREATE_RELEASE,
+            CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
+            CMD_GITHUB_LIST_WORKFLOW_RUNS,
+            CMD_GITHUB_SELECTED_RUN_LOGS,
+            CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
+        ],
+        "commands": {k: ORIGINAL_COMMANDS[k] for k in [
+            CMD_GITHUB_CONFIGURE,
+            CMD_GITHUB_CREATE_RELEASE,
+            CMD_GITHUB_DELETE_RELEASE, # Comando aggiunto qui
+            CMD_GITHUB_LIST_WORKFLOW_RUNS,
+            CMD_GITHUB_SELECTED_RUN_LOGS,
+            CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
+        ]}
+    },    CAT_STASH: {"info": _("Salvataggio temporaneo..."), "order": [CMD_STASH_SAVE, CMD_STASH_POP], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_STASH_SAVE, CMD_STASH_POP]}},
     CAT_SEARCH_UTIL: {"info": _("Ricerca e utilità..."), "order": [ CMD_GREP, CMD_LS_FILES ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_GREP, CMD_LS_FILES]}},
     CAT_RESTORE_RESET: {"info": _("Ripristino e reset (cautela!)..."), "order": [ CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT]}},
 }
@@ -1170,7 +1219,7 @@ class GitFrame(wx.Frame):
         except (wx.wxAssertionError, RuntimeError): return
 
         item_data = self.command_tree_ctrl.GetItemData(activated_item_id)
-        item_text_display = self.command_tree_ctrl.GetItemText(activated_item_id)
+        item_text_display = self.command_tree_ctrl.GetItemText(activated_item_id) # Questo è il nome tradotto
 
         if not item_data or item_data[0] != "command":
             if self.command_tree_ctrl.ItemHasChildren(activated_item_id):
@@ -1179,7 +1228,7 @@ class GitFrame(wx.Frame):
             else: self.output_text_ctrl.AppendText(_("'{}' non è un comando eseguibile.\n").format(item_text_display))
             return
 
-        cmd_name_key = item_text_display
+        cmd_name_key = item_text_display # Il nome tradotto usato come chiave per ORIGINAL_COMMANDS
         cmd_details = ORIGINAL_COMMANDS.get(cmd_name_key)
 
         if not cmd_details:
@@ -1188,11 +1237,13 @@ class GitFrame(wx.Frame):
         command_type = cmd_details.get("type", "git")
 
         if command_type == "github":
+            # Per i comandi GitHub, la logica di input (se necessaria) è gestita all'interno di ExecuteGithubCommand
             self.ExecuteGithubCommand(cmd_name_key, cmd_details)
         elif command_type == "git":
             user_input = ""
-            repo_path = self.repo_path_ctrl.GetValue()
+            repo_path = self.repo_path_ctrl.GetValue() # Assicurati sia definito
             if cmd_name_key == CMD_ADD_TO_GITIGNORE:
+                # ... (codice esistente per CMD_ADD_TO_GITIGNORE)
                 choice_dlg = wx.SingleChoiceDialog(self, _("Cosa vuoi aggiungere a .gitignore?"), _("Selezione Tipo Elemento"), [_("File"), _("Cartella")], wx.CHOICEDLG_STYLE)
                 if choice_dlg.ShowModal() == wx.ID_OK:
                     selection = choice_dlg.GetStringSelection()
@@ -1215,6 +1266,7 @@ class GitFrame(wx.Frame):
                 else: self.output_text_ctrl.AppendText(_("Operazione .gitignore annullata.\n")); choice_dlg.Destroy(); return
                 choice_dlg.Destroy()
             elif cmd_name_key == CMD_RESTORE_FILE:
+                # ... (codice esistente per CMD_RESTORE_FILE)
                 file_dlg = wx.FileDialog(self, _("Seleziona il file da ripristinare allo stato dell'ultimo commit"), defaultDir=repo_path, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
                 if file_dlg.ShowModal() == wx.ID_OK:
                     path_to_restore = file_dlg.GetPath()
@@ -1231,6 +1283,7 @@ class GitFrame(wx.Frame):
                 input_dialog = InputDialog(self, dlg_title, prompt, placeholder)
                 if input_dialog.ShowModal() == wx.ID_OK:
                     user_input = input_dialog.GetValue()
+                    # ... (validazioni specifiche per comandi Git esistenti) ...
                     if cmd_name_key == CMD_LOG_CUSTOM:
                         try:
                             num = int(user_input);
@@ -1239,19 +1292,21 @@ class GitFrame(wx.Frame):
                         except ValueError: self.output_text_ctrl.AppendText(_("Errore: '{}' non è un numero valido.\n").format(user_input)); input_dialog.Destroy(); return
                     elif cmd_name_key in [CMD_TAG_LIGHTWEIGHT, CMD_AMEND_COMMIT, CMD_GREP, CMD_RESET_TO_REMOTE]:
                           if not user_input: self.output_text_ctrl.AppendText(_("Errore: Questo comando richiede un input.\n")); input_dialog.Destroy(); return
-                    elif cmd_name_key != CMD_LS_FILES:
+                    elif cmd_name_key != CMD_LS_FILES: # LS_FILES può avere input vuoto
                         is_commit = cmd_name_key == CMD_COMMIT
-                        if not user_input and is_commit:
+                        if not user_input and is_commit: # Commit può avere messaggio vuoto con conferma
                             if wx.MessageBox(_("Il messaggio di commit è vuoto. Vuoi procedere comunque?"), _("Conferma Commit Vuoto"), wx.YES_NO | wx.ICON_QUESTION) != wx.ID_YES:
                                 self.output_text_ctrl.AppendText(_("Creazione del commit annullata.\n")); input_dialog.Destroy(); return
-                        elif not user_input and not is_commit and placeholder == "":
+                        # Per altri comandi Git che richiedono input e non hanno placeholder vuoto (o non sono LS_FILES)
+                        elif not user_input and not is_commit and placeholder == "" and cmd_name_key != CMD_LS_FILES :
                             self.output_text_ctrl.AppendText(_("Input richiesto per questo comando.\n")); input_dialog.Destroy(); return
-                else: self.output_text_ctrl.AppendText(_("Azione annullata dall'utente.\n")); input_dialog.Destroy(); return
+                else:
+                    self.output_text_ctrl.AppendText(_("Azione annullata dall'utente.\n")); input_dialog.Destroy(); return
                 input_dialog.Destroy()
             self.ExecuteGitCommand(cmd_name_key, cmd_details, user_input)
         else:
             self.output_text_ctrl.AppendText(_("Tipo di comando non riconosciuto: {}\n").format(command_type))
-
+            
     def ExecuteGitCommand(self, command_name_original_translated, command_details, user_input_val):
         self.output_text_ctrl.AppendText(_("Esecuzione comando Git: {}...\n").format(command_name_original_translated))
         if user_input_val and command_details.get("input_needed") and \
@@ -1513,16 +1568,16 @@ class GitFrame(wx.Frame):
                                      self.github_owner,
                                      self.github_repo,
                                      bool(self.github_token),
-                                     self.github_ask_pass_on_startup, # Pass current value from settings
-                                     self.github_strip_log_timestamps) # Pass current value from settings
-            
+                                     self.github_ask_pass_on_startup,
+                                     self.github_strip_log_timestamps)
+
             if dlg.ShowModal() == wx.ID_OK:
                 values = dlg.GetValues()
-                dialog_password = values["password"] # Password entered in the GitHubConfigDialog
+                dialog_password = values["password"]
                 new_token_val = values["token"]
                 new_owner_val = values["owner"]
                 new_repo_val = values["repo"]
-                new_ask_pass_startup = values["ask_pass_on_startup"] # This is the checkbox value from dialog
+                new_ask_pass_startup = values["ask_pass_on_startup"]
                 new_strip_timestamps = values["strip_log_timestamps"]
 
                 if not new_owner_val or not new_repo_val:
@@ -1530,57 +1585,42 @@ class GitFrame(wx.Frame):
                     wx.MessageBox(_("Proprietario e Nome Repository non possono essere vuoti."), _("Errore Configurazione"), wx.OK | wx.ICON_ERROR, self)
                     dlg.Destroy(); return
 
-                # Update non-sensitive settings first and save them
-                self.github_ask_pass_on_startup = new_ask_pass_startup # Update instance attribute
-                self.github_strip_log_timestamps = new_strip_timestamps # Update instance attribute
-                self._save_app_settings() # Save to settings.json
+                self.github_ask_pass_on_startup = new_ask_pass_startup
+                self.github_strip_log_timestamps = new_strip_timestamps
+                self._save_app_settings()
 
-                token_to_save = new_token_val if new_token_val else "" 
+                token_to_save = new_token_val if new_token_val else ""
 
-                # Attempt to save the secure configuration (owner, repo, token)
-                # _save_github_config will handle password requirements based on new_ask_pass_startup
-                if self._save_github_config(new_owner_val, new_repo_val, token_to_save, 
+                if self._save_github_config(new_owner_val, new_repo_val, token_to_save,
                                             dialog_password, new_ask_pass_startup, new_strip_timestamps):
-                    # self.github_owner, repo, token are updated by _save_github_config on success
                     self.output_text_ctrl.AppendText(_("Configurazione GitHub salvata/aggiornata su file.\n"))
-                    if self.github_owner != new_owner_val or self.github_repo != new_repo_val: # If context changed
-                         self.selected_run_id = None 
+                    if self.github_owner != new_owner_val or self.github_repo != new_repo_val:
+                         self.selected_run_id = None
                          self.output_text_ctrl.AppendText(_("Selezione esecuzione workflow resettata.\n"))
-                    self._last_processed_path_for_context = self.repo_path_ctrl.GetValue() 
+                    self._last_processed_path_for_context = self.repo_path_ctrl.GetValue()
                 else:
-                    # _save_github_config would have shown a MessageBox for critical errors (e.g. password needed but not given for ask_on_startup=True)
-                    self.output_text_ctrl.AppendText(_("Salvataggio configurazione GitHub su file fallito o non eseguito (es. password master richiesta ma non fornita quando necessaria).\n"))
-                    
+                    self.output_text_ctrl.AppendText(_("Salvataggio configurazione GitHub su file fallito o non eseguito.\n"))
                     made_in_memory_changes = False
-                    if self.github_owner != new_owner_val:
-                        self.github_owner = new_owner_val
-                        made_in_memory_changes = True
-                    if self.github_repo != new_repo_val:
-                        self.github_repo = new_repo_val
-                        made_in_memory_changes = True
-                    
-                    if self.github_token != token_to_save: 
-                        self.github_token = token_to_save
-                        made_in_memory_changes = True
-                    
+                    if self.github_owner != new_owner_val: self.github_owner = new_owner_val; made_in_memory_changes = True
+                    if self.github_repo != new_repo_val: self.github_repo = new_repo_val; made_in_memory_changes = True
+                    if self.github_token != token_to_save: self.github_token = token_to_save; made_in_memory_changes = True
                     if made_in_memory_changes:
-                         self.output_text_ctrl.AppendText(_("I dettagli GitHub (proprietario, repo, token) sono stati aggiornati in memoria per la sessione corrente.\n"))
-                         if (self.github_owner != new_owner_val or self.github_repo != new_repo_val) and (new_owner_val and new_repo_val) : 
+                         self.output_text_ctrl.AppendText(_("I dettagli GitHub sono stati aggiornati in memoria per la sessione corrente.\n"))
+                         if (self.github_owner != new_owner_val or self.github_repo != new_repo_val) and (new_owner_val and new_repo_val):
                             self.selected_run_id = None
-                            self.output_text_ctrl.AppendText(_("Selezione esecuzione workflow resettata a causa del cambio di contesto.\n"))
+                            self.output_text_ctrl.AppendText(_("Selezione esecuzione workflow resettata.\n"))
                          self._last_processed_path_for_context = self.repo_path_ctrl.GetValue()
-
                 self.output_text_ctrl.AppendText(_("Configurazione GitHub attuale (in memoria):\nProprietario: {}\nRepository: {}\nToken PAT: {}\nRichiedi pass all'avvio: {}\nRimuovi Timestamp Log: {}\n").format(
-                    self.github_owner if self.github_owner else _("Non impostato"), 
+                    self.github_owner if self.github_owner else _("Non impostato"),
                     self.github_repo if self.github_repo else _("Non impostato"),
                     _("Presente") if self.github_token else _("Non presente/Non caricato"),
-                    self.github_ask_pass_on_startup, 
-                    self.github_strip_log_timestamps 
+                    self.github_ask_pass_on_startup,
+                    self.github_strip_log_timestamps
                 ))
-            else: 
+            else:
                 self.output_text_ctrl.AppendText(_("Configurazione GitHub annullata.\n"))
             dlg.Destroy()
-            return 
+            return
 
         if not self.github_owner or not self.github_repo:
             self.output_text_ctrl.AppendText(
@@ -1589,23 +1629,21 @@ class GitFrame(wx.Frame):
                   "oppure imposta manualmente i dettagli usando il comando '{}'.\n").format(CMD_GITHUB_CONFIGURE)
             )
             return
-        
-        if not self._ensure_github_config_loaded():
+
+        if not self._ensure_github_config_loaded() and command_name_key not in [CMD_GITHUB_LIST_WORKFLOW_RUNS]:
             self.output_text_ctrl.AppendText(_("Avviso: Token GitHub non caricato. L'operazione potrebbe fallire o avere funzionalità limitate.\n"))
-            # For some commands, we might allow proceeding if token is optional (public repos)
 
         headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
         if self.github_token:
             headers["Authorization"] = f"Bearer {self.github_token}"
-        elif command_name_key not in [CMD_GITHUB_LIST_WORKFLOW_RUNS]: # List runs might work for public repos
+        elif command_name_key not in [CMD_GITHUB_LIST_WORKFLOW_RUNS]:
+            if command_name_key in [CMD_GITHUB_CREATE_RELEASE, CMD_GITHUB_DELETE_RELEASE]:
+                self.output_text_ctrl.AppendText(_("ERRORE: Token di Accesso Personale GitHub non configurato o non caricato. È necessario per questa operazione.\nUsa '{}' per configurarlo.\n").format(CMD_GITHUB_CONFIGURE))
+                return
             self.output_text_ctrl.AppendText(_("ATTENZIONE: Token GitHub non disponibile. L'operazione potrebbe fallire o avere funzionalità limitate, specialmente per repository privati o per creare/modificare risorse.\n"))
 
 
         if command_name_key == CMD_GITHUB_CREATE_RELEASE:
-            if not self.github_token: 
-                self.output_text_ctrl.AppendText(_("Token di Accesso Personale GitHub non configurato o non caricato. È necessario per creare una release.\nUsa '{}' per configurarlo.\n").format(CMD_GITHUB_CONFIGURE))
-                return
-
             dlg = CreateReleaseDialog(self, _("Crea Nuova Release GitHub"))
             if dlg.ShowModal() == wx.ID_OK:
                 values = dlg.GetValues()
@@ -1614,385 +1652,338 @@ class GitFrame(wx.Frame):
                 release_body = values["release_body"]
                 files_to_upload = values["files_to_upload"]
 
-                if not tag_name or not release_name: 
+                if not tag_name or not release_name:
                     self.output_text_ctrl.AppendText(_("Tag o Titolo della release non validi. Operazione annullata.\n"))
                     dlg.Destroy(); return
-                
+
                 api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases"
                 payload = {
                     "tag_name": tag_name,
                     "name": release_name,
                     "body": release_body,
-                    "draft": False, 
-                    "prerelease": False 
+                    "draft": False,
+                    "prerelease": False
                 }
-                self.output_text_ctrl.AppendText(f"Invio richiesta per creare la release '{release_name}' (tag: {tag_name}) su {self.github_owner}/{self.github_repo}...\n")
-                wx.Yield()
+                self.output_text_ctrl.AppendText(f"Invio richiesta per creare la release '{release_name}' (tag: {tag_name}) su {self.github_owner}/{self.github_repo}...\n"); wx.Yield()
                 try:
                     response = requests.post(api_url, headers=headers, data=json.dumps(payload), timeout=15)
-                    response.raise_for_status() 
+                    response.raise_for_status()
                     release_info = response.json()
                     self.output_text_ctrl.AppendText(_("Release creata con successo: {}\n").format(release_info.get('html_url')))
 
                     upload_url_template = release_info.get("upload_url", "")
                     if upload_url_template and files_to_upload:
-                        upload_url_base = upload_url_template.split("{")[0] 
+                        upload_url_base = upload_url_template.split("{")[0]
                         for fpath in files_to_upload:
                             filename = os.path.basename(fpath)
-                            params_upload = {"name": filename} 
+                            params_upload = {"name": filename}
                             self.output_text_ctrl.AppendText(_("Upload asset: '{}'...\n").format(filename)); wx.Yield()
                             try:
                                 with open(fpath, "rb") as f: file_data = f.read()
-                                headers_asset_upload = headers.copy() 
+                                headers_asset_upload = headers.copy()
                                 headers_asset_upload["Content-Type"] = "application/octet-stream"
-
-                                response_asset = requests.post(
-                                    upload_url_base, headers=headers_asset_upload, params=params_upload,
-                                    data=file_data, timeout=120 
-                                )
+                                response_asset = requests.post(upload_url_base, headers=headers_asset_upload, params=params_upload, data=file_data, timeout=120)
                                 response_asset.raise_for_status()
                                 asset_info = response_asset.json()
-                                self.output_text_ctrl.AppendText(
-                                    _("Asset '{}' caricato: {}\n").format(filename, asset_info.get('browser_download_url'))
-                                )
+                                self.output_text_ctrl.AppendText(_("Asset '{}' caricato: {}\n").format(filename, asset_info.get('browser_download_url')))
                             except requests.exceptions.RequestException as e_asset:
                                 self.output_text_ctrl.AppendText(_("ERRORE upload asset '{}': {}\n").format(filename, e_asset))
-                                if hasattr(e_asset, 'response') and e_asset.response is not None:
-                                    self.output_text_ctrl.AppendText(_("Dettagli errore API asset: {}\n").format(e_asset.response.text[:500]))
-                            except IOError as e_io:
-                                self.output_text_ctrl.AppendText(_("ERRORE lettura file asset '{}': {}\n").format(filename, e_io))
+                                if hasattr(e_asset, 'response') and e_asset.response is not None: self.output_text_ctrl.AppendText(_("Dettagli errore API asset: {}\n").format(e_asset.response.text[:500]))
+                            except IOError as e_io: self.output_text_ctrl.AppendText(_("ERRORE lettura file asset '{}': {}\n").format(filename, e_io))
                 except requests.exceptions.RequestException as e:
                     self.output_text_ctrl.AppendText(_("ERRORE API GitHub (creazione release): {}\n").format(e))
                     if hasattr(e, 'response') and e.response is not None:
-                        try:
-                            error_details = e.response.json()
-                            self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(json.dumps(error_details, indent=2)))
-                        except json.JSONDecodeError:
-                            self.output_text_ctrl.AppendText(_("Dettagli errore API (testo): {}\n").format(e.response.text[:500]))
-                except Exception as e_generic:
-                       self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante creazione release: {}\n").format(e_generic))
-            else: 
-                self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
+                        try: error_details = e.response.json(); self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(json.dumps(error_details, indent=2)))
+                        except json.JSONDecodeError: self.output_text_ctrl.AppendText(_("Dettagli errore API (testo): {}\n").format(e.response.text[:500]))
+                except Exception as e_generic: self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante creazione release: {}\n").format(e_generic))
+            else: self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
             return
 
+        elif command_name_key == CMD_GITHUB_DELETE_RELEASE:
+            self.output_text_ctrl.AppendText(_("Recupero elenco release da GitHub per {}/{}\n").format(self.github_owner, self.github_repo)); wx.Yield()
+            releases_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases"
+            try:
+                response_list = requests.get(releases_api_url, headers=headers, params={"per_page": 50}, timeout=15)
+                response_list.raise_for_status()
+                releases_data = response_list.json()
+
+                if not releases_data:
+                    self.output_text_ctrl.AppendText(_("Nessuna release trovata per il repository {}/{}.\n").format(self.github_owner, self.github_repo))
+                    return
+
+                release_choices = []
+                self.releases_map_for_delete = {}
+                for rel in releases_data:
+                    name = rel.get('name', _('Senza nome'))
+                    tag = rel.get('tag_name', 'N/A')
+                    created_at_raw = rel.get('created_at', 'N/D')
+                    created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
+                    choice_str = f"{name} (Tag: {tag}, Data: {created_at_display}, ID: {rel['id']})"
+                    release_choices.append(choice_str)
+                    self.releases_map_for_delete[choice_str] = rel
+
+                if not release_choices:
+                    self.output_text_ctrl.AppendText(_("Nessuna release valida trovata da elencare per l'eliminazione.\n"))
+                    return
+
+                dlg_select_release = wx.SingleChoiceDialog(self,
+                                _("Seleziona la release da eliminare:"), # CORRECTED
+                                _("Elimina Release GitHub"), # CORRECTED
+                                release_choices,
+                                wx.CHOICEDLG_STYLE | wx.OK | wx.CANCEL)
+
+                selected_release_obj = None
+                selected_display_name_for_confirm = "N/D"
+
+                if dlg_select_release.ShowModal() == wx.ID_OK:
+                    selected_choice_str = dlg_select_release.GetStringSelection()
+                    selected_release_obj = self.releases_map_for_delete.get(selected_choice_str)
+                    if selected_release_obj:
+                        rel_name_confirm = selected_release_obj.get('name', '')
+                        rel_tag_confirm = selected_release_obj.get('tag_name', '')
+                        if rel_name_confirm and rel_tag_confirm:
+                            selected_display_name_for_confirm = f"{rel_name_confirm} (Tag: {rel_tag_confirm})"
+                        elif rel_name_confirm:
+                            selected_display_name_for_confirm = rel_name_confirm
+                        elif rel_tag_confirm:
+                            selected_display_name_for_confirm = f"Release con Tag: {rel_tag_confirm}"
+                        else:
+                            selected_display_name_for_confirm = f"Release ID: {selected_release_obj['id']}"
+                    else:
+                        self.output_text_ctrl.AppendText(_("Errore: selezione della release non valida.\n"))
+                        dlg_select_release.Destroy(); return
+                else:
+                    self.output_text_ctrl.AppendText(_("Eliminazione release annullata (selezione non effettuata).\n"))
+                    dlg_select_release.Destroy(); return
+                dlg_select_release.Destroy()
+
+                if not selected_release_obj:
+                    self.output_text_ctrl.AppendText(_("Errore interno: oggetto release selezionato non trovato.\n")); return
+
+                release_id_to_delete = selected_release_obj['id']
+                target_tag_name = selected_release_obj.get('tag_name')
+
+                confirm_msg_template = command_details.get("confirm_template", _("Sei sicuro di voler eliminare la release '{release_display_name}'?"))
+                confirm_msg_filled = confirm_msg_template.replace("{release_display_name}", selected_display_name_for_confirm)
+
+                confirm_dialog = wx.MessageDialog(self, confirm_msg_filled, _("Conferma Eliminazione Release"), wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+                if confirm_dialog.ShowModal() != wx.ID_YES:
+                    self.output_text_ctrl.AppendText(_("Eliminazione della release '{}' annullata dall'utente.\n").format(selected_display_name_for_confirm))
+                    confirm_dialog.Destroy(); return
+                confirm_dialog.Destroy()
+
+                self.output_text_ctrl.AppendText(_("Tentativo di eliminare la release: '{}' (ID: {}) dal repository {}/{}\n").format(selected_display_name_for_confirm, release_id_to_delete, self.github_owner, self.github_repo)); wx.Yield()
+
+                delete_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases/{release_id_to_delete}"
+                self.output_text_ctrl.AppendText(_("Invio richiesta DELETE a: {}\n").format(delete_api_url)); wx.Yield()
+                try:
+                    delete_response = requests.delete(delete_api_url, headers=headers, timeout=15)
+                    delete_response.raise_for_status()
+                    self.output_text_ctrl.AppendText(_("Release '{}' (ID: {}) eliminata con successo da GitHub.\n").format(selected_display_name_for_confirm, release_id_to_delete))
+
+                    if target_tag_name:
+                        confirm_delete_tag_msg = _("La release è stata eliminata da GitHub.\nVuoi tentare di eliminare anche il tag Git '{tag}' dal repository remoto 'origin'?\n(Comando: git push origin --delete {tag})").format(tag=target_tag_name)
+                        tag_delete_dialog = wx.MessageDialog(self, confirm_delete_tag_msg, _("Elimina Tag Git Remoto?"), wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+                        if tag_delete_dialog.ShowModal() == wx.ID_YES:
+                            self.output_text_ctrl.AppendText(_("\nTentativo di eliminare il tag Git remoto '{}'...\n").format(target_tag_name)); wx.Yield()
+                            repo_path = self.repo_path_ctrl.GetValue()
+                            if self.RunSingleGitCommand(["git", "push", "origin", "--delete", target_tag_name], repo_path, _("Elimina tag remoto {}").format(target_tag_name)):
+                                 self.output_text_ctrl.AppendText(_("Comando per eliminare il tag remoto '{}' eseguito. Controlla l'output per il successo effettivo.\n").format(target_tag_name))
+                            else:
+                                 self.output_text_ctrl.AppendText(_("Comando per eliminare il tag remoto '{}' fallito o con errori. Controlla l'output sopra.\n").format(target_tag_name))
+                        else:
+                            self.output_text_ctrl.AppendText(_("\nIl tag Git remoto '{}' non è stato eliminato.\n").format(target_tag_name))
+                        tag_delete_dialog.Destroy()
+
+                except requests.exceptions.HTTPError as e_del:
+                    if e_del.response.status_code == 404:
+                        self.output_text_ctrl.AppendText(_("ERRORE: Release ID {} (selezionata: '{}') non trovata. Potrebbe essere già stata eliminata.\n").format(release_id_to_delete, selected_display_name_for_confirm))
+                    else:
+                        self.output_text_ctrl.AppendText(_("ERRORE API GitHub (eliminazione release ID {}): {}\n").format(release_id_to_delete, e_del))
+                        if hasattr(e_del, 'response') and e_del.response is not None: self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(e_del.response.text[:500]))
+                except requests.exceptions.RequestException as e_del:
+                    self.output_text_ctrl.AppendText(_("ERRORE API GitHub (eliminazione release ID {}): {}\n").format(release_id_to_delete, e_del))
+                except Exception as e_generic:
+                    self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante l'eliminazione della release: {}\n").format(e_generic))
+
+            except requests.exceptions.RequestException as e_list:
+                self.output_text_ctrl.AppendText(_("ERRORE API GitHub (elenco release): {}\n").format(e_list))
+                if hasattr(e_list, 'response') and e_list.response is not None:
+                    self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(e_list.response.text[:500]))
+            except Exception as e_generic_list:
+                self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante l'elenco delle release: {}\n").format(e_generic_list))
+            return
 
         elif command_name_key == CMD_GITHUB_LIST_WORKFLOW_RUNS:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
-            params = {'per_page': 20} 
-            branches_to_try = ['main', 'master'] # Consider making this configurable or smarter
-            all_runs_from_branches = []
-            
+            params = {'per_page': 20}; branches_to_try = ['main', 'master']; all_runs_from_branches = []
             for branch_name in branches_to_try:
                 params['branch'] = branch_name
                 self.output_text_ctrl.AppendText(_("Recupero esecuzioni workflow per repo '{}/{}' sul branch '{}'...\n").format(self.github_owner, self.github_repo, branch_name)); wx.Yield()
                 try:
-                    response = requests.get(api_url, headers=headers, params=params, timeout=15)
-                    response.raise_for_status()
-                    runs_data = response.json()
-                    branch_runs = runs_data.get('workflow_runs', [])
-                    if branch_runs:
-                        print(f"DEBUG: Trovate {len(branch_runs)} esecuzioni per branch '{branch_name}'")
-                        all_runs_from_branches.extend(branch_runs)
+                    response = requests.get(api_url, headers=headers, params=params, timeout=15); response.raise_for_status()
+                    runs_data = response.json(); branch_runs = runs_data.get('workflow_runs', [])
+                    if branch_runs: all_runs_from_branches.extend(branch_runs)
                 except requests.exceptions.RequestException as e:
-                    self.output_text_ctrl.AppendText(_("Errore API GitHub (elenco esecuzioni per branch {}): {}\n").format(branch_name, e))
-                    if hasattr(e, 'response') and e.response is not None:
-                         self.output_text_ctrl.AppendText(_("Risposta API: {}\n").format(e.response.text[:500]))
-                except Exception as e_generic:
-                    self.output_text_ctrl.AppendText(_("Errore imprevisto (elenco esecuzioni per branch {}): {}\n").format(branch_name, e_generic))
-
+                    self.output_text_ctrl.AppendText(_("Errore API GitHub (elenco esecuzioni branch {}): {}\n").format(branch_name, e))
+                    if hasattr(e, 'response') and e.response is not None: self.output_text_ctrl.AppendText(_("Risposta API: {}\n").format(e.response.text[:500]))
+                except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto (elenco esecuzioni branch {}): {}\n").format(branch_name, e_generic))
             if not all_runs_from_branches:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow trovata per i branch '{}' nel repository '{}/{}'.\n").format(", ".join(branches_to_try), self.github_owner, self.github_repo))
-                self.selected_run_id = None
-                return
-
+                self.output_text_ctrl.AppendText(_("Nessuna esecuzione workflow trovata per i branch '{}'.\n").format(", ".join(branches_to_try))); self.selected_run_id = None; return
             unique_runs_dict = {run['id']: run for run in all_runs_from_branches}
             unique_runs_list = sorted(list(unique_runs_dict.values()), key=lambda r: r.get('created_at', ''), reverse=True)
-
-            if not unique_runs_list:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow unica trovata.\n"))
-                self.selected_run_id = None; return
-
-            run_choices = []
-            self.workflow_runs_map = {} 
-            for run in unique_runs_list[:20]: # Limit to display
-                status_val = run.get('status', _('sconosciuto'))
-                conclusion_val = run.get('conclusion', _('in corso')) if status_val != 'completed' else run.get('conclusion', _('N/D'))
-                created_at_raw = run.get('created_at', 'N/D')
-                try: 
-                    created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
-                except: created_at_display = created_at_raw 
+            if not unique_runs_list: self.output_text_ctrl.AppendText(_("Nessuna esecuzione workflow unica trovata.\n")); self.selected_run_id = None; return
+            run_choices = []; self.workflow_runs_map = {}
+            for run in unique_runs_list[:20]:
+                status_val = run.get('status', _('sconosciuto')); conclusion_val = run.get('conclusion', _('in corso')) if status_val != 'completed' else run.get('conclusion', _('N/D'))
+                created_at_raw = run.get('created_at', 'N/D');
+                try: created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
+                except: created_at_display = created_at_raw
                 choice_str = f"ID: {run['id']} - {run.get('name', _('Workflow Sconosciuto'))} ({conclusion_val}, {status_val}) - {created_at_display}"
-                run_choices.append(choice_str)
-                self.workflow_runs_map[choice_str] = run
-            
-            if not run_choices:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow trovata da elencare.\n"))
-                self.selected_run_id = None; return
-
-            dlg = wx.SingleChoiceDialog(self, _("Seleziona un'esecuzione del workflow:"),
-                                        _("Esecuzioni Workflow Recenti per {}/{}").format(self.github_owner, self.github_repo), run_choices,
-                                        wx.CHOICEDLG_STYLE | wx.OK | wx.CANCEL)
+                run_choices.append(choice_str); self.workflow_runs_map[choice_str] = run
+            if not run_choices: self.output_text_ctrl.AppendText(_("Nessuna esecuzione workflow da elencare.\n")); self.selected_run_id = None; return
+            dlg = wx.SingleChoiceDialog(self, _("Seleziona un'esecuzione del workflow:"), _("Esecuzioni Workflow Recenti per {}/{}").format(self.github_owner, self.github_repo), run_choices, wx.CHOICEDLG_STYLE | wx.OK | wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:
-                selected_choice_str = dlg.GetStringSelection()
-                selected_run_details = self.workflow_runs_map.get(selected_choice_str)
+                selected_choice_str = dlg.GetStringSelection(); selected_run_details = self.workflow_runs_map.get(selected_choice_str)
                 if selected_run_details:
-                    self.selected_run_id = selected_run_details['id']
-                    status = selected_run_details['status']
-                    # Re-evaluate conclusion for display based on the initially fetched status
-                    conclusion = selected_run_details.get('conclusion', _('in corso')) if status != 'completed' else selected_run_details.get('conclusion', _('N/D'))
-                    name = selected_run_details.get('name', _('Sconosciuto'))
-                    html_url = selected_run_details['html_url']
-                    created_at_display = selected_run_details.get('created_at', 'N/D').replace('T', ' ').replace('Z', '')
-
-                    self.output_text_ctrl.AppendText(
-                        _("Esecuzione Selezionata per {}/{}:\n"
-                          "  Nome: {}\n"
-                          "  ID: {}\n"
-                          "  Stato: {}\n"
-                          "  Conclusione: {}\n"
-                          "  Avviata il: {}\n"
-                          "  URL: {}\n").format(
-                              self.github_owner, self.github_repo, name, self.selected_run_id, status, conclusion, created_at_display, html_url
-                          )
-                    )
-                    if status.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']:
-                        self.output_text_ctrl.AppendText(
-                            _("Questa esecuzione è attualmente '{}'. Puoi rieseguire '{}' per aggiornare lo stato e la conclusione finale.\n").format(
-                                status, CMD_GITHUB_LIST_WORKFLOW_RUNS)
-                        )
-                    self.output_text_ctrl.AppendText(_("Usa i comandi successivi per log o artefatti.\n"))
-                else:
-                    self.output_text_ctrl.AppendText(_("Errore nella selezione dell'esecuzione.\n"))
-                    self.selected_run_id = None
-            else:
-                self.output_text_ctrl.AppendText(_("Selezione annullata.\n"))
-                self.selected_run_id = None
-            dlg.Destroy()
-            return
-
+                    self.selected_run_id = selected_run_details['id']; status = selected_run_details['status']; conclusion = selected_run_details.get('conclusion', _('in corso')) if status != 'completed' else selected_run_details.get('conclusion', _('N/D'))
+                    name = selected_run_details.get('name', _('Sconosciuto')); html_url = selected_run_details['html_url'];
+                    created_at_raw_sel = selected_run_details.get('created_at', 'N/D')
+                    try: created_at_display_sel = created_at_raw_sel.replace('T', ' ').replace('Z', '') if created_at_raw_sel != 'N/D' else 'N/D'
+                    except: created_at_display_sel = created_at_raw_sel
+                    self.output_text_ctrl.AppendText(_("Esecuzione Selezionata:\n  Nome: {}\n  ID: {}\n  Stato: {}\n  Conclusione: {}\n  Avviata: {}\n  URL: {}\n").format(name, self.selected_run_id, status, conclusion, created_at_display_sel, html_url))
+                    if status.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']: self.output_text_ctrl.AppendText(_("Esecuzione '{}'. Riesegui '{}' per aggiornare.\n").format(status, CMD_GITHUB_LIST_WORKFLOW_RUNS))
+                    self.output_text_ctrl.AppendText(_("Usa comandi successivi per log o artefatti.\n"))
+                else: self.output_text_ctrl.AppendText(_("Errore selezione esecuzione.\n")); self.selected_run_id = None
+            else: self.output_text_ctrl.AppendText(_("Selezione annullata.\n")); self.selected_run_id = None
+            dlg.Destroy(); return
 
         elif command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: Nessuna esecuzione workflow selezionata. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
-
-            # --- Re-fetch run status before proceeding ---
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
             self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {}...\n").format(self.selected_run_id)); wx.Yield()
-            current_status_from_api = "unknown"
-            current_conclusion_from_api = None 
-            allow_log_download_attempt = False
+            current_status_from_api = "unknown"; current_conclusion_from_api = None; allow_log_download_attempt = False
             try:
-                run_resp = requests.get(run_status_url, headers=headers, timeout=10)
-                run_resp.raise_for_status()
-                run_data = run_resp.json()
-                current_status_from_api = run_data.get('status', 'unknown')
-                current_conclusion_from_api = run_data.get('conclusion') 
-
-                self.output_text_ctrl.AppendText(_("Stato attuale API: {}, Conclusione API: {}\n").format(
-                    current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")
-                ))
-                
+                run_resp = requests.get(run_status_url, headers=headers, timeout=10); run_resp.raise_for_status()
+                run_data = run_resp.json(); current_status_from_api = run_data.get('status', 'unknown'); current_conclusion_from_api = run_data.get('conclusion')
+                self.output_text_ctrl.AppendText(_("Stato attuale API: {}, Conclusione API: {}\n").format(current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")))
                 if current_status_from_api.lower() == 'completed':
                     allow_log_download_attempt = True
-                    if current_conclusion_from_api is None: 
-                         self.output_text_ctrl.AppendText(_("AVVISO: L'esecuzione è completata ma la conclusione API non è definita. I log potrebbero essere disponibili.\n"))
-                elif current_status_from_api.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']: 
-                    self.output_text_ctrl.AppendText(_("AVVISO: L'esecuzione è ancora '{}'. I log potrebbero essere incompleti o non disponibili finché non sarà completata, ma si tenterà il download.\n").format(current_status_from_api))
-                    allow_log_download_attempt = True 
-                else: # e.g. unknown or other states
-                    self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'. Il download dei log potrebbe non riuscire.\n").format(current_status_from_api))
-                    allow_log_download_attempt = True # Still allow attempt
-
-            except requests.exceptions.RequestException as e_stat:
-                self.output_text_ctrl.AppendText(_("Errore durante la verifica dello stato aggiornato dell'esecuzione: {}. Procedo comunque al tentativo di download log.\n").format(e_stat))
-                allow_log_download_attempt = True 
-            
-            if not allow_log_download_attempt:
-                 self.output_text_ctrl.AppendText(_("Download dei log interrotto a causa dello stato dell'esecuzione o errore nella verifica.\n"))
-                 return
-            # --- End re-fetch run status ---
+                    if current_conclusion_from_api is None: self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione completata ma conclusione API non definita.\n"))
+                elif current_status_from_api.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']:
+                    self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione '{}'. Log potrebbero essere incompleti.\n").format(current_status_from_api)); allow_log_download_attempt = True
+                else: self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'.\n").format(current_status_from_api)); allow_log_download_attempt = True
+            except requests.exceptions.RequestException as e_stat: self.output_text_ctrl.AppendText(_("Errore verifica stato esecuzione: {}. Tento download log.\n").format(e_stat)); allow_log_download_attempt = True
+            if not allow_log_download_attempt: self.output_text_ctrl.AppendText(_("Download log interrotto.\n")); return
 
             logs_zip_url_api = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}/logs"
-            self.output_text_ctrl.AppendText(_("Download dei log per l'esecuzione ID {} (repo {}/{})...\n").format(self.selected_run_id, self.github_owner, self.github_repo)); wx.Yield()
+            self.output_text_ctrl.AppendText(_("Download log per esecuzione ID {}...\n").format(self.selected_run_id)); wx.Yield()
             try:
-                response = requests.get(logs_zip_url_api, headers=headers, stream=True, allow_redirects=True, timeout=30) 
-                response.raise_for_status()
+                response = requests.get(logs_zip_url_api, headers=headers, stream=True, allow_redirects=True, timeout=30); response.raise_for_status()
                 if 'application/zip' not in response.headers.get('Content-Type', '').lower():
-                    self.output_text_ctrl.AppendText(_("Errore: La risposta non è un file ZIP. Content-Type: {}\n").format(response.headers.get('Content-Type')))
-                    try: 
+                    self.output_text_ctrl.AppendText(_("Errore: Risposta non è ZIP. Content-Type: {}\n").format(response.headers.get('Content-Type')))
+                    try:
                         api_response_json = response.json()
-                        if api_response_json and 'message' in api_response_json: self.output_text_ctrl.AppendText(_("Messaggio API: {}\n").format(api_response_json['message']))
-                    except json.JSONDecodeError: self.output_text_ctrl.AppendText(_("Risposta API non JSON: {}\n").format(response.text[:200])) 
+                        if api_response_json and 'message' in api_response_json:
+                             self.output_text_ctrl.AppendText(_("Messaggio API: {}\n").format(api_response_json['message']))
+                    except json.JSONDecodeError: self.output_text_ctrl.AppendText(_("Risposta API non JSON: {}\n").format(response.text[:200]))
                     return
-                self.output_text_ctrl.AppendText(_("Archivio ZIP dei log scaricato. Estrazione in corso...\n")); wx.Yield()
+                self.output_text_ctrl.AppendText(_("Archivio ZIP log scaricato. Estrazione...\n")); wx.Yield()
                 log_content_found = False
-                with io.BytesIO(response.content) as zip_in_memory:
-                    with zipfile.ZipFile(zip_in_memory, 'r') as zip_ref:
-                        file_list = zip_ref.namelist()
-                        self.output_text_ctrl.AppendText(_("File nell'archivio ZIP:\n") + "\n".join(f"  - {f}" for f in file_list) + "\n\n")
-                        print(f"DEBUG: Files in ZIP: {file_list}") 
-
-                        log_file_to_display = None
-                        preferred_log_candidates = []
-                        other_txt_logs = []
-                        for f_name in file_list:
-                            if f_name.endswith(".txt"):
-                                if not re.match(r"^\d+_[^/]+\.txt$", os.path.basename(f_name)): 
-                                    preferred_log_candidates.append(f_name)
-                                else:
-                                    other_txt_logs.append(f_name)
-                        
-                        if preferred_log_candidates:
-                            log_file_to_display = preferred_log_candidates[0]
-                        elif other_txt_logs:
-                            log_file_to_display = other_txt_logs[0]
-                        elif file_list: 
-                            log_file_to_display = file_list[0]
-                        
-                        if log_file_to_display:
-                            self.output_text_ctrl.AppendText(_("--- Contenuto di: {} ---\n").format(log_file_to_display))
-                            print(f"DEBUG: Selected log file to display: {log_file_to_display}") 
-                            try:
-                                log_data_bytes = zip_ref.read(log_file_to_display)
-                                print(f"DEBUG: Read {len(log_data_bytes)} bytes for {log_file_to_display}") 
-                                log_data = log_data_bytes.decode('utf-8', errors='replace')
-                                print(f"DEBUG: Decoded log data (first 200 chars): {log_data[:200]}")
-
-                                if self.github_strip_log_timestamps: 
-                                    original_len_before_strip = len(log_data)
-                                    log_data = re.sub(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\s*', '', log_data, flags=re.MULTILINE)
-                                    # The second regex might be for specific runner log formats, keep it if it was intended
-                                    log_data = re.sub(r'^\[[^\]]+\]\s*\[\d{2}:\d{2}:\d{2}(?:\.\d+)?\]\s*', '', log_data, flags=re.MULTILINE)
-                                    print(f"DEBUG: Log data after stripping (first 200 chars): {log_data[:200]}. Original length: {original_len_before_strip}, New length: {len(log_data)}")
-
-                                self.output_text_ctrl.AppendText(log_data)
-                                log_content_found = True
-                            except Exception as e_decode: 
-                                self.output_text_ctrl.AppendText(_("Errore nella decodifica o elaborazione del file di log {}: {}\n").format(log_file_to_display, e_decode))
-                                print(f"DEBUG: Exception during log decode/process: {e_decode}") 
-                        else: 
-                            self.output_text_ctrl.AppendText(_("Nessun file di log testuale trovato nell'archivio ZIP o archivio vuoto.\n"))
-                            print("DEBUG: No log_file_to_display was selected.") 
-                if log_content_found: self.output_text_ctrl.AppendText(_("\n--- Fine dei log ---\n"))
-                else: self.output_text_ctrl.AppendText(_("\nNessun contenuto di log visualizzato.\n"))
-            except requests.exceptions.HTTPError as e: 
+                with io.BytesIO(response.content) as zip_in_memory, zipfile.ZipFile(zip_in_memory, 'r') as zip_ref:
+                    file_list = zip_ref.namelist(); self.output_text_ctrl.AppendText(_("File in ZIP:\n") + "\n".join(f"  - {f}" for f in file_list) + "\n\n")
+                    log_file_to_display = None; preferred_log_candidates = []; other_txt_logs = []
+                    for f_name in file_list:
+                        if f_name.endswith(".txt"):
+                            if not re.match(r"^\d+_[^/]+\.txt$", os.path.basename(f_name)): preferred_log_candidates.append(f_name)
+                            else: other_txt_logs.append(f_name)
+                    if preferred_log_candidates: log_file_to_display = preferred_log_candidates[0]
+                    elif other_txt_logs: log_file_to_display = other_txt_logs[0]
+                    elif file_list: log_file_to_display = file_list[0]
+                    if log_file_to_display:
+                        self.output_text_ctrl.AppendText(_("--- Contenuto di: {} ---\n").format(log_file_to_display))
+                        try:
+                            log_data_bytes = zip_ref.read(log_file_to_display); log_data = log_data_bytes.decode('utf-8', errors='replace')
+                            if self.github_strip_log_timestamps:
+                                log_data = re.sub(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\s*', '', log_data, flags=re.MULTILINE)
+                                log_data = re.sub(r'^\[[^\]]+\]\s*\[\d{2}:\d{2}:\d{2}(?:\.\d+)?\]\s*', '', log_data, flags=re.MULTILINE)
+                            self.output_text_ctrl.AppendText(log_data); log_content_found = True
+                        except Exception as e_decode: self.output_text_ctrl.AppendText(_("Errore decodifica/elaborazione log {}: {}\n").format(log_file_to_display, e_decode))
+                    else: self.output_text_ctrl.AppendText(_("Nessun file log testuale in ZIP.\n"))
+                if log_content_found: self.output_text_ctrl.AppendText(_("\n--- Fine log ---\n"))
+                else: self.output_text_ctrl.AppendText(_("\nNessun contenuto log visualizzato.\n"))
+            except requests.exceptions.HTTPError as e:
                 self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
-                if e.response.status_code == 404:
-                     self.output_text_ctrl.AppendText(_("Possibile causa: L'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido per il repository corrente.\n"))
-                elif e.response.status_code == 410: # Gone - logs expired
-                     self.output_text_ctrl.AppendText(_("Errore 410: I log per questa esecuzione sono scaduti e non sono più disponibili.\n"))
-
+                if e.response.status_code == 404: self.output_text_ctrl.AppendText(_("Causa: Esecuzione/log scaduti o ID non valido.\n"))
+                elif e.response.status_code == 410: self.output_text_ctrl.AppendText(_("Errore 410: Log scaduti.\n"))
             except requests.exceptions.RequestException as e: self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
-            except zipfile.BadZipFile: self.output_text_ctrl.AppendText(_("Errore: Il file scaricato non è un archivio ZIP valido.\n"))
-            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero dei log: {}\n").format(e_generic))
-
+            except zipfile.BadZipFile: self.output_text_ctrl.AppendText(_("Errore: File scaricato non è ZIP valido.\n"))
+            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto recupero log: {}\n").format(e_generic))
 
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
-            
-            # --- Re-fetch run status before proceeding ---
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
             self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {} (per artefatti)...\n").format(self.selected_run_id)); wx.Yield()
-            current_status_from_api = "unknown"
-            allow_artifact_attempt = False
+            current_status_from_api = "unknown"; allow_artifact_attempt = False
             try:
-                run_resp = requests.get(run_status_url, headers=headers, timeout=10)
-                run_resp.raise_for_status()
-                run_data = run_resp.json()
-                current_status_from_api = run_data.get('status', 'unknown')
-                current_conclusion_from_api = run_data.get('conclusion')
-
-                self.output_text_ctrl.AppendText(_("Stato attuale API (per artefatti): {}, Conclusione API: {}\n").format(
-                    current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")
-                ))
-                
+                run_resp = requests.get(run_status_url, headers=headers, timeout=10); run_resp.raise_for_status()
+                run_data = run_resp.json(); current_status_from_api = run_data.get('status', 'unknown'); current_conclusion_from_api = run_data.get('conclusion')
+                self.output_text_ctrl.AppendText(_("Stato attuale API (artefatti): {}, Conclusione API: {}\n").format(current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")))
                 if current_status_from_api.lower() == 'completed':
                     allow_artifact_attempt = True
-                    if current_conclusion_from_api is None:
-                         self.output_text_ctrl.AppendText(_("AVVISO: L'esecuzione è completata ma la conclusione API non è definita. Gli artefatti potrebbero essere disponibili.\n"))
+                    if current_conclusion_from_api is None: self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione completata ma conclusione API non definita.\n"))
                 elif current_status_from_api.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']:
-                     self.output_text_ctrl.AppendText(_("AVVISO: L'esecuzione è ancora '{}'. Gli artefatti potrebbero non essere ancora disponibili o completi.\n").format(current_status_from_api))
-                     # Artifacts are usually available only after completion or explicit upload steps.
-                     # However, the /artifacts endpoint itself should list what's there.
-                     allow_artifact_attempt = True 
-                else:
-                    self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'. Il download degli artefatti potrebbe non riuscire.\n").format(current_status_from_api))
-                    allow_artifact_attempt = True
-
-            except requests.exceptions.RequestException as e_stat:
-                self.output_text_ctrl.AppendText(_("Errore durante la verifica dello stato aggiornato dell'esecuzione (per artefatti): {}. Procedo comunque.\n").format(e_stat))
-                allow_artifact_attempt = True
-            
-            if not allow_artifact_attempt: # Should generally be true with current logic
-                 self.output_text_ctrl.AppendText(_("Recupero artefatti interrotto a causa dello stato dell'esecuzione o errore nella verifica.\n"))
-                 return
-            # --- End re-fetch run status ---
+                    self.output_text_ctrl.AppendText(_("AVVISO: Esecuzione '{}'. Artefatti potrebbero non essere completi.\n").format(current_status_from_api)); allow_artifact_attempt = True
+                else: self.output_text_ctrl.AppendText(_("AVVISO: Stato esecuzione '{}'.\n").format(current_status_from_api)); allow_artifact_attempt = True
+            except requests.exceptions.RequestException as e_stat: self.output_text_ctrl.AppendText(_("Errore verifica stato esecuzione (artefatti): {}. Procedo.\n").format(e_stat)); allow_artifact_attempt = True
+            if not allow_artifact_attempt: self.output_text_ctrl.AppendText(_("Recupero artefatti interrotto.\n")); return
 
             artifacts_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}/artifacts"
-            self.output_text_ctrl.AppendText(_("Recupero lista artefatti per l'esecuzione ID {} (repo {}/{})...\n").format(self.selected_run_id, self.github_owner, self.github_repo)); wx.Yield()
+            self.output_text_ctrl.AppendText(_("Recupero lista artefatti per esecuzione ID {}...\n").format(self.selected_run_id)); wx.Yield()
             try:
-                response = requests.get(artifacts_api_url, headers=headers, timeout=10)
-                response.raise_for_status()
+                response = requests.get(artifacts_api_url, headers=headers, timeout=10); response.raise_for_status()
                 artifacts_data = response.json()
                 if artifacts_data.get('total_count', 0) == 0 or not artifacts_data.get('artifacts'):
-                    self.output_text_ctrl.AppendText(_("Nessun artefatto trovato per questa esecuzione.\n")); return
-                
-                artifact_choices = []
-                artifact_map = {} 
+                    self.output_text_ctrl.AppendText(_("Nessun artefatto trovato.\n")); return
+                artifact_choices = []; artifact_map = {}
                 for art in artifacts_data['artifacts']:
-                    expires_at_str = art.get('expires_at', 'N/D')
-                    expires_at_display = expires_at_str[:10] if expires_at_str and expires_at_str != 'N/D' else _('N/D')
+                    expires_at_str = art.get('expires_at', 'N/D');
+                    try: expires_at_display = expires_at_str[:10] if expires_at_str and expires_at_str != 'N/D' else _('N/D')
+                    except: expires_at_display = _('N/D') 
                     size_kb = art.get('size_in_bytes', 0) // 1024
                     choice_str = f"{art['name']} ({size_kb} KB, Scade: {expires_at_display})"
-                    artifact_choices.append(choice_str)
-                    artifact_map[choice_str] = art
-                
-                if not artifact_choices: self.output_text_ctrl.AppendText(_("Nessun artefatto valido trovato da elencare.\n")); return
-                
-                choice_dlg = wx.SingleChoiceDialog(self, _("Seleziona un artefatto da scaricare:"),
-                                                   _("Download Artefatto per {}/{}").format(self.github_owner, self.github_repo),
-                                                   artifact_choices, wx.CHOICEDLG_STYLE)
+                    artifact_choices.append(choice_str); artifact_map[choice_str] = art
+                if not artifact_choices: self.output_text_ctrl.AppendText(_("Nessun artefatto valido da elencare.\n")); return
+                choice_dlg = wx.SingleChoiceDialog(self, _("Seleziona un artefatto da scaricare:"), _("Download Artefatto per {}/{}").format(self.github_owner, self.github_repo), artifact_choices, wx.CHOICEDLG_STYLE)
                 if choice_dlg.ShowModal() == wx.ID_OK:
-                    selected_choice_str = choice_dlg.GetStringSelection()
-                    selected_artifact = artifact_map.get(selected_choice_str)
+                    selected_choice_str = choice_dlg.GetStringSelection(); selected_artifact = artifact_map.get(selected_choice_str)
                     if selected_artifact:
-                        # GitHub artifact names from API might not have .zip, but download is a zip
-                        artifact_name_from_api = selected_artifact['name'] 
-                        default_file_name = f"{artifact_name_from_api}.zip" 
-                        
-                        download_url = selected_artifact['archive_download_url'] 
-                        
-                        save_dialog = wx.FileDialog(self, _("Salva Artefatto Come..."), defaultDir=os.getcwd(), defaultFile=default_file_name,
-                                                    wildcard=_("File ZIP (*.zip)|*.zip|Tutti i file (*.*)|*.*"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                        artifact_name_from_api = selected_artifact['name']; default_file_name = f"{artifact_name_from_api}.zip"
+                        download_url = selected_artifact['archive_download_url']
+                        save_dialog = wx.FileDialog(self, _("Salva Artefatto Come..."), defaultDir=os.getcwd(), defaultFile=default_file_name, wildcard=_("File ZIP (*.zip)|*.zip|Tutti i file (*.*)|*.*"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                         if save_dialog.ShowModal() == wx.ID_OK:
                             save_path = save_dialog.GetPath()
-                            self.output_text_ctrl.AppendText(_("Download di '{}' in corso...\nDa: URL API GitHub\nA: {}\n").format(default_file_name, save_path)); wx.Yield()
+                            self.output_text_ctrl.AppendText(_("Download di '{}' in corso...\nA: {}\n").format(default_file_name, save_path)); wx.Yield()
                             try:
-                                # Note: archive_download_url already requires auth if repo is private.
-                                # The 'headers' passed here should include the Authorization token.
-                                artifact_response = requests.get(download_url, headers=headers, stream=True, allow_redirects=True, timeout=120) 
-                                artifact_response.raise_for_status()
+                                artifact_response = requests.get(download_url, headers=headers, stream=True, allow_redirects=True, timeout=120); artifact_response.raise_for_status()
                                 with open(save_path, 'wb') as f:
                                     for chunk in artifact_response.iter_content(chunk_size=8192): f.write(chunk)
-                                self.output_text_ctrl.AppendText(_("Artefatto '{}' scaricato con successo in: {}\n").format(default_file_name, save_path))
-                            except requests.exceptions.RequestException as e_dl: self.output_text_ctrl.AppendText(_("Errore durante il download dell'artefatto: {}\n").format(e_dl))
-                            except IOError as e_io: self.output_text_ctrl.AppendText(_("Errore durante il salvataggio dell'artefatto: {}\n").format(e_io))
+                                self.output_text_ctrl.AppendText(_("Artefatto '{}' scaricato: {}\n").format(default_file_name, save_path))
+                            except requests.exceptions.RequestException as e_dl: self.output_text_ctrl.AppendText(_("Errore download artefatto: {}\n").format(e_dl))
+                            except IOError as e_io: self.output_text_ctrl.AppendText(_("Errore salvataggio artefatto: {}\n").format(e_io))
                         else: self.output_text_ctrl.AppendText(_("Salvataggio artefatto annullato.\n"))
                         save_dialog.Destroy()
                 else: self.output_text_ctrl.AppendText(_("Selezione artefatto annullata.\n"))
                 choice_dlg.Destroy()
-            except requests.exceptions.HTTPError as e: 
+            except requests.exceptions.HTTPError as e:
                 self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
-                if e.response.status_code == 404:
-                     self.output_text_ctrl.AppendText(_("Possibile causa: L'esecuzione workflow o gli artefatti potrebbero essere scaduti o l'ID non è valido per il repository corrente.\n"))
-                elif e.response.status_code == 410: # Gone
-                     self.output_text_ctrl.AppendText(_("Errore 410: Gli artefatti per questa esecuzione sono scaduti o non più disponibili.\n"))
+                if e.response.status_code == 404: self.output_text_ctrl.AppendText(_("Causa: Esecuzione/artefatti scaduti o ID non valido.\n"))
+                elif e.response.status_code == 410: self.output_text_ctrl.AppendText(_("Errore 410: Artefatti scaduti.\n"))
             except requests.exceptions.RequestException as e: self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
-            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero degli artefatti: {}\n").format(e_generic))
-
-
+            except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto recupero artefatti: {}\n").format(e_generic))
     def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description="Comando Git"):
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         output = ""
