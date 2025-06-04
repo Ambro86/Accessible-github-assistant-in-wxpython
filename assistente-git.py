@@ -648,13 +648,23 @@ class GitFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         
     def start_monitoring_run(self, run_id, owner, repo):
+        print(f"DEBUG_MONITOR: Chiamata a start_monitoring_run per run_id: {run_id}, owner: {owner}, repo: {repo}") # NUOVO DEBUG
+
         if run_id in self.monitoring_timers and self.monitoring_timers[run_id]['timer'].IsRunning():
             self.output_text_ctrl.AppendText(_("L'esecuzione ID {} è già sotto monitoraggio.\n").format(run_id))
+            print(f"DEBUG_MONITOR: Monitoraggio per run_id {run_id} già attivo e in esecuzione.") # NUOVO DEBUG
             return
 
         timer = wx.Timer(self)
-        polling_interval_ms = 30 * 1000  # Controlla ogni 30 secondi
+        polling_interval_ms = 30 * 1000
 
+        # PRIMA DI AGGIUNGERE, assicuriamoci che non ci sia una vecchia istanza per lo stesso run_id
+        if run_id in self.monitoring_timers:
+            old_timer_info = self.monitoring_timers[run_id]
+            if old_timer_info['timer'].IsRunning():
+                old_timer_info['timer'].Stop()
+            print(f"DEBUG_MONITOR: Rimosso un vecchio riferimento di timer (non in esecuzione o sovrascritto) per run_id {run_id}.") # NUOVO DEBUG
+        
         self.monitoring_timers[run_id] = {
             'timer': timer,
             'owner': owner,
@@ -662,15 +672,21 @@ class GitFrame(wx.Frame):
             'poll_count': 0,
             'interval_ms': polling_interval_ms
         }
+        print(f"DEBUG_MONITOR: Aggiunto run_id {run_id} a self.monitoring_timers.") # NUOVO DEBUG
         
-        # Collega l'evento del timer al gestore, passando run_id
         timer.Bind(wx.EVT_TIMER, lambda event, r_id=run_id: self.OnMonitorRunTimer(event, r_id))
         timer.Start(polling_interval_ms)
+
+        if timer.IsRunning(): # NUOVO DEBUG
+            print(f"DEBUG_MONITOR: Timer per run_id {run_id} avviato correttamente e IsRunning() == True.")
+        else:
+            print(f"DEBUG_MONITOR: ERRORE: Timer per run_id {run_id} NON è partito correttamente dopo Start()!")
+        
         self.output_text_ctrl.AppendText(
             _("Monitoraggio avviato per l'esecuzione ID {}. Controllo ogni {} secondi.\n").format(
                 run_id, polling_interval_ms // 1000
             )
-        )
+                )
 
     def OnMonitorRunTimer(self, event, run_id):
         print(f"DEBUG_MONITOR: OnMonitorRunTimer chiamato per run_id: {run_id}")
