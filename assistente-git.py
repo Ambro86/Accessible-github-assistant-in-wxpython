@@ -853,6 +853,7 @@ class GitFrame(wx.Frame):
 
             # 3) Se mancano dati essenziali (run_id, owner o repo), fermo tutto
             if not self.monitoring_run_id or not self.monitoring_owner or not self.monitoring_repo:
+                print("DEBUG_MONITOR: Parametri monitoraggio mancanti, interruzione")
                 self.stop_monitoring_run()
                 return
 
@@ -863,22 +864,31 @@ class GitFrame(wx.Frame):
             }
             if self.github_token:
                 headers["Authorization"] = f"Bearer {self.github_token}"
+            
             api_url = (
                 f"https://api.github.com/repos/"
                 f"{self.monitoring_owner}/{self.monitoring_repo}/actions/runs/"
                 f"{self.monitoring_run_id}"
             )
+            
+            print(f"DEBUG_MONITOR: Poll #{self.monitoring_poll_count} - Chiamata API: {api_url}")
+            
             response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
             run_data = response.json()
             current_status = run_data.get("status", "unknown").lower()
             current_conclusion = run_data.get("conclusion")
 
-            # 5) Se il workflow è ancora “in progress”, emetto il beep e torno
+            print(f"DEBUG_MONITOR: Status: {current_status}, Conclusion: {current_conclusion}")
+
+            # 5) Stati che indicano che il workflow è ancora in progress
             in_progress_states = [
                 "queued", "in_progress", "waiting", "requested", "pending", "action_required"
             ]
+            
             if current_status in in_progress_states:
+                print(f"DEBUG_MONITOR: Workflow ancora in corso ({current_status})")
+                # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
                     if os.name == "nt":
                         try:
@@ -890,29 +900,37 @@ class GitFrame(wx.Frame):
                         wx.Bell()
                 return  # esco e aspetto il prossimo tick del timer
 
-            # 6) Il workflow NON è più “in progress” → è terminato.
-            #    Recupero in locale i dati prima di azzerare:
-            run_id_local         = self.monitoring_run_id
-            owner_local          = self.monitoring_owner
-            repo_local           = self.monitoring_repo
-            # Questa variabile deve essere valorizzata prima di avviare il monitoraggio,
-            # ad esempio subito dopo “Trigger Workflow”:
-            #     self.monitoring_workflow_name = selected_workflow['name']
-            workflow_name_local  = getattr(self, "monitoring_workflow_name", "(anonimo)")
-            duration_local       = elapsed_time
+            # 6) Il workflow NON è più "in progress" → è terminato o cancellato
+            print(f"DEBUG_MONITOR: Workflow terminato! Status: {current_status}, Conclusion: {current_conclusion}")
+            
+            # Recupero dati locali prima di azzerare lo stato
+            run_id_local = self.monitoring_run_id
+            owner_local = self.monitoring_owner
+            repo_local = self.monitoring_repo
+            workflow_name_local = getattr(self, "monitoring_workflow_name", "(anonimo)")
+            duration_local = elapsed_time
 
             # 7) Ferma subito il timer e pulisci lo stato interno
             self.stop_monitoring_run()
 
-            # 8) Preparo il testo da mostrare nel MessageDialog
+            # 8) Preparo il testo da mostrare in base alla conclusione
             if current_conclusion == "success":
-                icon   = "✅"
+                icon = "✅"
                 result = "completato con SUCCESSO"
             elif current_conclusion == "failure":
-                icon   = "❌"
+                icon = "❌"
                 result = "FALLITO"
+            elif current_conclusion == "cancelled":
+                icon = "🚫"
+                result = "CANCELLATO"
+            elif current_conclusion == "skipped":
+                icon = "⏭️"
+                result = "SALTATO"
+            elif current_conclusion == "timed_out":
+                icon = "⏰"
+                result = "SCADUTO (timeout)"
             else:
-                icon   = "🏁"
+                icon = "🏁"
                 result = f"terminato (conclusione: {current_conclusion or 'N/D'})"
 
             message = (
@@ -925,32 +943,82 @@ class GitFrame(wx.Frame):
                 "Usa i comandi per visualizzare log o scaricare artefatti."
             )
 
-            # 9) Apro un semplice MessageDialog di avviso
+            # 9) Apro un MessageDialog di notifica
+            dialog_title = f"Workflow {result.upper()}"
+            icon_style = wx.ICON_INFORMATION if current_conclusion == "success" else wx.ICON_WARNING
+            
             dlg = wx.MessageDialog(
                 parent=self,
                 message=message,
-                caption="Workflow Completato",
-                style=wx.OK | wx.ICON_INFORMATION
+                caption=dialog_title,
+                style=wx.OK | icon_style
             )
             dlg.ShowModal()
             dlg.Destroy()
 
-            # 10) (Opzionale) Loggo comunque anche sul TextCtrl
+            # 10) Loggo anche nel TextCtrl
             self.output_text_ctrl.AppendText(
-                f"{icon} WORKFLOW COMPLETATO!\n"
+                f"\n{icon} WORKFLOW COMPLETATO!\n"
                 f"Nome: {workflow_name_local}\n"
                 f"Run ID: {run_id_local}\n"
                 f"Repository: {owner_local}/{repo_local}\n"
                 f"Risultato: {result}\n"
                 f"Durata monitoraggio: {duration_local/60:.1f} minuti\n"
-                "Usa i comandi per visualizzare log o scaricare artefatti.\n"
+                "Usa i comandi per visualizzare log o scaricare artefatti.\n\n"
             )
 
+        except requests.exceptions.HTTPError as http_err:
+            # Gestione specifica per errori HTTP (es. 404 quando la run viene cancellata)
+            if http_err.response.status_code == 404:
+                print(f"DEBUG_MONITOR: Run ID {self.monitoring_run_id} non trovata (404) - probabilmente cancellata")
+                
+                # Recupero dati prima di fermare il monitoraggio
+                run_id_local = self.monitoring_run_id
+                owner_local = self.monitoring_owner
+                repo_local = self.monitoring_repo
+                workflow_name_local = getattr(self, "monitoring_workflow_name", "(anonimo)")
+                duration_local = (time.time() - self.monitoring_start_time) if self.monitoring_start_time else 0
+                
+                # Ferma il monitoraggio
+                self.stop_monitoring_run()
+                
+                # Notifica della cancellazione
+                cancel_message = (
+                    f"🚫 WORKFLOW CANCELLATO/RIMOSSO!\n\n"
+                    f"Nome: {workflow_name_local}\n"
+                    f"Run ID: {run_id_local}\n"
+                    f"Repository: {owner_local}/{repo_local}\n"
+                    f"Il workflow è stato cancellato o rimosso da GitHub.\n"
+                    f"Durata monitoraggio: {duration_local/60:.1f} minuti\n"
+                )
+                
+                # Mostra dialog di notifica
+                dlg = wx.MessageDialog(
+                    parent=self,
+                    message=cancel_message,
+                    caption="Workflow Cancellato/Rimosso",
+                    style=wx.OK | wx.ICON_WARNING
+                )
+                dlg.ShowModal()
+                dlg.Destroy()
+                
+                # Log nel TextCtrl
+                self.output_text_ctrl.AppendText(f"\n{cancel_message}\n")
+                
+            else:
+                print(f"DEBUG_MONITOR: Errore HTTP {http_err.response.status_code} durante monitoraggio: {http_err}")
+                self.output_text_ctrl.AppendText(f"❌ Errore HTTP durante monitoraggio: {http_err}\n")
+                # Non interrompiamo il monitoraggio per altri errori HTTP, potrebbe essere temporaneo
+                
+        except requests.exceptions.RequestException as req_err:
+            print(f"DEBUG_MONITOR: Errore di rete durante monitoraggio: {req_err}")
+            # Non interrompiamo il monitoraggio per errori temporanei di rete
+            self.output_text_ctrl.AppendText(f"⚠️ Errore temporaneo di rete durante monitoraggio: {req_err}\n")
+            
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore monitoraggio: {e}\n")
+            print(f"DEBUG_MONITOR: Errore imprevisto durante monitoraggio: {e}")
+            self.output_text_ctrl.AppendText(f"❌ Errore imprevisto durante monitoraggio: {e}\n")
             self.stop_monitoring_run()
-            return
-
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
         print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'")
