@@ -673,8 +673,12 @@ class GitFrame(wx.Frame):
         )
 
     def OnMonitorRunTimer(self, event, run_id):
+        print(f"DEBUG_MONITOR: OnMonitorRunTimer chiamato per run_id: {run_id}") # NUOVO DEBUG
         if run_id not in self.monitoring_timers:
-            event.GetTimer().Stop()
+            print(f"DEBUG_MONITOR: run_id {run_id} non trovato in self.monitoring_timers. Interruzione timer.") # NUOVO DEBUG
+            timer_obj = event.GetTimer()
+            if timer_obj: # Verifica se il timer object è ancora valido
+                timer_obj.Stop()
             return
 
         timer_info = self.monitoring_timers[run_id]
@@ -682,43 +686,52 @@ class GitFrame(wx.Frame):
         repo = timer_info['repo']
         timer_info['poll_count'] += 1
         
-        self.output_text_ctrl.AppendText(
-            _("Controllo #{} per stato esecuzione ID {} (Repo: {}/{})...\n").format(
-                timer_info['poll_count'], run_id, owner, repo
+        current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        gui_message = _("Controllo #{} ({}) per stato esecuzione ID {} (Repo: {}/{})...\n").format(
+                timer_info['poll_count'], current_time_str, run_id, owner, repo
             )
-        )
+        self.output_text_ctrl.AppendText(gui_message)
+        print(f"DEBUG_MONITOR: {gui_message.strip()}") # NUOVO DEBUG (console)
         wx.Yield()
 
         api_url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}"
+        print(f"DEBUG_MONITOR: API URL: {api_url}") # NUOVO DEBUG
         headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
         
-        # Usa il token GitHub corrente del frame, se disponibile
-        # Nota: _ensure_github_config_loaded può essere interattivo, il che non è ideale
-        # per un timer. Per ora, usiamo direttamente self.github_token.
-        # Se il token non è caricato o è errato, l'API fallirà.
         if self.github_token:
             headers["Authorization"] = f"Bearer {self.github_token}"
+            print("DEBUG_MONITOR: Utilizzo token GitHub per API call.") # NUOVO DEBUG
         else:
-            self.output_text_ctrl.AppendText(_("AVVISO: Nessun token GitHub per il monitoraggio API dell'ID esecuzione {}. L'operazione potrebbe fallire se il repository è privato.\n").format(run_id))
+            self.output_text_ctrl.AppendText(_("AVVISO: Nessun token GitHub per il monitoraggio API dell'ID esecuzione {}.\n").format(run_id))
+            print("DEBUG_MONITOR: Nessun token GitHub per API call.") # NUOVO DEBUG
 
         final_notification_message = None
         try:
-            # NOTA: In un'applicazione più complessa, questa chiamata API dovrebbe essere
-            # eseguita in un thread separato per non bloccare la GUI.
-            # Data la frequenza del timer, un breve blocco potrebbe essere tollerabile.
-            response = requests.get(api_url, headers=headers, timeout=10)
+            response = requests.get(api_url, headers=headers, timeout=15) # Aumentato leggermente il timeout
+            print(f"DEBUG_MONITOR: API Response Status Code: {response.status_code}") # NUOVO DEBUG
+            # Stampa una parte della risposta per vedere cosa riceviamo
+            response_text_snippet = response.text[:500] # Prendi solo i primi 500 caratteri
+            print(f"DEBUG_MONITOR: API Response Text (snippet): {response_text_snippet}") # NUOVO DEBUG
+            
             response.raise_for_status()
             run_data = response.json()
+            print(f"DEBUG_MONITOR: API Response JSON (run_data): {run_data}") # NUOVO DEBUG (potrebbe essere lungo)
             
             current_status = run_data.get('status', 'unknown').lower()
-            conclusion = run_data.get('conclusion') # Può essere None se non ancora concluso
+            conclusion = run_data.get('conclusion')
+            print(f"DEBUG_MONITOR: Stato API ricevuto: '{current_status}', Conclusione API: '{conclusion}'") # NUOVO DEBUG
 
             non_completed_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required', 'stale']
 
             if current_status == 'completed' or current_status not in non_completed_states:
+                print(f"DEBUG_MONITOR: Rilevato stato finale '{current_status}'. Interruzione timer per run_id {run_id}.") # NUOVO DEBUG
                 timer_info['timer'].Stop()
-                if run_id in self.monitoring_timers: # Rimuovi solo se ancora presente
+                if run_id in self.monitoring_timers:
                     del self.monitoring_timers[run_id]
+                    print(f"DEBUG_MONITOR: run_id {run_id} rimosso da self.monitoring_timers.") # NUOVO DEBUG
+                else:
+                    print(f"DEBUG_MONITOR: ATTENZIONE - run_id {run_id} non trovato in self.monitoring_timers durante il tentativo di rimozione.") # NUOVO DEBUG
+
 
                 conclusion_str = str(conclusion).capitalize() if conclusion else _("N/D")
                 status_str = current_status.capitalize()
@@ -742,55 +755,63 @@ class GitFrame(wx.Frame):
                         run_id, status_str, conclusion_str
                     )
                 )
-            else: # Ancora in corso o in uno stato non finale
+                print(f"DEBUG_MONITOR: Messaggio di notifica finale preparato: {final_notification_message}") # NUOVO DEBUG
+            else:
                 self.output_text_ctrl.AppendText(
                     _("Esecuzione ID {} ancora '{}'. Prossimo controllo tra {} secondi.\n").format(
                         run_id, current_status, timer_info['interval_ms'] // 1000
                     )
                 )
+                print(f"DEBUG_MONITOR: Esecuzione ID {run_id} ancora '{current_status}'. Continua monitoraggio.") # NUOVO DEBUG
 
         except requests.exceptions.RequestException as e:
             self.output_text_ctrl.AppendText(
                 _("Errore API durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e)
             )
+            print(f"DEBUG_MONITOR: RequestException durante monitoraggio: {e}. Interruzione timer per run_id {run_id}.") # NUOVO DEBUG
             timer_info['timer'].Stop()
             if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
-            final_notification_message = _("Errore durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli.").format(run_id)
+            final_notification_message = _("Errore API durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli: {}").format(run_id, str(e))
         except Exception as e_gen:
             self.output_text_ctrl.AppendText(
                 _("Errore generico durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e_gen)
             )
+            print(f"DEBUG_MONITOR: Eccezione generica durante monitoraggio: {e_gen}. Interruzione timer per run_id {run_id}.") # NUOVO DEBUG
             timer_info['timer'].Stop()
             if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
-            final_notification_message = _("Errore generico durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli.").format(run_id)
+            final_notification_message = _("Errore generico durante il monitoraggio dell'esecuzione ID {}.\nDettagli: {}").format(run_id, str(e_gen))
 
         if final_notification_message:
-            # Assicurati che MessageBox sia chiamato dal thread principale (eventi wx.Timer lo sono)
+            print(f"DEBUG_MONITOR: Visualizzazione wx.MessageBox con messaggio: {final_notification_message}") # NUOVO DEBUG
             wx.MessageBox(final_notification_message, _("Notifica Conclusione Workflow"), wx.OK | wx.ICON_INFORMATION, self)
+        else:
+            print(f"DEBUG_MONITOR: Nessun messaggio di notifica finale da mostrare per run_id {run_id} in questo ciclo.") # NUOVO DEBUG
             
     def convert_utc_to_local_timestamp_match(self, ts_match):
-        """
-        Converte un timestamp UTC (formato ISO 8601 con 'Z') trovato da una regex
-        nell'ora locale del sistema.
-        """
         utc_str = ts_match.group(1)
+        print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'") # NUOVO DEBUG
         try:
-            # datetime.fromisoformat() prima di Python 3.11 non gestisce 'Z' direttamente.
-            # Lo sostituiamo con +00:00 per compatibilità.
             if utc_str.endswith('Z'):
+                # Sostituisci 'Z' con '+00:00' per datetime.fromisoformat()
+                # datetime.fromisoformat() gestisce correttamente i millisecondi se presenti
                 utc_dt = datetime.fromisoformat(utc_str[:-1] + '+00:00')
+                print(f"DEBUG_TIMESTAMP: Parsed UTC datetime: {utc_dt}") # NUOVO DEBUG
             else:
-                # Se il timestamp non finisce con Z, non tentiamo la conversione
-                # per evitare di alterare formati non riconosciuti.
+                print(f"DEBUG_TIMESTAMP: Timestamp '{utc_str}' non termina con 'Z', non converto.") # NUOVO DEBUG
                 return ts_match.group(0)
 
-            local_dt = utc_dt.astimezone(None) # Converte in timezone locale del sistema
-            return local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)') # Formato desiderato
+            local_dt = utc_dt.astimezone(None)
+            print(f"DEBUG_TIMESTAMP: Converted to local datetime: {local_dt}") # NUOVO DEBUG
+            formatted_local_dt = local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)')
+            print(f"DEBUG_TIMESTAMP: Formattato localmente come: '{formatted_local_dt}'") # NUOVO DEBUG
+            return formatted_local_dt
         except ValueError as e:
-            print(f"DEBUG: Errore parsing/conversione timestamp: {e} per '{utc_str}'")
-            return ts_match.group(0) # Restituisce l'originale in caso di errore
-            
-    # --- Metodi per la gestione della configurazione sicura e delle opzioni ---
+            print(f"DEBUG_TIMESTAMP: Errore parsing/conversione timestamp: {e} per '{utc_str}'")
+            return ts_match.group(0)
+        except Exception as ex: # Catch generico per altri problemi
+            print(f"DEBUG_TIMESTAMP: Errore generico in conversione: {ex} per '{utc_str}'")
+            return ts_match.group(0)   
+            # --- Metodi per la gestione della configurazione sicura e delle opzioni ---
     def _get_app_config_dir(self):
         sp = wx.StandardPaths.Get()
         config_dir = sp.GetUserConfigDir()
