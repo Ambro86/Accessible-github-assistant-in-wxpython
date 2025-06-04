@@ -185,9 +185,10 @@ class InputDialog(wx.Dialog):
 class GitHubConfigDialog(wx.Dialog):
     def __init__(self, parent, title, current_owner, current_repo,
                  current_token_present, current_ask_pass_on_startup, current_strip_timestamps):
-        super(GitHubConfigDialog, self).__init__(parent, title=title, size=(550, 530))
-        self.parent_frame = parent # Salva riferimento al frame principale
+        super(GitHubConfigDialog, self).__init__(parent, title=title)
+        self.parent_frame = parent
         panel = wx.Panel(self)
+        self.panel = panel # Salva riferimento al panel per UpdatePasswordControlsState
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         main_sizer.Add(wx.StaticText(panel, label=_("Configura i dettagli del repository GitHub e le opzioni.")), 0, wx.ALL | wx.EXPAND, 10)
@@ -213,27 +214,27 @@ class GitHubConfigDialog(wx.Dialog):
         main_sizer.Add(token_label, 0, wx.LEFT|wx.RIGHT|wx.TOP, 5)
         main_sizer.Add(self.token_ctrl, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
 
-        password_label = wx.StaticText(panel, label=_("Password Master (per crittografare/decrittografare il token):"))
+        self.password_label = wx.StaticText(panel, label=_("Password Master (per crittografare/decrittografare il token):"))
         self.password_ctrl = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
-        main_sizer.Add(password_label, 0, wx.LEFT|wx.RIGHT|wx.TOP, 5)
+        main_sizer.Add(self.password_label, 0, wx.LEFT|wx.RIGHT|wx.TOP, 5)
         main_sizer.Add(self.password_ctrl, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
-        main_sizer.Add(wx.StaticText(panel, label=_("La password è necessaria se si modifica/salva il token o si cambiano le opzioni di caricamento/log.")),0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+
+        self.password_explanation_text = wx.StaticText(panel, label="")
+        main_sizer.Add(self.password_explanation_text, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
 
         self.ask_pass_startup_cb = wx.CheckBox(panel, label=_("Richiedi password master all'avvio per funzionalità GitHub"))
         self.ask_pass_startup_cb.SetValue(current_ask_pass_on_startup)
+        self.ask_pass_startup_cb.Bind(wx.EVT_CHECKBOX, self.OnAskPassStartupChanged)
         main_sizer.Add(self.ask_pass_startup_cb, 0, wx.ALL, 10)
 
         self.strip_timestamps_cb = wx.CheckBox(panel, label=_("Rimuovi timestamp dai log di GitHub Actions"))
         self.strip_timestamps_cb.SetValue(current_strip_timestamps)
         main_sizer.Add(self.strip_timestamps_cb, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
 
-        # Pulsanti
-        btn_panel = wx.Panel(panel) # Pannello per i pulsanti per un layout migliore
+        btn_panel = wx.Panel(panel)
         btn_sizer_h = wx.BoxSizer(wx.HORIZONTAL)
-
         self.delete_config_button = wx.Button(btn_panel, label=_("Elimina Configurazione Salvata"))
         btn_sizer_h.Add(self.delete_config_button, 0, wx.RIGHT, 20)
-
         std_button_sizer = wx.StdDialogButtonSizer()
         ok_button = wx.Button(btn_panel, wx.ID_OK, label=_("Salva Configurazione"))
         ok_button.SetDefault()
@@ -241,17 +242,57 @@ class GitHubConfigDialog(wx.Dialog):
         cancel_button = wx.Button(btn_panel, wx.ID_CANCEL)
         std_button_sizer.AddButton(cancel_button)
         std_button_sizer.Realize()
-
         btn_sizer_h.Add(std_button_sizer, 0, wx.EXPAND)
         btn_panel.SetSizer(btn_sizer_h)
         main_sizer.Add(btn_panel, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
+        panel.SetSizer(main_sizer) # Il sizer è impostato per il panel
 
-        panel.SetSizer(main_sizer)
         self.owner_ctrl.SetFocus()
-
         self.delete_config_button.Bind(wx.EVT_BUTTON, self.OnDeleteConfig)
 
+        self.UpdatePasswordControlsState() # Chiama per impostare lo stato iniziale
+
+        # CORREZIONE: Adatta la dimensione del dialogo al suo contenuto (il panel)
+        # e centralo. Non è necessario self.Layout() qui se Fit() fa il suo lavoro.
+        self.Fit()
+        self.Centre()
+    def OnAskPassStartupChanged(self, event):
+        """Chiamato quando lo stato della checkbox 'ask_pass_startup_cb' cambia."""
+        self.UpdatePasswordControlsState()
+        event.Skip()
+
+    def UpdatePasswordControlsState(self):
+        """Aggiorna la visibilità e il testo dei controlli relativi alla password
+           in base allo stato della checkbox 'ask_pass_startup_cb'."""
+        ask_pass_is_checked = self.ask_pass_startup_cb.GetValue()
+
+        self.password_label.Show(ask_pass_is_checked)
+        self.password_ctrl.Show(ask_pass_is_checked)
+
+        if ask_pass_is_checked:
+            self.password_ctrl.SetHint(_("Obbligatoria se si inserisce/modifica il token"))
+            self.password_explanation_text.SetLabel(
+                _("La Password Master è OBBLIGATORIA qui se si inserisce o modifica il Token PAT.\n"
+                  "Lasciare vuoto il Token PAT per non salvarlo o tentare di rimuoverlo.")
+            )
+        else:
+            self.password_ctrl.SetValue("")
+            self.password_ctrl.SetHint("")
+            self.password_explanation_text.SetLabel(
+                _("Poiché 'Richiedi password all'avvio' è disabilitato:\n"
+                  "- Non verrà chiesta una Password Master all'avvio.\n"
+                  "- Se inserisci un Token PAT qui sopra, sarà salvato usando una\n"
+                  "  crittografia basata su una password vuota (operazione meno sicura).")
+            )
+
+        # CORREZIONE: Riorganizza il layout del panel e poi adatta la dimensione del dialogo.
+        if self.panel: # Assicurati che self.panel esista
+            self.panel.Layout()  # Ricalcola il layout del pannello
+        self.Fit()           # Adatta la dimensione del dialogo al suo contenuto aggiornato
+        # self.Layout() # Di solito non necessario dopo Fit() sul dialogo stesso
+        self.Refresh()       # Forza un ridisegno per assicurare che le modifiche siano visibili
+        
     def OnDeleteConfig(self, event):
         print("DEBUG: OnDeleteConfig chiamato") # Questo lo vedi già
         # Tentiamo di scrivere anche nell'output GUI per conferma
