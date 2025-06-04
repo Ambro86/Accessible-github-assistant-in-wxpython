@@ -613,7 +613,6 @@ class GitFrame(wx.Frame):
         self.user_uuid = self._get_or_create_user_uuid()
         self.secure_config_path = self._get_secure_config_path()
         self.app_settings_path = os.path.join(self._get_app_config_dir(), APP_SETTINGS_FILE_NAME)
-
         self.github_ask_pass_on_startup = True
         self.github_strip_log_timestamps = False
         self._last_processed_path_for_context = None # Usato per tracciare l'ultimo path processato
@@ -646,47 +645,65 @@ class GitFrame(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+    def OnTestTimerEvent(self, event):
+        self.test_poll_count += 1
+        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         
+        # Stampa SEMPRE sulla console
+        print(f"DEBUG_MONITOR: !!!!! TEST TIMER SCATTATO !!!!! Conteggio: {self.test_poll_count}, Run ID (test): {getattr(self, 'test_run_id_monitored', 'N/D')}, Ora: {timestamp_ora}")
+        
+        # Prova a scrivere anche sulla GUI
+        try:
+            self.output_text_ctrl.AppendText(f"TEST TIMER SCATTATO #{self.test_poll_count} alle {timestamp_ora}\n")
+        except Exception as e_gui_test:
+            print(f"DEBUG_MONITOR: Errore scrittura GUI in OnTestTimerEvent: {e_gui_test}")
+
+        if self.test_poll_count >= 7: # Fermati dopo 7 scatti (circa 35 secondi)
+            print(f"DEBUG_MONITOR: TEST AVANZATO - Limite raggiunto. Fermo self.test_timer_instance.")
+            if hasattr(self, 'test_timer_instance') and self.test_timer_instance.IsRunning():
+                self.test_timer_instance.Stop()
+            # In un'app reale, vorresti anche pulire self.test_timer_instance e self.test_run_id_monitored
+            # o rimuovere il run_id da un dizionario di monitoraggio.
     def start_monitoring_run(self, run_id, owner, repo):
-        print(f"DEBUG_MONITOR: Chiamata a start_monitoring_run per run_id: {run_id}, owner: {owner}, repo: {repo}") # NUOVO DEBUG
+        print(f"DEBUG_MONITOR: TEST AVANZATO - Chiamata a start_monitoring_run per run_id: {run_id}")
 
         if run_id in self.monitoring_timers and self.monitoring_timers[run_id]['timer'].IsRunning():
             self.output_text_ctrl.AppendText(_("L'esecuzione ID {} è già sotto monitoraggio.\n").format(run_id))
-            print(f"DEBUG_MONITOR: Monitoraggio per run_id {run_id} già attivo e in esecuzione.") # NUOVO DEBUG
+            print(f"DEBUG_MONITOR: TEST AVANZATO - Monitoraggio per run_id {run_id} già attivo.")
             return
 
-        timer = wx.Timer(self)
-        polling_interval_ms = 30 * 1000
+        # Creiamo un attributo di istanza TEMPORANEO per questo test specifico
+        # per assicurarci che il timer non venga raccolto dal garbage collector.
+        # In una situazione reale con più timer, self.monitoring_timers è il modo giusto.
+        
+        # Se esiste già un timer di test, fermalo prima
+        if hasattr(self, 'test_timer_instance') and self.test_timer_instance.IsRunning():
+            self.test_timer_instance.Stop()
+            print("DEBUG_MONITOR: TEST AVANZATO - Fermato un test_timer_instance precedente.")
+            
+        self.test_timer_instance = wx.Timer(self) # Timer di test
+        self.test_run_id_monitored = run_id # Memorizza l'ID per il test handler
+        self.test_poll_count = 0 # Contatore per il test
 
-        # PRIMA DI AGGIUNGERE, assicuriamoci che non ci sia una vecchia istanza per lo stesso run_id
-        if run_id in self.monitoring_timers:
-            old_timer_info = self.monitoring_timers[run_id]
-            if old_timer_info['timer'].IsRunning():
-                old_timer_info['timer'].Stop()
-            print(f"DEBUG_MONITOR: Rimosso un vecchio riferimento di timer (non in esecuzione o sovrascritto) per run_id {run_id}.") # NUOVO DEBUG
-        
-        self.monitoring_timers[run_id] = {
-            'timer': timer,
-            'owner': owner,
-            'repo': repo,
-            'poll_count': 0,
-            'interval_ms': polling_interval_ms
-        }
-        print(f"DEBUG_MONITOR: Aggiunto run_id {run_id} a self.monitoring_timers.") # NUOVO DEBUG
-        
-        timer.Bind(wx.EVT_TIMER, lambda event, r_id=run_id: self.OnMonitorRunTimer(event, r_id))
-        timer.Start(polling_interval_ms)
+        print(f"DEBUG_MONITOR: TEST AVANZATO - Creato self.test_timer_instance, run_id: {self.test_run_id_monitored}")
 
-        if timer.IsRunning(): # NUOVO DEBUG
-            print(f"DEBUG_MONITOR: Timer per run_id {run_id} avviato correttamente e IsRunning() == True.")
-        else:
-            print(f"DEBUG_MONITOR: ERRORE: Timer per run_id {run_id} NON è partito correttamente dopo Start()!")
+        # Collega a un gestore di test ultra-semplice
+        self.test_timer_instance.Bind(wx.EVT_TIMER, self.OnTestTimerEvent)
         
-        self.output_text_ctrl.AppendText(
-            _("Monitoraggio avviato per l'esecuzione ID {}. Controllo ogni {} secondi.\n").format(
-                run_id, polling_interval_ms // 1000
-            )
+        polling_interval_ms = 5 * 1000 # Intervallo più breve per il test: 5 secondi
+
+        self.test_timer_instance.Start(polling_interval_ms)
+
+        if self.test_timer_instance.IsRunning():
+            print(f"DEBUG_MONITOR: TEST AVANZATO - self.test_timer_instance avviato e IsRunning() == True. Intervallo: {polling_interval_ms}ms")
+            self.output_text_ctrl.AppendText(
+                _("TEST AVANZATO: Monitoraggio (semplificato) avviato per ID {}. Controllo ogni {} secondi.\n").format(
+                    run_id, polling_interval_ms // 1000
                 )
+            )
+        else:
+            print(f"DEBUG_MONITOR: TEST AVANZATO - ERRORE: self.test_timer_instance NON è partito!")
+        
     def OnMonitorRunTimer(self, event, run_id):
         # PRIMISSIMA COSA DA FARE: STAMPARE PER CONFERMARE L'ESECUZIONE
         timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Ora con millisecondi
@@ -1378,7 +1395,7 @@ class GitFrame(wx.Frame):
 
         if not item_data or item_data[0] != "command":
             if self.command_tree_ctrl.ItemHasChildren(activated_item_id):
-                self.command_tree_ctrl.ToggleItemExpansion(activated_item_id)
+                self.command_tree_ctrl.Toggle(activated_item_id)
                 self.output_text_ctrl.AppendText(_("Categoria '{}' espansa/collassata.\n").format(item_text_display))
             else: self.output_text_ctrl.AppendText(_("'{}' non è un comando eseguibile.\n").format(item_text_display))
             return
