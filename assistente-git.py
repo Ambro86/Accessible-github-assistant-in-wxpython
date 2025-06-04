@@ -413,7 +413,20 @@ class WorkflowInputDialog(wx.Dialog):
         # Branch selection
         branch_sizer = wx.BoxSizer(wx.HORIZONTAL)
         branch_label = wx.StaticText(self, label="Branch/Ref:")
-        self.branch_ctrl = wx.TextCtrl(self, value="main", size=(200, -1))
+        parent = self.GetParent()
+        # Provo a risalire al percorso del repository: se esiste repo_path_ctrl, lo uso, altrimenti cwd
+        if hasattr(parent, 'repo_path_ctrl') and parent.repo_path_ctrl:
+            repo_path = parent.repo_path_ctrl.GetValue()
+        else:
+            repo_path = os.getcwd()
+
+        branch_name = "main"
+        if hasattr(parent, 'GetCurrentBranchName'):
+            cb = parent.GetCurrentBranchName(repo_path)
+            if cb: 
+                branch_name = cb
+        # -------------------------------------------------------------------
+        self.branch_ctrl = wx.TextCtrl(self, value=branch_name, size=(200, -1))
         branch_sizer.Add(branch_label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
         branch_sizer.Add(self.branch_ctrl, 1, wx.ALL|wx.EXPAND, 5)
         main_sizer.Add(branch_sizer, 0, wx.ALL|wx.EXPAND, 5)
@@ -796,7 +809,7 @@ class GitFrame(wx.Frame):
         self.monitoring_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_monitoring_timer, self.monitoring_timer)
         
-        # Polling ogni 30 secondi
+        # Polling ogni 10 secondi
         polling_interval = 10000  # milliseconds
         self.monitoring_timer.Start(polling_interval)
         
@@ -804,7 +817,7 @@ class GitFrame(wx.Frame):
         
         self.output_text_ctrl.AppendText(
             f"⏱️ Monitoraggio avviato per workflow run ID {run_id}.\n"
-            f"Polling ogni 30 secondi. Durata massima: 30 minuti.\n"
+            f"Polling ogni 10 secondi. Durata massima: 30 minuti.\n"
         )
 
 
@@ -822,27 +835,14 @@ class GitFrame(wx.Frame):
         self.monitoring_repo = None
         self.monitoring_start_time = None
         self.monitoring_poll_count = 0
-
     def on_monitoring_timer(self, event):
-        """Callback del timer per il monitoraggio del workflow run."""        
+        """Callback del timer per il monitoraggio del workflow run."""
         try:
-            if getattr(self, 'github_monitoring_beep', True):
-                if os.name == 'nt':  # Windows
-                    try:
-                        import winsound
-                        # Beep a 800Hz per 150ms (più piacevole del bell di sistema)
-                        winsound.Beep(800, 150)
-                    except ImportError:
-                        wx.Bell()
-                else:
-                    # Fallback per Linux/macOS
-                    wx.Bell()
+            # 1) Incremento del contatore di poll e calcolo del tempo trascorso
             self.monitoring_poll_count += 1
-            elapsed_time = time.time() - self.monitoring_start_time if self.monitoring_start_time else 0
-            
-            print(f"DEBUG_MONITOR: Poll #{self.monitoring_poll_count} - Elapsed: {elapsed_time:.1f}s")
-            
-            # Controllo timeout
+            elapsed_time = (time.time() - self.monitoring_start_time) if self.monitoring_start_time else 0
+
+            # 2) Controllo timeout assoluto del monitoraggio
             if elapsed_time > self.monitoring_max_duration:
                 self.output_text_ctrl.AppendText(
                     f"⏰ Timeout monitoraggio per run ID {self.monitoring_run_id} "
@@ -850,111 +850,107 @@ class GitFrame(wx.Frame):
                 )
                 self.stop_monitoring_run()
                 return
-            
-            # Verifica stato del workflow
+
+            # 3) Se mancano dati essenziali (run_id, owner o repo), fermo tutto
             if not self.monitoring_run_id or not self.monitoring_owner or not self.monitoring_repo:
-                print("DEBUG_MONITOR: Parametri monitoraggio mancanti, interruzione")
                 self.stop_monitoring_run()
                 return
-            
-            # Prepara headers per API
+
+            # 4) Chiamata API a GitHub per ottenere lo stato corrente del run
             headers = {
                 "Accept": "application/vnd.github.v3+json",
                 "X-GitHub-Api-Version": "2022-11-28"
             }
             if self.github_token:
                 headers["Authorization"] = f"Bearer {self.github_token}"
-            
-            # Chiamata API per verificare lo stato
-            api_url = f"https://api.github.com/repos/{self.monitoring_owner}/{self.monitoring_repo}/actions/runs/{self.monitoring_run_id}"
-            
-            print(f"DEBUG_MONITOR: Chiamata API: {api_url}")
-            
+            api_url = (
+                f"https://api.github.com/repos/"
+                f"{self.monitoring_owner}/{self.monitoring_repo}/actions/runs/"
+                f"{self.monitoring_run_id}"
+            )
             response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
-            
             run_data = response.json()
-            current_status = run_data.get('status', 'unknown').lower()
-            current_conclusion = run_data.get('conclusion')
-            workflow_name = run_data.get('name', 'Workflow Sconosciuto')
-            
-            print(f"DEBUG_MONITOR: Status: {current_status}, Conclusion: {current_conclusion}")
-            
-            # Stati che indicano che il workflow è ancora in esecuzione
-            in_progress_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required']
-            
+            current_status = run_data.get("status", "unknown").lower()
+            current_conclusion = run_data.get("conclusion")
+
+            # 5) Se il workflow è ancora “in progress”, emetto il beep e torno
+            in_progress_states = [
+                "queued", "in_progress", "waiting", "requested", "pending", "action_required"
+            ]
             if current_status in in_progress_states:
-                # Workflow ancora in corso, continua il monitoraggio
-                print(f"DEBUG_MONITOR: Workflow ancora in corso ({current_status})")
-                return
-            
-            # Workflow completato (con qualsiasi conclusione)
-            print(f"DEBUG_MONITOR: Workflow completato! Status: {current_status}, Conclusion: {current_conclusion}")
-            
-            # Determina l'icona e il messaggio in base alla conclusione
-            if current_conclusion == 'success':
-                icon = "✅"
-                conclusion_text = "completato con SUCCESSO"
-            elif current_conclusion == 'failure':
-                icon = "❌"
-                conclusion_text = "FALLITO"
-            elif current_conclusion == 'cancelled':
-                icon = "🚫"
-                conclusion_text = "ANNULLATO"
-            elif current_conclusion == 'skipped':
-                icon = "⏭️"
-                conclusion_text = "SALTATO"
-            elif current_conclusion == 'timed_out':
-                icon = "⏰"
-                conclusion_text = "SCADUTO (timeout)"
+                if getattr(self, "github_monitoring_beep", True):
+                    if os.name == "nt":
+                        try:
+                            import winsound
+                            winsound.Beep(800, 150)
+                        except ImportError:
+                            wx.Bell()
+                    else:
+                        wx.Bell()
+                return  # esco e aspetto il prossimo tick del timer
+
+            # 6) Il workflow NON è più “in progress” → è terminato.
+            #    Recupero in locale i dati prima di azzerare:
+            run_id_local         = self.monitoring_run_id
+            owner_local          = self.monitoring_owner
+            repo_local           = self.monitoring_repo
+            # Questa variabile deve essere valorizzata prima di avviare il monitoraggio,
+            # ad esempio subito dopo “Trigger Workflow”:
+            #     self.monitoring_workflow_name = selected_workflow['name']
+            workflow_name_local  = getattr(self, "monitoring_workflow_name", "(anonimo)")
+            duration_local       = elapsed_time
+
+            # 7) Ferma subito il timer e pulisci lo stato interno
+            self.stop_monitoring_run()
+
+            # 8) Preparo il testo da mostrare nel MessageDialog
+            if current_conclusion == "success":
+                icon   = "✅"
+                result = "completato con SUCCESSO"
+            elif current_conclusion == "failure":
+                icon   = "❌"
+                result = "FALLITO"
             else:
-                icon = "🏁"
-                conclusion_text = f"terminato (conclusione: {current_conclusion or 'N/D'})"
-            
-            # Calcola tempo trascorso
-            duration_text = f"{elapsed_time/60:.1f} minuti" if elapsed_time >= 60 else f"{elapsed_time:.0f} secondi"
-            
-            # Messaggio di notifica
-            notification_message = (
+                icon   = "🏁"
+                result = f"terminato (conclusione: {current_conclusion or 'N/D'})"
+
+            message = (
                 f"{icon} WORKFLOW COMPLETATO!\n\n"
-                f"Nome: {workflow_name}\n"
-                f"Run ID: {self.monitoring_run_id}\n"
-                f"Repository: {self.monitoring_owner}/{self.monitoring_repo}\n"
-                f"Risultato: {conclusion_text}\n"
-                f"Durata monitoraggio: {duration_text}\n\n"
-                f"Usa i comandi per visualizzare log o scaricare artefatti."
+                f"Nome: {workflow_name_local}\n"
+                f"Run ID: {run_id_local}\n"
+                f"Repository: {owner_local}/{repo_local}\n"
+                f"Risultato: {result}\n"
+                f"Durata monitoraggio: {duration_local/60:.1f} minuti\n\n"
+                "Usa i comandi per visualizzare log o scaricare artefatti."
             )
-            
-            # Mostra notifica nell'output
-            self.output_text_ctrl.AppendText(f"\n{notification_message}\n")
-            
-            # Mostra dialog di notifica
+
+            # 9) Apro un semplice MessageDialog di avviso
             dlg = wx.MessageDialog(
-                self,
-                notification_message,
-                f"Workflow Completato - {conclusion_text.upper()}",
-                wx.OK | (wx.ICON_INFORMATION if current_conclusion == 'success' else wx.ICON_WARNING)
+                parent=self,
+                message=message,
+                caption="Workflow Completato",
+                style=wx.OK | wx.ICON_INFORMATION
             )
             dlg.ShowModal()
             dlg.Destroy()
-            
-            # Interrompi il monitoraggio
-            self.stop_monitoring_run()
-            
-        except requests.exceptions.RequestException as e:
-            print(f"DEBUG_MONITOR: Errore API durante monitoraggio: {e}")
+
+            # 10) (Opzionale) Loggo comunque anche sul TextCtrl
             self.output_text_ctrl.AppendText(
-                f"⚠️ Errore durante monitoraggio run ID {self.monitoring_run_id}: {e}\n"
+                f"{icon} WORKFLOW COMPLETATO!\n"
+                f"Nome: {workflow_name_local}\n"
+                f"Run ID: {run_id_local}\n"
+                f"Repository: {owner_local}/{repo_local}\n"
+                f"Risultato: {result}\n"
+                f"Durata monitoraggio: {duration_local/60:.1f} minuti\n"
+                "Usa i comandi per visualizzare log o scaricare artefatti.\n"
             )
-            # Non interrompere il monitoraggio per errori temporanei di rete
-            
+
         except Exception as e:
-            print(f"DEBUG_MONITOR: Errore imprevisto durante monitoraggio: {e}")
-            self.output_text_ctrl.AppendText(
-                f"❌ Errore imprevisto durante monitoraggio: {e}\n"
-            )
+            self.output_text_ctrl.AppendText(f"❌ Errore monitoraggio: {e}\n")
             self.stop_monitoring_run()
-            
+            return
+
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
         print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'")
@@ -1989,43 +1985,56 @@ class GitFrame(wx.Frame):
         except Exception as e:
             print(f"DEBUG_WORKFLOWS: Errore recupero workflow: {e}")
             return []
-    def auto_find_and_monitor_latest_run(self):
+    def auto_find_and_monitor_latest_run(self, workflow_name=None): # Firma modificata
         """Trova automaticamente l'ultima run e avvia il monitoraggio."""
         try:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
             headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
             if self.github_token:
                 headers["Authorization"] = f"Bearer {self.github_token}"
-            
-            params = {'per_page': 5}  # Solo le prime 5
+
+            params = {'per_page': 5} # Recupera solo le prime 5 esecuzioni più recenti
             response = requests.get(api_url, headers=headers, params=params, timeout=10)
-            response.raise_for_status()
-            
+            response.raise_for_status() # Solleva un'eccezione per errori HTTP (4xx o 5xx)
+
             runs_data = response.json()
             latest_runs = runs_data.get('workflow_runs', [])
-            
+
             if latest_runs:
-                latest_run = latest_runs[0]  # La più recente
+                latest_run = latest_runs[0]  # La più recente è la prima nella lista
                 run_id = latest_run['id']
-                run_name = latest_run.get('name', 'Sconosciuto')
+                # 1. Definire 'status' PRIMA del suo utilizzo
                 status = latest_run.get('status', 'unknown')
-                
+
+                # 2. Definire il nome del workflow da monitorare/visualizzare.
+                #    Usa 'workflow_name' se è stato passato (dal trigger manuale),
+                #    altrimenti usa il nome dell'esecuzione specifica dall'API.
+                actual_workflow_name_to_monitor = workflow_name if workflow_name else latest_run.get('name', _('(Nome Workflow Sconosciuto)'))
+
+                # 3. Ora si possono usare 'actual_workflow_name_to_monitor', 'run_id', e 'status'
                 self.output_text_ctrl.AppendText(
-                    _("🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n").format(run_name, run_id, status)
+                    _("🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n").format(actual_workflow_name_to_monitor, run_id, status)
                 )
-                
+
+                # Controlla se la run è in uno stato che giustifica il monitoraggio
                 if status.lower() in ['queued', 'in_progress', 'waiting', 'requested', 'pending']:
-                    self.selected_run_id = run_id
+                    self.selected_run_id = run_id # Salva l'ID della run selezionata per il monitoraggio
+                    # 4. Impostare 'self.monitoring_workflow_name' che verrà usato dal timer
+                    self.monitoring_workflow_name = actual_workflow_name_to_monitor
                     self.start_monitoring_run(run_id, self.github_owner, self.github_repo)
                     self.output_text_ctrl.AppendText(_("🔄 Monitoraggio automatico avviato!\n"))
                 else:
+                    # Se la run è già completata o in uno stato terminale
                     self.output_text_ctrl.AppendText(_("ℹ️ Il workflow è già terminato ({})\n").format(status))
             else:
+                # Nessuna esecuzione trovata per il repository/branch specificato (implicito nei parametri API)
                 self.output_text_ctrl.AppendText(_("❌ Nessuna esecuzione recente trovata\n"))
-                
-        except Exception as e:
-            self.output_text_ctrl.AppendText(_("❌ Errore nel recupero automatico: {}\n").format(e))
 
+        except requests.exceptions.RequestException as e_req: # Gestisce specificamente errori di rete/HTTP
+            self.output_text_ctrl.AppendText(_("❌ Errore di rete/API nel recupero automatico: {}\n").format(e_req))
+        except Exception as e: # Gestisce altre eccezioni impreviste
+            # Se 'e' fosse NameError("name 'status' is not defined"), indicherebbe un problema di logica nel blocco try.
+            self.output_text_ctrl.AppendText(_("❌ Errore imprevisto nel recupero automatico: {}\n").format(e))
     def verify_workflow_cancellation(self, run_id, run_name):
         """Verifica lo stato di un workflow dopo la cancellazione."""
         try:
@@ -2598,6 +2607,7 @@ class GitFrame(wx.Frame):
                 run_data = run_resp.json()
                 current_status_from_api = run_data.get('status', 'unknown').lower()
                 current_conclusion_from_api = run_data.get('conclusion')
+                workflow_run_display_name = run_data.get('name', _('(Nome Run Sconosciuto)'))
 
                 self.output_text_ctrl.AppendText(_("Stato attuale API: {}, Conclusione API: {}\n").format(
                     current_status_from_api, current_conclusion_from_api if current_conclusion_from_api is not None else _("Non ancora disponibile/definitiva")
@@ -2617,6 +2627,7 @@ class GitFrame(wx.Frame):
 
                     if response == wx.ID_YES or response == 2: # Gestisce anomalia '2'
                         self.output_text_ctrl.AppendText(_("Avvio monitoraggio per run ID {}.\n").format(self.selected_run_id))
+                        self.monitoring_workflow_name = workflow_run_display_name
                         self.start_monitoring_run(self.selected_run_id, self.github_owner, self.github_repo)
                         return # Esce, non scarica i log ora
                     else: 
