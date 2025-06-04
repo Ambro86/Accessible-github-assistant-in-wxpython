@@ -605,6 +605,13 @@ class GitFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
         self.command_tree_ctrl = None
+        self.monitoring_timer = None
+        self.monitoring_run_id = None
+        self.monitoring_owner = None
+        self.monitoring_repo = None
+        self.monitoring_start_time = None
+        self.monitoring_max_duration = 30 * 60  # 30 minuti
+        self.monitoring_poll_count = 0
         self.monitoring_timers = {} # Dizionario per tracciare i timer attivi
         self.github_owner = ""
         self.github_repo = ""
@@ -664,126 +671,173 @@ class GitFrame(wx.Frame):
                 self.test_timer_instance.Stop()
             # In un'app reale, vorresti anche pulire self.test_timer_instance e self.test_run_id_monitored
             # o rimuovere il run_id da un dizionario di monitoraggio.
+
     def start_monitoring_run(self, run_id, owner, repo):
+        """Avvia il monitoraggio periodico di un workflow run."""
         print(f"DEBUG_MONITOR: Avvio monitoraggio per run_id: {run_id}")
-
-        # Se esiste già un timer per questo run_id, fermalo
-        if run_id in self.monitoring_timers:
-            existing_timer_info = self.monitoring_timers[run_id]
-            if existing_timer_info['timer'].IsRunning():
-                existing_timer_info['timer'].Stop()
-                self.output_text_ctrl.AppendText(_("Timer esistente per ID {} fermato e sostituito.\n").format(run_id))
-
-        # Crea un nuovo timer
-        timer = wx.Timer(self)
-        polling_interval_ms = 30 * 1000  # 30 secondi
-
-        # Memorizza le informazioni del timer
-        self.monitoring_timers[run_id] = {
-            'timer': timer,
-            'owner': owner,
-            'repo': repo,
-            'poll_count': 0,
-            'polling_interval_ms': polling_interval_ms
-        }
-
-        # Bind del timer usando una lambda per passare run_id
-        timer.Bind(wx.EVT_TIMER, lambda evt, rid=run_id: self.OnMonitorRunTimer(evt, rid))
+        
+        # Interrompi qualsiasi monitoraggio precedente
+        self.stop_monitoring_run()
+        
+        # Imposta i parametri del monitoraggio
+        self.monitoring_run_id = run_id
+        self.monitoring_owner = owner
+        self.monitoring_repo = repo
+        self.monitoring_start_time = time.time()
+        self.monitoring_max_duration = 30 * 60  # 30 minuti
+        self.monitoring_poll_count = 0
         
         # Avvia il timer
-        timer.Start(polling_interval_ms)
-
-        if timer.IsRunning():
-            print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval_ms}ms")
-            self.output_text_ctrl.AppendText(
-                _("Monitoraggio avviato per ID {}. Controllo ogni {} secondi.\n").format(
-                    run_id, polling_interval_ms // 1000
-                )
-            )
-        else:
-            print(f"DEBUG_MONITOR: ERRORE: Timer NON avviato per run_id {run_id}")
-            # Pulisci se non è partito
-            if run_id in self.monitoring_timers:
-                del self.monitoring_timers[run_id]
-                
-    def OnMonitorRunTimer(self, event, run_id):
-        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-        print(f"DEBUG_MONITOR: Timer scattato per run_id: {run_id} alle {timestamp_ora}")
-
-        if run_id not in self.monitoring_timers:
-            print(f"DEBUG_MONITOR: ERRORE - run_id {run_id} non trovato in monitoring_timers")
-            timer = event.GetTimer()
-            if timer and timer.IsRunning():
-                timer.Stop()
-            return
-
-        timer_info = self.monitoring_timers[run_id]
-        timer_info['poll_count'] += 1
+        self.monitoring_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_monitoring_timer, self.monitoring_timer)
         
+        # Polling ogni 30 secondi
+        polling_interval = 30000  # milliseconds
+        self.monitoring_timer.Start(polling_interval)
+        
+        print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval}ms")
+        
+        self.output_text_ctrl.AppendText(
+            f"⏱️ Monitoraggio avviato per workflow run ID {run_id}.\n"
+            f"Polling ogni 30 secondi. Durata massima: 30 minuti.\n"
+        )
+
+
+    def stop_monitoring_run(self):
+        """Interrompe il monitoraggio corrente."""
+        if hasattr(self, 'monitoring_timer') and self.monitoring_timer and self.monitoring_timer.IsRunning():
+            print("DEBUG_MONITOR: Interruzione timer esistente")
+            self.monitoring_timer.Stop()
+            self.monitoring_timer.Destroy()
+            self.monitoring_timer = None
+        
+        # Reset delle variabili di monitoraggio
+        self.monitoring_run_id = None
+        self.monitoring_owner = None
+        self.monitoring_repo = None
+        self.monitoring_start_time = None
+        self.monitoring_poll_count = 0
+
+    def on_monitoring_timer(self, event):
+        """Callback del timer per il monitoraggio del workflow run."""
         try:
-            self.output_text_ctrl.AppendText(
-                _("Controllo stato #{} per run ID {} alle {}.\n").format(
-                    timer_info['poll_count'], run_id, timestamp_ora
-                )
-            )
-        except Exception as e_gui:
-            print(f"DEBUG_MONITOR: Errore scrittura GUI: {e_gui}")
-
-        # Controlla lo stato dell'esecuzione
-        headers = {"Accept": "application/vnd.github.v3+json"}
-        if self.github_token:
-            headers["Authorization"] = f"Bearer {self.github_token}"
-        
-        run_status_url = f"https://api.github.com/repos/{timer_info['owner']}/{timer_info['repo']}/actions/runs/{run_id}"
-        
-        try:
-            response = requests.get(run_status_url, headers=headers, timeout=10)
-            response.raise_for_status()
-            run_data = response.json()
+            self.monitoring_poll_count += 1
+            elapsed_time = time.time() - self.monitoring_start_time if self.monitoring_start_time else 0
             
+            print(f"DEBUG_MONITOR: Poll #{self.monitoring_poll_count} - Elapsed: {elapsed_time:.1f}s")
+            
+            # Controllo timeout
+            if elapsed_time > self.monitoring_max_duration:
+                self.output_text_ctrl.AppendText(
+                    f"⏰ Timeout monitoraggio per run ID {self.monitoring_run_id} "
+                    f"(durata: {elapsed_time/60:.1f} minuti)\n"
+                )
+                self.stop_monitoring_run()
+                return
+            
+            # Verifica stato del workflow
+            if not self.monitoring_run_id or not self.monitoring_owner or not self.monitoring_repo:
+                print("DEBUG_MONITOR: Parametri monitoraggio mancanti, interruzione")
+                self.stop_monitoring_run()
+                return
+            
+            # Prepara headers per API
+            headers = {
+                "Accept": "application/vnd.github.v3+json",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+            if self.github_token:
+                headers["Authorization"] = f"Bearer {self.github_token}"
+            
+            # Chiamata API per verificare lo stato
+            api_url = f"https://api.github.com/repos/{self.monitoring_owner}/{self.monitoring_repo}/actions/runs/{self.monitoring_run_id}"
+            
+            print(f"DEBUG_MONITOR: Chiamata API: {api_url}")
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            run_data = response.json()
             current_status = run_data.get('status', 'unknown').lower()
             current_conclusion = run_data.get('conclusion')
+            workflow_name = run_data.get('name', 'Workflow Sconosciuto')
             
-            print(f"DEBUG_MONITOR: Stato API per run_id {run_id}: {current_status}, conclusione: {current_conclusion}")
+            print(f"DEBUG_MONITOR: Status: {current_status}, Conclusion: {current_conclusion}")
             
-            # Stati che indicano esecuzione completata
-            if current_status == 'completed':
-                self.output_text_ctrl.AppendText(
-                    _("✓ Esecuzione ID {} completata! Stato: {}, Conclusione: {}\n").format(
-                        run_id, current_status, current_conclusion or _("N/D")
-                    )
-                )
-                # Ferma il monitoraggio
-                timer_info['timer'].Stop()
-                del self.monitoring_timers[run_id]
-                print(f"DEBUG_MONITOR: Monitoraggio completato e rimosso per run_id {run_id}")
+            # Stati che indicano che il workflow è ancora in esecuzione
+            in_progress_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required']
+            
+            if current_status in in_progress_states:
+                # Workflow ancora in corso, continua il monitoraggio
+                print(f"DEBUG_MONITOR: Workflow ancora in corso ({current_status})")
                 return
             
-            # Limita il numero di controlli per evitare loop infiniti
-            if timer_info['poll_count'] >= 20:  # Circa 10 minuti con intervallo di 30s
-                self.output_text_ctrl.AppendText(
-                    _("⏰ Limite di controlli raggiunto per ID {}. Monitoraggio fermato.\n").format(run_id)
-                )
-                timer_info['timer'].Stop()
-                del self.monitoring_timers[run_id]
-                return
-                
-        except requests.exceptions.RequestException as e:
-            print(f"DEBUG_MONITOR: Errore API per run_id {run_id}: {e}")
-            self.output_text_ctrl.AppendText(
-                _("⚠ Errore controllo stato per ID {}: {}\n").format(run_id, str(e)[:100])
+            # Workflow completato (con qualsiasi conclusione)
+            print(f"DEBUG_MONITOR: Workflow completato! Status: {current_status}, Conclusion: {current_conclusion}")
+            
+            # Determina l'icona e il messaggio in base alla conclusione
+            if current_conclusion == 'success':
+                icon = "✅"
+                conclusion_text = "completato con SUCCESSO"
+            elif current_conclusion == 'failure':
+                icon = "❌"
+                conclusion_text = "FALLITO"
+            elif current_conclusion == 'cancelled':
+                icon = "🚫"
+                conclusion_text = "ANNULLATO"
+            elif current_conclusion == 'skipped':
+                icon = "⏭️"
+                conclusion_text = "SALTATO"
+            elif current_conclusion == 'timed_out':
+                icon = "⏰"
+                conclusion_text = "SCADUTO (timeout)"
+            else:
+                icon = "🏁"
+                conclusion_text = f"terminato (conclusione: {current_conclusion or 'N/D'})"
+            
+            # Calcola tempo trascorso
+            duration_text = f"{elapsed_time/60:.1f} minuti" if elapsed_time >= 60 else f"{elapsed_time:.0f} secondi"
+            
+            # Messaggio di notifica
+            notification_message = (
+                f"{icon} WORKFLOW COMPLETATO!\n\n"
+                f"Nome: {workflow_name}\n"
+                f"Run ID: {self.monitoring_run_id}\n"
+                f"Repository: {self.monitoring_owner}/{self.monitoring_repo}\n"
+                f"Risultato: {conclusion_text}\n"
+                f"Durata monitoraggio: {duration_text}\n\n"
+                f"Usa i comandi per visualizzare log o scaricare artefatti."
             )
             
-            # Ferma il monitoraggio in caso di errore persistente
-            if timer_info['poll_count'] >= 5:
-                timer_info['timer'].Stop()
-                del self.monitoring_timers[run_id]
-                return
-        
+            # Mostra notifica nell'output
+            self.output_text_ctrl.AppendText(f"\n{notification_message}\n")
+            
+            # Mostra dialog di notifica
+            dlg = wx.MessageDialog(
+                self,
+                notification_message,
+                f"Workflow Completato - {conclusion_text.upper()}",
+                wx.OK | (wx.ICON_INFORMATION if current_conclusion == 'success' else wx.ICON_WARNING)
+            )
+            dlg.ShowModal()
+            dlg.Destroy()
+            
+            # Interrompi il monitoraggio
+            self.stop_monitoring_run()
+            
+        except requests.exceptions.RequestException as e:
+            print(f"DEBUG_MONITOR: Errore API durante monitoraggio: {e}")
+            self.output_text_ctrl.AppendText(
+                f"⚠️ Errore durante monitoraggio run ID {self.monitoring_run_id}: {e}\n"
+            )
+            # Non interrompere il monitoraggio per errori temporanei di rete
+            
         except Exception as e:
-            print(f"DEBUG_MONITOR: Errore generico per run_id {run_id}: {e}")
-            timer_info['timer'].Stop()
-            del self.monitoring_timers[run_id]
+            print(f"DEBUG_MONITOR: Errore imprevisto durante monitoraggio: {e}")
+            self.output_text_ctrl.AppendText(
+                f"❌ Errore imprevisto durante monitoraggio: {e}\n"
+            )
+            self.stop_monitoring_run()
             
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
@@ -2058,8 +2112,19 @@ class GitFrame(wx.Frame):
             for run in unique_runs_list[:20]:
                 status_val = run.get('status', _('sconosciuto')); conclusion_val = run.get('conclusion', _('in corso')) if status_val != 'completed' else run.get('conclusion', _('N/D'))
                 created_at_raw = run.get('created_at', 'N/D'); 
-                try: created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
-                except: created_at_display = created_at_raw 
+                try: 
+                    # Converti il timestamp UTC in orario locale
+                    if created_at_raw != 'N/D':
+                        if created_at_raw.endswith('Z'):
+                            utc_dt = datetime.fromisoformat(created_at_raw[:-1] + '+00:00')
+                        else:
+                            utc_dt = datetime.fromisoformat(created_at_raw).replace(tzinfo=timezone.utc)
+                        local_dt = utc_dt.astimezone()
+                        created_at_display = local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)')
+                    else:
+                        created_at_display = 'N/D'
+                except: 
+                    created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
                 choice_str = f"ID: {run['id']} - {run.get('name', _('Workflow Sconosciuto'))} ({conclusion_val}, {status_val}) - {created_at_display}"
                 run_choices.append(choice_str); self.workflow_runs_map[choice_str] = run
             if not run_choices: self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow trovata da elencare.\n")); self.selected_run_id = None; return
@@ -2070,8 +2135,19 @@ class GitFrame(wx.Frame):
                     self.selected_run_id = selected_run_details['id']; status = selected_run_details['status']; conclusion = selected_run_details.get('conclusion', _('in corso')) if status != 'completed' else selected_run_details.get('conclusion', _('N/D'))
                     name = selected_run_details.get('name', _('Sconosciuto')); html_url = selected_run_details['html_url']; 
                     created_at_raw_sel = selected_run_details.get('created_at', 'N/D')
-                    try: created_at_display_sel = created_at_raw_sel.replace('T', ' ').replace('Z', '') if created_at_raw_sel != 'N/D' else 'N/D'
-                    except: created_at_display_sel = created_at_raw_sel 
+                    try: 
+                        # Converti anche qui il timestamp per la visualizzazione finale
+                        if created_at_raw_sel != 'N/D':
+                            if created_at_raw_sel.endswith('Z'):
+                                utc_dt_sel = datetime.fromisoformat(created_at_raw_sel[:-1] + '+00:00')
+                            else:
+                                utc_dt_sel = datetime.fromisoformat(created_at_raw_sel).replace(tzinfo=timezone.utc)
+                            local_dt_sel = utc_dt_sel.astimezone()
+                            created_at_display_sel = local_dt_sel.strftime('%Y-%m-%d %H:%M:%S (Locale)')
+                        else:
+                            created_at_display_sel = 'N/D'
+                    except: 
+                        created_at_display_sel = created_at_raw_sel.replace('T', ' ').replace('Z', '') if created_at_raw_sel != 'N/D' else 'N/D'
                     self.output_text_ctrl.AppendText(_("Esecuzione Selezionata per {}/{}:\n  Nome: {}\n  ID: {}\n  Stato: {}\n  Conclusione: {}\n  Avviata il: {}\n  URL: {}\n").format(self.github_owner, self.github_repo, name, self.selected_run_id, status, conclusion, created_at_display_sel, html_url))
                     if status.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']: self.output_text_ctrl.AppendText(_("Questa esecuzione è attualmente '{}'. Puoi rieseguire '{}' per aggiornare lo stato e la conclusione finale.\n").format(status, CMD_GITHUB_LIST_WORKFLOW_RUNS))
                     self.output_text_ctrl.AppendText(_("Usa i comandi successivi per log o artefatti.\n"))
@@ -2173,7 +2249,8 @@ class GitFrame(wx.Frame):
                             log_data = log_data_bytes.decode('utf-8', errors='replace')
 
                             if not self.github_strip_log_timestamps:
-                                    log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})?)',
+                                # Regex più ampia per catturare diversi formati di timestamp
+                                log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})?)',
                                                   self.convert_utc_to_local_timestamp_match, log_data, flags=re.MULTILINE)
                             elif self.github_strip_log_timestamps:
                                 log_data = re.sub(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\s*', '', log_data, flags=re.MULTILINE)
@@ -2193,7 +2270,6 @@ class GitFrame(wx.Frame):
             except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero dei log: {}\n").format(e_generic))
 
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
-            # ... (codice esistente per DOWNLOAD_SELECTED_ARTIFACT, non modificato in questa iterazione) ...
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)); return
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
@@ -2255,6 +2331,8 @@ class GitFrame(wx.Frame):
                 elif e.response.status_code == 410: self.output_text_ctrl.AppendText(_("Errore 410: Artefatti scaduti.\n"))
             except requests.exceptions.RequestException as e: self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
             except Exception as e_generic: self.output_text_ctrl.AppendText(_("Errore imprevisto recupero artefatti: {}\n").format(e_generic))
+
+
     def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description="Comando Git"):
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         output = ""
