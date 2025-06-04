@@ -1,6 +1,6 @@
     #To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
 import wx
-import os
+import os, time
 import subprocess
 import fnmatch # Per il filtraggio dei file
 import re # Aggiunto per regex nella gestione errori push
