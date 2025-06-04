@@ -687,128 +687,43 @@ class GitFrame(wx.Frame):
                 run_id, polling_interval_ms // 1000
             )
                 )
-
     def OnMonitorRunTimer(self, event, run_id):
-        print(f"DEBUG_MONITOR: OnMonitorRunTimer chiamato per run_id: {run_id}")
-        if run_id not in self.monitoring_timers:
-            print(f"DEBUG_MONITOR: run_id {run_id} non trovato in self.monitoring_timers. Interruzione timer.")
-            timer_obj = event.GetTimer()
-            if timer_obj and timer_obj.IsRunning(): # Controlla se il timer è valido e in esecuzione
-                timer_obj.Stop()
-            return
+        # PRIMISSIMA COSA DA FARE: STAMPARE PER CONFERMARE L'ESECUZIONE
+        timestamp_ora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Ora con millisecondi
+        print(f"DEBUG_MONITOR: !!! Evento OnMonitorRunTimer SCATTATO per run_id: {run_id} alle {timestamp_ora} !!!")
 
-        timer_info = self.monitoring_timers[run_id]
-        owner = timer_info['owner']
-        repo = timer_info['repo']
-        timer_info['poll_count'] += 1
-        
-        current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        gui_message = _("Controllo #{} ({}) per stato esecuzione ID {} (Repo: {}/{})...\n").format(
-                timer_info['poll_count'], current_time_str, run_id, owner, repo
-            )
-        self.output_text_ctrl.AppendText(gui_message) # Output nella GUI dell'app
-        print(f"DEBUG_MONITOR: (Console) {gui_message.strip()}") # Output anche in console
-        wx.Yield()
-
-        api_url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}"
-        print(f"DEBUG_MONITOR: API URL: {api_url}")
-        headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
-        
-        if self.github_token:
-            headers["Authorization"] = f"Bearer {self.github_token}"
-            print("DEBUG_MONITOR: Utilizzo token GitHub per API call.")
-        else:
-            self.output_text_ctrl.AppendText(_("AVVISO: Nessun token GitHub per il monitoraggio API dell'ID esecuzione {}.\n").format(run_id))
-            print("DEBUG_MONITOR: Nessun token GitHub per API call.")
-
-        final_notification_message = None
-        try:
-            response = requests.get(api_url, headers=headers, timeout=15)
-            print(f"DEBUG_MONITOR: API Response Status Code: {response.status_code}")
+        # Per questo test, ci assicuriamo che il timer si fermi dopo alcuni scatti
+        # per non riempire la console indefinitamente se funziona.
+        if run_id in self.monitoring_timers:
+            timer_info = self.monitoring_timers[run_id]
+            timer_info['poll_count'] += 1 # Incrementiamo il contatore dei poll
             
-            response_text_snippet = response.text[:500]
-            print(f"DEBUG_MONITOR: API Response Text (snippet): {response_text_snippet}")
-            
-            response.raise_for_status() # Solleva un'eccezione per codici di errore HTTP (4xx o 5xx)
-            run_data = response.json()
-            # Stampa l'intero JSON se necessario per un debug molto approfondito, ma può essere verboso
-            # print(f"DEBUG_MONITOR: API Response JSON (run_data): {run_data}") 
-            
-            current_status = run_data.get('status', 'unknown').lower()
-            conclusion = run_data.get('conclusion') # Può essere None
-
-            # ---- NUOVE RIGHE DI DEBUG PER CHIAREZZA AD OGNI POLL ----
-            print(f"DEBUG_MONITOR: ---- Vista API per Run ID {run_id} (Poll #{timer_info['poll_count']}) ----")
-            print(f"DEBUG_MONITOR: Stato Corrente dall'API: '{current_status}'")
-            print(f"DEBUG_MONITOR: Conclusione Corrente dall'API: '{conclusion}'")
-            print(f"DEBUG_MONITOR: --------------------------------------------------")
-            # ---------------------------------------------------------
-
-            non_completed_states = ['queued', 'in_progress', 'waiting', 'requested', 'pending', 'action_required', 'stale']
-
-            if current_status == 'completed' or current_status not in non_completed_states:
-                print(f"DEBUG_MONITOR: Rilevato stato finale '{current_status}'. Interruzione timer per run_id {run_id}.")
-                timer_info['timer'].Stop()
-                if run_id in self.monitoring_timers:
-                    del self.monitoring_timers[run_id]
-                    print(f"DEBUG_MONITOR: run_id {run_id} rimosso da self.monitoring_timers.")
-                else:
-                    print(f"DEBUG_MONITOR: ATTENZIONE - run_id {run_id} non trovato in self.monitoring_timers durante il tentativo di rimozione.")
-
-                conclusion_str = str(conclusion).capitalize() if conclusion else _("N/D")
-                status_str = current_status.capitalize()
-                
-                final_notification_message = _(
-                    "Esecuzione Workflow ID {} TERMINATA.\n\n"
-                    "Repository: {}/{}\n"
-                    "Nome Esecuzione: {}\n"
-                    "Stato Finale: {}\n"
-                    "Conclusione: {}\n"
-                    "URL: {}"
-                ).format(
-                    run_id, owner, repo,
-                    run_data.get('name', _('Sconosciuto')),
-                    status_str,
-                    conclusion_str,
-                    run_data.get('html_url', _('N/D'))
-                )
+            # Scriviamo un messaggio anche nell'output dell'app per vedere se arriva lì
+            try:
                 self.output_text_ctrl.AppendText(
-                    _("Esecuzione ID {} terminata. Stato: {}, Conclusione: {}.\nMonitoraggio interrotto.\n").format(
-                        run_id, status_str, conclusion_str
+                    _("Timer check #{} per run ID {} alle {}.\n").format(
+                        timer_info['poll_count'], run_id, timestamp_ora
                     )
                 )
-                print(f"DEBUG_MONITOR: Messaggio di notifica finale preparato: {final_notification_message}")
-            else:
-                # Messaggio già presente nell'output GUI, lo stampiamo anche in console per coerenza
-                console_still_running_msg = _("Esecuzione ID {} ancora '{}'. Prossimo controllo tra {} secondi.").format(
-                        run_id, current_status, timer_info['interval_ms'] // 1000
-                    )
-                print(f"DEBUG_MONITOR: (Console) {console_still_running_msg}")
-                # La GUI riceve già un messaggio simile, quindi non duplichiamo AppendText qui se non per lo stato specifico
+            except Exception as e_gui:
+                print(f"DEBUG_MONITOR: Errore scrittura su output_text_ctrl: {e_gui}")
 
-        except requests.exceptions.RequestException as e:
-            self.output_text_ctrl.AppendText(
-                _("Errore API durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e)
-            )
-            print(f"DEBUG_MONITOR: RequestException durante monitoraggio: {e}. Interruzione timer per run_id {run_id}.")
-            timer_info['timer'].Stop()
-            if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
-            final_notification_message = _("Errore API durante il monitoraggio dell'esecuzione ID {}.\nControlla i log dell'app per dettagli: {}").format(run_id, str(e))
-        except Exception as e_gen:
-            self.output_text_ctrl.AppendText(
-                _("Errore generico durante monitoraggio esecuzione ID {}: {}. Monitoraggio interrotto.\n").format(run_id, e_gen)
-            )
-            print(f"DEBUG_MONITOR: Eccezione generica durante monitoraggio: {e_gen}. Interruzione timer per run_id {run_id}.")
-            timer_info['timer'].Stop()
-            if run_id in self.monitoring_timers: del self.monitoring_timers[run_id]
-            final_notification_message = _("Errore generico durante il monitoraggio dell'esecuzione ID {}.\nDettagli: {}").format(run_id, str(e_gen))
 
-        if final_notification_message:
-            print(f"DEBUG_MONITOR: Visualizzazione wx.MessageBox con messaggio: {final_notification_message}")
-            wx.MessageBox(final_notification_message, _("Notifica Conclusione Workflow"), wx.OK | wx.ICON_INFORMATION, self)
+            if timer_info['poll_count'] >= 5: # Fermiamoci dopo 5 scatti di prova
+                print(f"DEBUG_MONITOR: Raggiunto limite di poll ({timer_info['poll_count']}) per run_id {run_id}. ARRESTO TIMER DI PROVA.")
+                timer_info['timer'].Stop()
+                # Non rimuoviamo ancora da self.monitoring_timers per questo test specifico,
+                # vogliamo solo vedere se si ferma.
+                # Se vuoi che si possa riavviare il monitoraggio dopo, dovresti rimuoverlo:
+                # del self.monitoring_timers[run_id]
         else:
-            # Questo messaggio verrà stampato ad ogni poll se la run non è ancora terminata e non ci sono stati errori.
-            print(f"DEBUG_MONITOR: Nessun messaggio di notifica finale da mostrare per run_id {run_id} in questo ciclo (run probabilmente ancora in corso o stato gestito).")   
+            # Questo non dovrebbe accadere se il timer è ancora attivo e run_id dovrebbe essere lì
+            print(f"DEBUG_MONITOR: ERRORE CRITICO - run_id {run_id} non trovato in self.monitoring_timers dentro OnMonitorRunTimer. Arresto timer dell'evento.")
+            timer_che_ha_scatenato_evento = event.GetTimer()
+            if timer_che_ha_scatenato_evento and timer_che_ha_scatenato_evento.IsRunning():
+                timer_che_ha_scatenato_evento.Stop()
+        
+        # Non fare altro per ora in questa versione di test (niente chiamate API)
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
         print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'") # NUOVO DEBUG
