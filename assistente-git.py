@@ -553,7 +553,7 @@ class CreateReleaseDialog(wx.Dialog):
         assets_box = wx.StaticBox(self.panel, label=_("Asset da Caricare (Opzionale)"))
         assets_sizer = wx.StaticBoxSizer(assets_box, wx.VERTICAL)
 
-        self.assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_EXTENDED, size=(-1, 150))
+        self.assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_SINGLE, size=(-1, 150))
         assets_sizer.Add(self.assets_list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
 
         asset_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -630,9 +630,21 @@ class CreateReleaseDialog(wx.Dialog):
             self.assets_list_ctrl.Delete(index)
 
     def OnClearAssets(self, event):
-        self.assets_paths.clear()
-        self.assets_list_ctrl.Clear()
-
+        if not self.assets_paths:
+            return
+            
+        confirm_dlg = wx.MessageDialog(
+            self,
+            _("Sei sicuro di voler rimuovere tutti gli asset dalla lista?"),
+            _("Conferma Rimozione"),
+            wx.YES_NO | wx.ICON_QUESTION
+        )
+        
+        if confirm_dlg.ShowModal() == wx.ID_YES:
+            self.assets_paths.clear()
+            self.assets_list_ctrl.Clear()
+        
+        confirm_dlg.Destroy()
     def GetValues(self):
         return {
             "tag_name": self.tag_ctrl.GetValue().strip(),
@@ -1094,11 +1106,16 @@ class EditReleaseDialog(wx.Dialog):
 
         # 4) Asset esistenti (solo visualizzazione)
         existing_assets_box = wx.StaticBox(self.panel, label=_("Asset Attualmente Presenti"))
-        existing_assets_sizer = wx.StaticBoxSizer(existing_assets_box, wx.VERTICAL)        
-        self.existing_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_SINGLE, size=(-1, 100))        
-        existing_assets = release_data.get('assets', [])
-        if existing_assets:
-            for asset in existing_assets:
+        existing_assets_sizer = wx.StaticBoxSizer(existing_assets_box, wx.VERTICAL)
+        
+        self.existing_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_SINGLE, size=(-1, 100))
+        
+        # Conserva i dati originali degli asset per la gestione
+        self.existing_assets_data = release_data.get('assets', [])
+        self.assets_to_delete = []  # Lista degli asset da eliminare
+        
+        if self.existing_assets_data:
+            for i, asset in enumerate(self.existing_assets_data):
                 asset_name = asset.get('name', 'N/A')
                 asset_size = asset.get('size', 0)
                 size_kb = asset_size // 1024 if asset_size > 1024 else asset_size
@@ -1112,13 +1129,25 @@ class EditReleaseDialog(wx.Dialog):
             self.existing_assets_list_ctrl.Enable(False)  # Disabilita se vuoto
         
         existing_assets_sizer.Add(self.existing_assets_list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Bottoni per gestire asset esistenti
+        if self.existing_assets_data:
+            existing_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.delete_existing_button = wx.Button(self.panel, label=_("🗑️ Elimina Selezionati"))
+            self.restore_deleted_button = wx.Button(self.panel, label=_("↶ Ripristina Eliminati"))
+            
+            existing_buttons_sizer.Add(self.delete_existing_button, 0, wx.ALL, 5)
+            existing_buttons_sizer.Add(self.restore_deleted_button, 0, wx.ALL, 5)
+            existing_buttons_sizer.AddStretchSpacer()
+            
+            existing_assets_sizer.Add(existing_buttons_sizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        
         main_sizer.Add(existing_assets_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-
         # 5) Nuovi Asset da aggiungere
         new_assets_box = wx.StaticBox(self.panel, label=_("Nuovi Asset da Aggiungere"))
         new_assets_sizer = wx.StaticBoxSizer(new_assets_box, wx.VERTICAL)
 
-        self.new_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_EXTENDED, size=(-1, 100))
+        self.new_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_SINGLE, size=(-1, 100))
         new_assets_sizer.Add(self.new_assets_list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
 
         # Bottoni per gestire i nuovi asset
@@ -1172,7 +1201,12 @@ class EditReleaseDialog(wx.Dialog):
         self.remove_asset_button.Bind(wx.EVT_BUTTON, self.OnRemoveAsset)
         self.clear_assets_button.Bind(wx.EVT_BUTTON, self.OnClearAssets)
         self.ok_button.Bind(wx.EVT_BUTTON, self.OnOk)
-
+        
+        # Bind eventi per asset esistenti (se ci sono)
+        if self.existing_assets_data:
+            self.delete_existing_button.Bind(wx.EVT_BUTTON, self.OnDeleteExistingAssets)
+            self.restore_deleted_button.Bind(wx.EVT_BUTTON, self.OnRestoreDeletedAssets)
+            
         # Lista per memorizzare i percorsi dei nuovi file
         self.new_assets_paths = []
 
@@ -1213,20 +1247,17 @@ class EditReleaseDialog(wx.Dialog):
         file_dlg.Destroy()
 
     def OnRemoveAsset(self, event):
-        """Rimuove gli asset selezionati dalla lista."""
-        selected_indices = self.new_assets_list_ctrl.GetSelections()
-        if not selected_indices:
-            wx.MessageBox(_("Seleziona uno o più file da rimuovere."), 
+        """Rimuove l'asset selezionato dalla lista."""
+        selected_index = self.new_assets_list_ctrl.GetSelection()
+        if selected_index == wx.NOT_FOUND:
+            wx.MessageBox(_("Seleziona un file da rimuovere."), 
                          _("Nessuna Selezione"), wx.OK | wx.ICON_INFORMATION, self)
             return
         
-        # Rimuovi in ordine inverso per evitare problemi con gli indici
-        for index in sorted(selected_indices, reverse=True):
-            del self.new_assets_paths[index]
-            self.new_assets_list_ctrl.Delete(index)
-        
+        del self.new_assets_paths[selected_index]
+        self.new_assets_list_ctrl.Delete(selected_index)
         self.UpdateButtonStates()
-
+    
     def OnClearAssets(self, event):
         """Rimuove tutti i nuovi asset dalla lista."""
         if not self.new_assets_paths:
@@ -1278,7 +1309,79 @@ class EditReleaseDialog(wx.Dialog):
             return
         
         self.EndModal(wx.ID_OK)
+        
+    def OnDeleteExistingAssets(self, event):
+        """Segna l'asset esistente selezionato per l'eliminazione."""
+        selected_index = self.existing_assets_list_ctrl.GetSelection()
+        if selected_index == wx.NOT_FOUND:
+            wx.MessageBox(_("Seleziona un asset da eliminare."), 
+                         _("Nessuna Selezione"), wx.OK | wx.ICON_INFORMATION, self)
+            return
+        
+        # Verifica se l'asset non è già segnato per eliminazione
+        if selected_index < len(self.existing_assets_data):
+            asset = self.existing_assets_data[selected_index]
+            if asset in self.assets_to_delete:
+                wx.MessageBox(_("L'asset selezionato è già segnato per l'eliminazione."), 
+                             _("Già Segnato"), wx.OK | wx.ICON_INFORMATION, self)
+                return
+            
+            # Conferma eliminazione
+            asset_name = asset['name']
+            confirm_msg = _("Sei sicuro di voler eliminare questo asset dalla release?\n\n"
+                           "• {}\n\n"
+                           "ATTENZIONE: Questa operazione è irreversibile!").format(asset_name)
+            
+            confirm_dlg = wx.MessageDialog(
+                self, confirm_msg, _("Conferma Eliminazione Asset"), 
+                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING
+            )
+            
+            if confirm_dlg.ShowModal() == wx.ID_YES:
+                # Aggiungi alla lista di eliminazione e aggiorna visualizzazione
+                self.assets_to_delete.append(asset)
+                # Cambia il colore dell'item per indicare che sarà eliminato
+                current_text = self.existing_assets_list_ctrl.GetString(selected_index)
+                new_text = f"🗑️ [DA ELIMINARE] {current_text[2:]}"  # Rimuove l'emoji originale
+                self.existing_assets_list_ctrl.SetString(selected_index, new_text)
+                
+                self.UpdateExistingButtonStates()
+            
+            confirm_dlg.Destroy()
+    def OnRestoreDeletedAssets(self, event):
+        """Ripristina gli asset segnati per l'eliminazione."""
+        if not self.assets_to_delete:
+            wx.MessageBox(_("Nessun asset da ripristinare."), 
+                         _("Nessun Asset"), wx.OK | wx.ICON_INFORMATION, self)
+            return
+        
+        # Ripristina tutti gli asset segnati per eliminazione
+        self.assets_to_delete.clear()
+        
+        # Ripristina la visualizzazione originale
+        for i, asset in enumerate(self.existing_assets_data):
+            asset_name = asset.get('name', 'N/A')
+            asset_size = asset.get('size', 0)
+            size_kb = asset_size // 1024 if asset_size > 1024 else asset_size
+            size_unit = "KB" if asset_size > 1024 else "B"
+            download_count = asset.get('download_count', 0)
+            
+            asset_info = f"📎 {asset_name} ({size_kb} {size_unit}, {download_count} download)"
+            self.existing_assets_list_ctrl.SetString(i, asset_info)
+        
+        self.UpdateExistingButtonStates()
+        wx.MessageBox(_("Tutti gli asset sono stati ripristinati."), 
+                     _("Ripristino Completato"), wx.OK | wx.ICON_INFORMATION, self)
 
+    def UpdateExistingButtonStates(self):
+        """Aggiorna lo stato dei bottoni per gli asset esistenti."""
+        if hasattr(self, 'delete_existing_button'):
+            has_assets = len(self.existing_assets_data) > 0
+            has_deleted = len(self.assets_to_delete) > 0
+            
+            self.delete_existing_button.Enable(has_assets)
+            self.restore_deleted_button.Enable(has_deleted)
+            
     def GetValues(self):
         """Restituisce i valori inseriti dall'utente."""
         return {
@@ -1286,10 +1389,11 @@ class EditReleaseDialog(wx.Dialog):
             "release_name": self.title_ctrl.GetValue().strip(),
             "release_body": self.desc_ctrl.GetValue().strip(),
             "new_files_to_upload": self.new_assets_paths.copy(),
+            "assets_to_delete": self.assets_to_delete.copy(),
             "release_id": self.release_data.get('id'),
             "original_release_data": self.release_data
         }
-
+        
     def GetReleaseInfo(self):
         """Restituisce informazioni sulla release per debug/log."""
         return {
@@ -3867,12 +3971,48 @@ class GitFrame(wx.Frame):
                         update_response = requests.patch(update_api_url, headers=headers, json=update_payload, timeout=15)
                         update_response.raise_for_status()
                         updated_release = update_response.json()
-                        
                         self.output_text_ctrl.AppendText(_("✅ Release aggiornata con successo!\n"))
                         self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(updated_release.get('html_url')))
                         
+                        # Elimina asset selezionati per l'eliminazione
+                        assets_to_delete = values["assets_to_delete"]
+                        if assets_to_delete:
+                            self.output_text_ctrl.AppendText(_("🗑️ Eliminazione di {} asset...\n").format(len(assets_to_delete)))
+                            successful_deletions = 0
+                            
+                            for asset_to_delete in assets_to_delete:
+                                asset_id = asset_to_delete.get('id')
+                                asset_name = asset_to_delete.get('name', 'N/A')
+                                
+                                if not asset_id:
+                                    self.output_text_ctrl.AppendText(_("⚠️ ID asset mancante per '{}', salto eliminazione.\n").format(asset_name))
+                                    continue
+                                
+                                delete_asset_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases/assets/{asset_id}"
+                                self.output_text_ctrl.AppendText(_("🗑️ Eliminazione asset: '{}'...\n").format(asset_name))
+                                wx.Yield()
+                                
+                                try:
+                                    delete_response = requests.delete(delete_asset_url, headers=headers, timeout=30)
+                                    delete_response.raise_for_status()
+                                    
+                                    self.output_text_ctrl.AppendText(_("✅ Asset '{}' eliminato con successo!\n").format(asset_name))
+                                    successful_deletions += 1
+                                    
+                                except requests.exceptions.HTTPError as e_del:
+                                    if e_del.response.status_code == 404:
+                                        self.output_text_ctrl.AppendText(_("⚠️ Asset '{}' non trovato (già eliminato?)\n").format(asset_name))
+                                    else:
+                                        self.output_text_ctrl.AppendText(_("❌ Errore HTTP eliminazione asset '{}': {}\n").format(asset_name, e_del.response.status_code))
+                                except requests.exceptions.RequestException as e_del_req:
+                                    self.output_text_ctrl.AppendText(_("❌ Errore rete eliminazione asset '{}': {}\n").format(asset_name, e_del_req))
+                                except Exception as e_del_gen:
+                                    self.output_text_ctrl.AppendText(_("❌ Errore imprevisto eliminazione asset '{}': {}\n").format(asset_name, e_del_gen))
+                            
+                            self.output_text_ctrl.AppendText(_("📊 Asset eliminati con successo: {}/{}\n").format(successful_deletions, len(assets_to_delete)))
+                        
                         # Upload nuovi asset se presenti
-                        new_files = values["new_files_to_upload"]
+                        new_files = values["new_files_to_upload"]                        
                         if new_files:
                             upload_url_template = updated_release.get("upload_url", "")
                             if upload_url_template:
