@@ -1,6 +1,6 @@
 #To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
 import wx
-import os, time
+import os, time, platform
 import subprocess
 import fnmatch # Per il filtraggio dei file
 import re # Aggiunto per regex nella gestione errori push
@@ -12,6 +12,7 @@ import struct # Per il formato archivio personalizzato
 import gzip # Per comprimere i dati prima della crittografia
 import uuid # Per l'identificatore univoco dell'utente
 import base64 # Per la chiave Fernet
+import webbrowser
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -1447,10 +1448,8 @@ class GitFrame(wx.Frame):
                  if self._ensure_github_config_loaded(): # Questo tenterà con password vuota
                     github_config_loaded_at_startup = True
         self._update_github_context_from_path()
-        
         if not self.git_available:
-            wx.MessageBox(_("Git non sembra essere installato o non è nel PATH di sistema. L'applicazione potrebbe non funzionare correttamente."),
-                          _("Errore Git"), wx.OK | wx.ICON_ERROR)
+            self._handle_git_not_found()
             if self.command_tree_ctrl: self.command_tree_ctrl.Disable()
         else:
             if self.command_tree_ctrl:
@@ -3054,6 +3053,7 @@ class GitFrame(wx.Frame):
                  print("DEBUG: Tutti i timer di monitoraggio workflow arrestati e rimossi.")
 
         self.Destroy()
+        
     def check_git_installation(self):
         try:
             process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -3061,7 +3061,68 @@ class GitFrame(wx.Frame):
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
-
+    def _handle_git_not_found(self):
+        """Gestisce il caso in cui Git non sia installato, offrendo il download."""
+        system = platform.system().lower()
+        
+        # Determina il link di download appropriato
+        if system == "windows":
+            download_url = "https://git-scm.com/download/win"
+            system_name = "Windows"
+        elif system == "darwin":  # macOS
+            download_url = "https://git-scm.com/download/mac"
+            system_name = "macOS"
+        elif system == "linux":
+            download_url = "https://git-scm.com/download/linux"
+            system_name = "Linux"
+        else:
+            download_url = "https://git-scm.com/"
+            system_name = _("il tuo sistema operativo")
+        
+        message = _(
+            "Git non sembra essere installato o non è nel PATH di sistema.\n"
+            "L'applicazione non funzionerà correttamente senza Git.\n\n"
+            "Sistema rilevato: {}\n\n"
+            "Vuoi aprire la pagina di download di Git per {}?"
+        ).format(system_name, system_name)
+        
+        dlg = wx.MessageDialog(
+            self, 
+            message,
+            _("Git Non Trovato - Download Richiesto"), 
+            wx.YES_NO | wx.ICON_QUESTION
+        )
+        
+        if dlg.ShowModal() == wx.ID_YES:
+            try:
+                webbrowser.open(download_url)
+                self.output_text_ctrl.AppendText(
+                    _("🌐 Apertura pagina di download Git: {}\n\n"
+                      "📋 Istruzioni:\n"
+                      "1. Scarica e installa Git dal sito web appena aperto\n"
+                      "2. Riavvia questo programma dopo l'installazione\n"
+                      "3. Se necessario, riavvia il computer per aggiornare il PATH\n\n"
+                      "💡 Su Windows: durante l'installazione assicurati che l'opzione\n"
+                      "   'Git from the command line and also from 3rd-party software' sia selezionata.\n\n").format(download_url)
+                )
+            except Exception as e:
+                self.output_text_ctrl.AppendText(
+                    _("❌ Errore nell'aprire il browser: {}\n"
+                      "📋 Vai manualmente a: {}\n").format(e, download_url)
+                )
+                wx.MessageBox(
+                    _("Impossibile aprire automaticamente il browser.\n\n"
+                      "Vai manualmente a questo indirizzo per scaricare Git:\n\n"
+                      "{}").format(download_url),
+                    _("Apri Manualmente"), wx.OK | wx.ICON_INFORMATION
+                )
+        else:
+            self.output_text_ctrl.AppendText(
+                _("⚠️ Git non installato. Molte funzionalità non saranno disponibili.\n"
+                  "📋 Per installare Git vai a: {}\n\n").format(download_url)
+            )
+        
+        dlg.Destroy()
     def InitUI(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         repo_sizer_box = wx.StaticBoxSizer(wx.HORIZONTAL, self.panel, _("Cartella del Repository (Directory di Lavoro)"))
