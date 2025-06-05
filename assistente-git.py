@@ -155,6 +155,7 @@ CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT = _("Elenca e Scarica Artefatti Esecuzione
 # --- NUOVO COMANDO PER CREAZIONE RELEASE ---
 CMD_GITHUB_CREATE_RELEASE = _("Crea Nuova Release GitHub con Asset")
 CMD_GITHUB_DELETE_RELEASE = _("Elimina Release GitHub (per ID o Tag)")
+CMD_GITHUB_EDIT_RELEASE = _("Modifica Release GitHub Esistente")
 CMD_GITHUB_TRIGGER_WORKFLOW = "Trigger Workflow Manuale"
 CMD_GITHUB_CANCEL_WORKFLOW = "Cancella Workflow in Esecuzione"
 CMD_GITHUB_CREATE_ISSUE = _("Crea Nuova Issue")
@@ -695,6 +696,11 @@ ORIGINAL_COMMANDS = {
         # Il messaggio di conferma verrà formattato dinamicamente con il nome della release selezionata
         "confirm_template": _("ATTENZIONE: Stai per eliminare la release GitHub '{release_display_name}'. Questa azione è generalmente irreversibile sul sito di GitHub. Sei sicuro di voler procedere con l'eliminazione?")
     },
+    CMD_GITHUB_EDIT_RELEASE: {
+        "type": "github",
+        "input_needed": False,
+        "info": _("Modifica una release esistente: titolo, descrizione e aggiunta di nuovi asset. Permette di aggiornare i dettagli di una release già pubblicata su GitHub.")
+    },
     CMD_GITHUB_TRIGGER_WORKFLOW: {
         "type": "github", 
         "input_needed": False, 
@@ -758,6 +764,7 @@ CAT_GITHUB_ACTIONS: {
         "order": [
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
+            CMD_GITHUB_EDIT_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_TRIGGER_WORKFLOW,      # ← AGGIUNGI QUI
@@ -1014,7 +1021,285 @@ class CreatePullRequestDialog(wx.Dialog):
             "auto_merge": self.auto_merge_checkbox.GetValue()
         }
 
+class EditReleaseDialog(wx.Dialog):
+    def __init__(self, parent, title, release_data):
+        super(EditReleaseDialog, self).__init__(parent, title=title, size=(650, 650))
+        self.release_data = release_data
+        self.panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Header con info release
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        release_icon = wx.StaticText(self.panel, label="🏷️")
+        release_icon_font = release_icon.GetFont()
+        release_icon_font.SetPointSize(16)
+        release_icon.SetFont(release_icon_font)
+        
+        header_text = wx.StaticText(self.panel, label=_("Modifica Release Esistente"))
+        header_font = header_text.GetFont()
+        header_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        header_font.SetPointSize(12)
+        header_text.SetFont(header_font)
+        
+        header_sizer.Add(release_icon, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
+        header_sizer.Add(header_text, 1, wx.ALIGN_CENTER_VERTICAL)
+        main_sizer.Add(header_sizer, 0, wx.ALL | wx.EXPAND, 10)
+
+        # Separator line
+        line = wx.StaticLine(self.panel)
+        main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+
+        # Input Section
+        input_box = wx.StaticBox(self.panel, label=_("Dettagli Release"))
+        input_sizer = wx.StaticBoxSizer(input_box, wx.VERTICAL)
+        
+        input_grid_sizer = wx.FlexGridSizer(cols=2, gap=(10, 10))
+        input_grid_sizer.AddGrowableCol(1, 1)
+
+        # 1) Tag della release (non modificabile)
+        tag_label = wx.StaticText(self.panel, label=_("Tag della Release:"))
+        tag_font = tag_label.GetFont()
+        tag_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        tag_label.SetFont(tag_font)
+        
+        tag_value = release_data.get('tag_name', 'N/A')
+        self.tag_display = wx.StaticText(self.panel, label=tag_value)
+        self.tag_display.SetForegroundColour(wx.Colour(0, 100, 0))  # Verde scuro
+        tag_display_font = self.tag_display.GetFont()
+        tag_display_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        self.tag_display.SetFont(tag_display_font)
+        
+        input_grid_sizer.Add(tag_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        input_grid_sizer.Add(self.tag_display, 1, wx.EXPAND | wx.ALL, 5)
+
+        # 2) Titolo della release
+        title_label = wx.StaticText(self.panel, label=_("Titolo della Release:*"))
+        self.title_ctrl = wx.TextCtrl(self.panel, value=release_data.get('name', ''))
+        input_grid_sizer.Add(title_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        input_grid_sizer.Add(self.title_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+
+        input_sizer.Add(input_grid_sizer, 0, wx.EXPAND | wx.ALL, 10)
+
+        # 3) Descrizione della release
+        desc_label = wx.StaticText(self.panel, label=_("Descrizione della Release:"))
+        input_sizer.Add(desc_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        
+        self.desc_ctrl = wx.TextCtrl(self.panel, 
+                                     style=wx.TE_MULTILINE, 
+                                     size=(-1, 120), 
+                                     value=release_data.get('body', ''))
+        input_sizer.Add(self.desc_ctrl, 0, wx.EXPAND | wx.ALL, 10)
+
+        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.ALL, 10)
+
+        # 4) Asset esistenti (solo visualizzazione)
+        existing_assets_box = wx.StaticBox(self.panel, label=_("Asset Attualmente Presenti"))
+        existing_assets_sizer = wx.StaticBoxSizer(existing_assets_box, wx.VERTICAL)        
+        self.existing_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_SINGLE, size=(-1, 100))        
+        existing_assets = release_data.get('assets', [])
+        if existing_assets:
+            for asset in existing_assets:
+                asset_name = asset.get('name', 'N/A')
+                asset_size = asset.get('size', 0)
+                size_kb = asset_size // 1024 if asset_size > 1024 else asset_size
+                size_unit = "KB" if asset_size > 1024 else "B"
+                download_count = asset.get('download_count', 0)
+                
+                asset_info = f"📎 {asset_name} ({size_kb} {size_unit}, {download_count} download)"
+                self.existing_assets_list_ctrl.Append(asset_info)
+        else:
+            self.existing_assets_list_ctrl.Append(_("📭 Nessun asset presente in questa release"))
+            self.existing_assets_list_ctrl.Enable(False)  # Disabilita se vuoto
+        
+        existing_assets_sizer.Add(self.existing_assets_list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(existing_assets_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+
+        # 5) Nuovi Asset da aggiungere
+        new_assets_box = wx.StaticBox(self.panel, label=_("Nuovi Asset da Aggiungere"))
+        new_assets_sizer = wx.StaticBoxSizer(new_assets_box, wx.VERTICAL)
+
+        self.new_assets_list_ctrl = wx.ListBox(self.panel, style=wx.LB_EXTENDED, size=(-1, 100))
+        new_assets_sizer.Add(self.new_assets_list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Bottoni per gestire i nuovi asset
+        asset_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.add_asset_button = wx.Button(self.panel, label=_("➕ Aggiungi File..."))
+        self.remove_asset_button = wx.Button(self.panel, label=_("➖ Rimuovi Selezionato"))
+        self.clear_assets_button = wx.Button(self.panel, label=_("🗑️ Rimuovi Tutti"))
+
+        asset_buttons_sizer.Add(self.add_asset_button, 0, wx.ALL, 5)
+        asset_buttons_sizer.Add(self.remove_asset_button, 0, wx.ALL, 5)
+        asset_buttons_sizer.AddStretchSpacer()
+        asset_buttons_sizer.Add(self.clear_assets_button, 0, wx.ALL, 5)
+        
+        new_assets_sizer.Add(asset_buttons_sizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+
+        main_sizer.Add(new_assets_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        # Note informative
+        info_text = wx.StaticText(self.panel, 
+                                  label=_("ℹ️ Nota: Gli asset esistenti non verranno modificati, "
+                                         "verranno solo aggiunti i nuovi file selezionati."))
+        info_text.SetForegroundColour(wx.Colour(0, 0, 128))  # Blu scuro
+        info_font = info_text.GetFont()
+        info_font.SetPointSize(8)
+        info_font.SetStyle(wx.FONTSTYLE_ITALIC)
+        info_text.SetFont(info_font)
+        main_sizer.Add(info_text, 0, wx.ALL | wx.EXPAND, 10)
+
+        # Separator line
+        line2 = wx.StaticLine(self.panel)
+        main_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+
+        # Pulsanti OK / Cancel
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.cancel_button = wx.Button(self.panel, wx.ID_CANCEL, label=_("❌ Annulla"))
+        self.ok_button = wx.Button(self.panel, wx.ID_OK, label=_("✅ Aggiorna Release"))
+        self.ok_button.SetDefault()
+        
+        button_sizer.AddStretchSpacer()
+        button_sizer.Add(self.cancel_button, 0, wx.ALL, 10)
+        button_sizer.Add(self.ok_button, 0, wx.ALL, 10)
+        
+        main_sizer.Add(button_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        self.panel.SetSizer(main_sizer)
+        self.title_ctrl.SetFocus()
+
+        # Bind events
+        self.add_asset_button.Bind(wx.EVT_BUTTON, self.OnAddAssets)
+        self.remove_asset_button.Bind(wx.EVT_BUTTON, self.OnRemoveAsset)
+        self.clear_assets_button.Bind(wx.EVT_BUTTON, self.OnClearAssets)
+        self.ok_button.Bind(wx.EVT_BUTTON, self.OnOk)
+
+        # Lista per memorizzare i percorsi dei nuovi file
+        self.new_assets_paths = []
+
+        # Centro il dialogo
+        self.Center()
+
+    def OnAddAssets(self, event):
+        """Gestisce l'aggiunta di nuovi file asset."""
+        file_dlg = wx.FileDialog(
+            self,
+            _("Seleziona file da aggiungere come nuovi asset (Ctrl/Cmd per selezione multipla)"),
+            wildcard=_("Tutti i file (*.*)|*.*"),
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
+        )
+        
+        if file_dlg.ShowModal() == wx.ID_OK:
+            paths = file_dlg.GetPaths()
+            added_count = 0
+            
+            for path in paths:
+                if path not in self.new_assets_paths:
+                    self.new_assets_paths.append(path)
+                    filename = os.path.basename(path)
+                    # Calcola dimensione file
+                    try:
+                        file_size = os.path.getsize(path)
+                        size_kb = file_size // 1024
+                        display_name = f"{filename} ({size_kb} KB)"
+                    except OSError:
+                        display_name = f"{filename} (dimensione sconosciuta)"
+                    
+                    self.new_assets_list_ctrl.Append(display_name)
+                    added_count += 1
+            
+            if added_count > 0:
+                self.UpdateButtonStates()
+                
+        file_dlg.Destroy()
+
+    def OnRemoveAsset(self, event):
+        """Rimuove gli asset selezionati dalla lista."""
+        selected_indices = self.new_assets_list_ctrl.GetSelections()
+        if not selected_indices:
+            wx.MessageBox(_("Seleziona uno o più file da rimuovere."), 
+                         _("Nessuna Selezione"), wx.OK | wx.ICON_INFORMATION, self)
+            return
+        
+        # Rimuovi in ordine inverso per evitare problemi con gli indici
+        for index in sorted(selected_indices, reverse=True):
+            del self.new_assets_paths[index]
+            self.new_assets_list_ctrl.Delete(index)
+        
+        self.UpdateButtonStates()
+
+    def OnClearAssets(self, event):
+        """Rimuove tutti i nuovi asset dalla lista."""
+        if not self.new_assets_paths:
+            return
+            
+        confirm_dlg = wx.MessageDialog(
+            self,
+            _("Sei sicuro di voler rimuovere tutti i nuovi asset dalla lista?"),
+            _("Conferma Rimozione"),
+            wx.YES_NO | wx.ICON_QUESTION
+        )
+        
+        if confirm_dlg.ShowModal() == wx.ID_YES:
+            self.new_assets_paths.clear()
+            self.new_assets_list_ctrl.Clear()
+            self.UpdateButtonStates()
+        
+        confirm_dlg.Destroy()
+
+    def UpdateButtonStates(self):
+        """Aggiorna lo stato dei bottoni in base al contenuto della lista."""
+        has_items = len(self.new_assets_paths) > 0
+        self.remove_asset_button.Enable(has_items)
+        self.clear_assets_button.Enable(has_items)
+
+    def OnOk(self, event):
+        """Valida i dati e chiude il dialogo."""
+        release_name = self.title_ctrl.GetValue().strip()
+        
+        if not release_name:
+            wx.MessageBox(_("Il Titolo della Release è obbligatorio."), 
+                         _("Input Mancante"), wx.OK | wx.ICON_ERROR, self)
+            self.title_ctrl.SetFocus()
+            return
+        
+        # Verifica che i file esistano ancora
+        missing_files = []
+        for file_path in self.new_assets_paths:
+            if not os.path.exists(file_path):
+                missing_files.append(os.path.basename(file_path))
+        
+        if missing_files:
+            missing_list = "\n".join(missing_files)
+            wx.MessageBox(
+                _("I seguenti file non sono più accessibili:\n\n{}\n\n"
+                  "Rimuovili dalla lista o verifica che esistano ancora.").format(missing_list),
+                _("File Non Trovati"), wx.OK | wx.ICON_ERROR, self
+            )
+            return
+        
+        self.EndModal(wx.ID_OK)
+
+    def GetValues(self):
+        """Restituisce i valori inseriti dall'utente."""
+        return {
+            "tag_name": self.release_data.get('tag_name', ''),  # Non modificabile
+            "release_name": self.title_ctrl.GetValue().strip(),
+            "release_body": self.desc_ctrl.GetValue().strip(),
+            "new_files_to_upload": self.new_assets_paths.copy(),
+            "release_id": self.release_data.get('id'),
+            "original_release_data": self.release_data
+        }
+
+    def GetReleaseInfo(self):
+        """Restituisce informazioni sulla release per debug/log."""
+        return {
+            "tag": self.release_data.get('tag_name', 'N/A'),
+            "current_title": self.release_data.get('name', 'N/A'),
+            "new_title": self.title_ctrl.GetValue().strip(),
+            "assets_count": len(self.release_data.get('assets', [])),
+            "new_assets_count": len(self.new_assets_paths)
+        }
+        
 class GitFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(GitFrame, self).__init__(*args, **kw)
@@ -1717,6 +2002,31 @@ class GitFrame(wx.Frame):
             pass
         return None
 
+    def GetLocalBranches(self, repo_path):
+            """Recupera la lista dei branch locali disponibili."""
+            try:
+                process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                proc = subprocess.run(
+                    ["git", "branch"],
+                    cwd=repo_path,
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    encoding='utf-8',
+                    errors='replace',
+                    creationflags=process_flags
+                )
+                # Parsing output: ogni riga è "  branch_name" o "* current_branch"
+                branches = []
+                for line in proc.stdout.strip().splitlines():
+                    branch_name = line.strip().lstrip('* ').strip()
+                    if branch_name and not branch_name.startswith('('):  # Esclude "(HEAD detached at ...)"
+                        branches.append(branch_name)
+                return branches
+            except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
+                print(f"DEBUG: Errore nel recuperare i branch locali: {e}")
+                return []
+                
     # Aggiungi queste parti al metodo ExecuteGithubCommand
 
     def handle_create_issue(self, command_name_key, command_details):
@@ -2840,6 +3150,78 @@ class GitFrame(wx.Frame):
                     except ValueError: self.output_text_ctrl.AppendText(_("Errore nel calcolare il percorso relativo per: {}.\nAssicurati che sia all'interno della cartella del repository.\n").format(path_to_restore)); file_dlg.Destroy(); return
                 else: self.output_text_ctrl.AppendText(_("Selezione del file per il ripristino annullata.\n")); file_dlg.Destroy(); return
                 file_dlg.Destroy()
+            elif cmd_name_key == CMD_CHECKOUT_EXISTING:
+                # Caso speciale: mostra lista di branch disponibili invece di input manuale
+                available_branches = self.GetLocalBranches(repo_path)
+                
+                if not available_branches:
+                    self.output_text_ctrl.AppendText(_("Errore: Nessun branch locale trovato o impossibile recuperare la lista dei branch.\n"))
+                    return
+                
+                # Rimuovi il branch corrente dalla lista (opzionale)
+                current_branch = self.GetCurrentBranchName(repo_path)
+                if current_branch and current_branch in available_branches:
+                    available_branches.remove(current_branch)
+                    if not available_branches:
+                        self.output_text_ctrl.AppendText(_("Errore: Sei già sull'unico branch disponibile '{}'.\n").format(current_branch))
+                        return
+                
+                branch_dlg = wx.SingleChoiceDialog(
+                    self, 
+                    _("Seleziona il branch a cui passare:"), 
+                    _("Passa a Branch Esistente"), 
+                    available_branches, 
+                    wx.CHOICEDLG_STYLE
+                )
+                
+                if branch_dlg.ShowModal() == wx.ID_OK:
+                    user_input = branch_dlg.GetStringSelection()
+                    self.output_text_ctrl.AppendText(_("Branch selezionato: {}\n").format(user_input))
+                else:
+                    self.output_text_ctrl.AppendText(_("Selezione branch annullata.\n"))
+                    branch_dlg.Destroy()
+                    return
+                branch_dlg.Destroy()
+            elif cmd_name_key == CMD_BRANCH_D or cmd_name_key == CMD_BRANCH_FORCE_D:
+                # Caso speciale: mostra lista di branch disponibili per eliminazione
+                available_branches = self.GetLocalBranches(repo_path)
+                
+                if not available_branches:
+                    self.output_text_ctrl.AppendText(_("Errore: Nessun branch locale trovato o impossibile recuperare la lista dei branch.\n"))
+                    return
+                
+                # Rimuovi il branch corrente dalla lista per sicurezza
+                current_branch = self.GetCurrentBranchName(repo_path)
+                if current_branch and current_branch in available_branches:
+                    available_branches.remove(current_branch)
+                    if not available_branches:
+                        self.output_text_ctrl.AppendText(_("Errore: Non ci sono altri branch da eliminare oltre a quello corrente '{}'.\nPer eliminare il branch corrente, passa prima a un altro branch.\n").format(current_branch))
+                        return
+                
+                # Determina il titolo del dialogo in base al tipo di eliminazione
+                if cmd_name_key == CMD_BRANCH_D:
+                    dialog_title = _("Elimina Branch Locale (Sicuro)")
+                    dialog_prompt = _("Seleziona il branch da eliminare (eliminazione sicura -d):")
+                else:  # CMD_BRANCH_FORCE_D
+                    dialog_title = _("Elimina Branch Locale (FORZATO)")
+                    dialog_prompt = _("Seleziona il branch da eliminare (eliminazione FORZATA -D):")
+                
+                branch_dlg = wx.SingleChoiceDialog(
+                    self, 
+                    dialog_prompt, 
+                    dialog_title, 
+                    available_branches, 
+                    wx.CHOICEDLG_STYLE
+                )
+                
+                if branch_dlg.ShowModal() == wx.ID_OK:
+                    user_input = branch_dlg.GetStringSelection()
+                    self.output_text_ctrl.AppendText(_("Branch selezionato per eliminazione: {}\n").format(user_input))
+                else:
+                    self.output_text_ctrl.AppendText(_("Selezione branch per eliminazione annullata.\n"))
+                    branch_dlg.Destroy()
+                    return
+                branch_dlg.Destroy()
             elif cmd_details.get("input_needed", False):
                 prompt = cmd_details.get("input_label", _("Valore:"))
                 placeholder = cmd_details.get("placeholder", "")
@@ -3407,6 +3789,152 @@ class GitFrame(wx.Frame):
             else:
                 self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
+            return
+        elif command_name_key == CMD_GITHUB_EDIT_RELEASE:
+            # Recupera lista delle release esistenti
+            self.output_text_ctrl.AppendText(_("Recupero elenco release da GitHub per {}/{}\n").format(self.github_owner, self.github_repo))
+            wx.Yield()
+            
+            releases_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases"
+            try:
+                response_list = requests.get(releases_api_url, headers=headers, params={"per_page": 50}, timeout=15)
+                response_list.raise_for_status()
+                releases_data = response_list.json()
+
+                if not releases_data:
+                    self.output_text_ctrl.AppendText(_("Nessuna release trovata per il repository {}/{}.\n").format(self.github_owner, self.github_repo))
+                    return
+
+                # Crea lista di scelte per l'utente
+                release_choices = []
+                releases_map = {}
+                for rel in releases_data:
+                    name = rel.get('name', _('Senza nome'))
+                    tag = rel.get('tag_name', 'N/A')
+                    created_at_raw = rel.get('created_at', 'N/D')
+                    created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
+                    assets_count = len(rel.get('assets', []))
+                    
+                    choice_str = f"{name} (Tag: {tag}, Data: {created_at_display}, Asset: {assets_count})"
+                    release_choices.append(choice_str)
+                    releases_map[choice_str] = rel
+                
+                if not release_choices:
+                    self.output_text_ctrl.AppendText(_("Nessuna release valida trovata da modificare.\n"))
+                    return
+
+                # Dialogo di selezione release
+                select_dlg = wx.SingleChoiceDialog(
+                    self, 
+                    _("Seleziona la release da modificare:"),
+                    _("Modifica Release GitHub"), 
+                    release_choices, 
+                    wx.CHOICEDLG_STYLE
+                )
+                
+                if select_dlg.ShowModal() != wx.ID_OK:
+                    self.output_text_ctrl.AppendText(_("Modifica release annullata (selezione non effettuata).\n"))
+                    select_dlg.Destroy()
+                    return
+                
+                selected_choice_str = select_dlg.GetStringSelection()
+                selected_release = releases_map.get(selected_choice_str)
+                select_dlg.Destroy()
+
+                if not selected_release:
+                    self.output_text_ctrl.AppendText(_("Errore: selezione della release non valida.\n"))
+                    return
+
+                # Apri dialogo di modifica
+                edit_dlg = EditReleaseDialog(self, _("Modifica Release GitHub"), selected_release)
+                
+                if edit_dlg.ShowModal() == wx.ID_OK:
+                    values = edit_dlg.GetValues()
+                    release_id = values["release_id"]
+                    
+                    # Prepara payload per aggiornare la release
+                    update_payload = {
+                        "name": values["release_name"],
+                        "body": values["release_body"]
+                    }
+                    
+                    # Aggiorna release via API
+                    update_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/releases/{release_id}"
+                    self.output_text_ctrl.AppendText(_("Aggiornamento release '{}' (ID: {})...\n").format(values["release_name"], release_id))
+                    wx.Yield()
+                    
+                    try:
+                        update_response = requests.patch(update_api_url, headers=headers, json=update_payload, timeout=15)
+                        update_response.raise_for_status()
+                        updated_release = update_response.json()
+                        
+                        self.output_text_ctrl.AppendText(_("✅ Release aggiornata con successo!\n"))
+                        self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(updated_release.get('html_url')))
+                        
+                        # Upload nuovi asset se presenti
+                        new_files = values["new_files_to_upload"]
+                        if new_files:
+                            upload_url_template = updated_release.get("upload_url", "")
+                            if upload_url_template:
+                                upload_url_base = upload_url_template.split("{")[0]
+                                
+                                self.output_text_ctrl.AppendText(_("Upload di {} nuovi asset...\n").format(len(new_files)))
+                                successful_uploads = 0
+                                
+                                for fpath in new_files:
+                                    filename = os.path.basename(fpath)
+                                    params_upload = {"name": filename}
+                                    self.output_text_ctrl.AppendText(_("📤 Upload: '{}'...\n").format(filename))
+                                    wx.Yield()
+                                    
+                                    try:
+                                        with open(fpath, "rb") as f:
+                                            file_data = f.read()
+                                        
+                                        headers_asset_upload = headers.copy()
+                                        headers_asset_upload["Content-Type"] = "application/octet-stream"
+                                        
+                                        response_asset = requests.post(
+                                            upload_url_base, 
+                                            headers=headers_asset_upload, 
+                                            params=params_upload, 
+                                            data=file_data, 
+                                            timeout=120
+                                        )
+                                        response_asset.raise_for_status()
+                                        asset_info = response_asset.json()
+                                        
+                                        self.output_text_ctrl.AppendText(_("✅ Asset '{}' caricato: {}\n").format(
+                                            filename, asset_info.get('browser_download_url', 'N/A')
+                                        ))
+                                        successful_uploads += 1
+                                        
+                                    except requests.exceptions.RequestException as e_asset:
+                                        self.output_text_ctrl.AppendText(_("❌ Errore upload asset '{}': {}\n").format(filename, e_asset))
+                                    except IOError as e_io:
+                                        self.output_text_ctrl.AppendText(_("❌ Errore lettura file '{}': {}\n").format(filename, e_io))
+                                
+                                self.output_text_ctrl.AppendText(_("📊 Asset caricati con successo: {}/{}\n").format(successful_uploads, len(new_files)))
+                            else:
+                                self.output_text_ctrl.AppendText(_("⚠️ Impossibile caricare nuovi asset: URL di upload non disponibile.\n"))
+                        
+                    except requests.exceptions.RequestException as e:
+                        self.output_text_ctrl.AppendText(_("❌ Errore API GitHub (aggiornamento release): {}\n").format(e))
+                        if hasattr(e, 'response') and e.response is not None:
+                            self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(e.response.text[:500]))
+                    except Exception as e_generic:
+                        self.output_text_ctrl.AppendText(_("❌ Errore imprevisto durante aggiornamento release: {}\n").format(e_generic))
+                else:
+                    self.output_text_ctrl.AppendText(_("Modifica release annullata dall'utente.\n"))
+                
+                edit_dlg.Destroy()
+                
+            except requests.exceptions.RequestException as e_list:
+                self.output_text_ctrl.AppendText(_("❌ Errore API GitHub (elenco release): {}\n").format(e_list))
+                if hasattr(e_list, 'response') and e_list.response is not None:
+                    self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(e_list.response.text[:500]))
+            except Exception as e_generic_list:
+                self.output_text_ctrl.AppendText(_("❌ Errore imprevisto durante elenco release: {}\n").format(e_generic_list))
             return
         elif command_name_key == CMD_GITHUB_LIST_ISSUES:
             self.handle_list_issues(command_name_key, command_details)
