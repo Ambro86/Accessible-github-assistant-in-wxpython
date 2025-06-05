@@ -157,6 +157,8 @@ CMD_GITHUB_CREATE_RELEASE = _("Crea Nuova Release GitHub con Asset")
 CMD_GITHUB_DELETE_RELEASE = _("Elimina Release GitHub (per ID o Tag)")
 CMD_GITHUB_TRIGGER_WORKFLOW = "Trigger Workflow Manuale"
 CMD_GITHUB_CANCEL_WORKFLOW = "Cancella Workflow in Esecuzione"
+CMD_GITHUB_CREATE_ISSUE = _("Crea Nuova Issue")
+CMD_GITHUB_CREATE_PR = _("Crea Nuova Pull Request")
 # --- FINE NUOVO COMANDO ---
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
@@ -698,6 +700,16 @@ ORIGINAL_COMMANDS = {
         "info": _("Cancella un workflow GitHub Actions attualmente in esecuzione. Mostra una lista dei workflow in corso e permette di selezionarne uno da interrompere.")
     },
 
+CMD_GITHUB_CREATE_ISSUE: {
+    "type": "github", 
+    "input_needed": False, 
+    "info": _("Crea una nuova issue su GitHub con titolo, descrizione, labels e assignees. Supporta template predefiniti e assegnazione automatica di labels basate su priorità e tipo.")
+},
+CMD_GITHUB_CREATE_PR: {
+    "type": "github", 
+    "input_needed": False, 
+    "info": _("Crea una nuova Pull Request su GitHub tra due branch. Permette di specificare titolo, descrizione, branch di origine e destinazione, con opzioni per draft e auto-merge.")
+},
 }
 CATEGORIZED_COMMANDS = {
     CAT_REPO_OPS: {"info": _("Comandi fondamentali..."), "order": [ CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS]}},
@@ -710,6 +722,8 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
+            CMD_GITHUB_CREATE_ISSUE,        # ← AGGIUNGI QUI
+            CMD_GITHUB_CREATE_PR,           # ← AGGIUNGI QUI
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_TRIGGER_WORKFLOW,      # ← AGGIUNGI QUI
             CMD_GITHUB_CANCEL_WORKFLOW,       # ← AGGIUNGI QUI  
@@ -720,6 +734,8 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comando aggiunto qui
+            CMD_GITHUB_CREATE_ISSUE,        # ← AGGIUNGI QUI
+            CMD_GITHUB_CREATE_PR,           # ← AGGIUNGI QUI
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
@@ -734,6 +750,213 @@ CATEGORY_DISPLAY_ORDER = [
     CAT_REMOTE_OPS, CAT_GITHUB_ACTIONS, CAT_STASH,
     CAT_SEARCH_UTIL, CAT_RESTORE_RESET
 ]
+
+class CreateIssueDialog(wx.Dialog):
+    def __init__(self, parent, title, labels_list=None, assignees_list=None):
+        super().__init__(parent, title=title, size=(600, 500))
+        
+        self.labels_list = labels_list or []
+        self.assignees_list = assignees_list or []
+        
+        self.init_ui()
+        self.Center()
+    
+    def init_ui(self):
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Titolo Issue
+        title_label = wx.StaticText(panel, label=_("Titolo Issue*:"))
+        main_sizer.Add(title_label, 0, wx.ALL, 5)
+        
+        self.title_ctrl = wx.TextCtrl(panel, size=(550, -1))
+        main_sizer.Add(self.title_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Descrizione
+        desc_label = wx.StaticText(panel, label=_("Descrizione:"))
+        main_sizer.Add(desc_label, 0, wx.ALL, 5)
+        
+        self.desc_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(550, 150))
+        self.desc_ctrl.SetValue(_("## Descrizione\n\n## Passi per riprodurre\n1. \n2. \n3. \n\n## Comportamento atteso\n\n## Comportamento attuale\n\n## Informazioni aggiuntive\n"))
+        main_sizer.Add(self.desc_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Sezione Labels e Assignees in due colonne
+        labels_assignees_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Labels
+        labels_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Labels"))
+        self.labels_checklist = wx.CheckListBox(panel, choices=self.labels_list, size=(250, 100))
+        labels_box.Add(self.labels_checklist, 1, wx.EXPAND | wx.ALL, 5)
+        labels_assignees_sizer.Add(labels_box, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Assignees
+        assignees_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Assignees"))
+        self.assignees_checklist = wx.CheckListBox(panel, choices=self.assignees_list, size=(250, 100))
+        assignees_box.Add(self.assignees_checklist, 1, wx.EXPAND | wx.ALL, 5)
+        labels_assignees_sizer.Add(assignees_box, 1, wx.EXPAND | wx.ALL, 5)
+        
+        main_sizer.Add(labels_assignees_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Priority e Type
+        options_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Priority
+        priority_label = wx.StaticText(panel, label=_("Priorità:"))
+        self.priority_choice = wx.Choice(panel, choices=[_("Bassa"), _("Media"), _("Alta"), _("Critica")])
+        self.priority_choice.SetSelection(1)  # Media come default
+        
+        options_sizer.Add(priority_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        options_sizer.Add(self.priority_choice, 0, wx.ALL, 5)
+        
+        # Type
+        type_label = wx.StaticText(panel, label=_("Tipo:"))
+        self.type_choice = wx.Choice(panel, choices=[_("Bug"), _("Feature"), _("Enhancement"), _("Documentation"), _("Question")])
+        self.type_choice.SetSelection(0)  # Bug come default
+        
+        options_sizer.Add(type_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        options_sizer.Add(self.type_choice, 0, wx.ALL, 5)
+        
+        main_sizer.Add(options_sizer, 0, wx.ALL, 5)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
+        
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("Annulla"))
+        ok_btn = wx.Button(panel, wx.ID_OK, _("Crea Issue"))
+        ok_btn.SetDefault()
+        
+        btn_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(ok_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        panel.SetSizer(main_sizer)
+    
+    def GetValues(self):
+        # Labels selezionate
+        selected_labels = []
+        for i in range(self.labels_checklist.GetCount()):
+            if self.labels_checklist.IsChecked(i):
+                selected_labels.append(self.labels_list[i])
+        
+        # Assignees selezionati
+        selected_assignees = []
+        for i in range(self.assignees_checklist.GetCount()):
+            if self.assignees_checklist.IsChecked(i):
+                selected_assignees.append(self.assignees_list[i])
+        
+        # Aggiungi label automatiche basate su priorità e tipo
+        priority_labels = {0: "priority:low", 1: "priority:medium", 2: "priority:high", 3: "priority:critical"}
+        type_labels = {0: "bug", 1: "enhancement", 2: "enhancement", 3: "documentation", 4: "question"}
+        
+        if self.priority_choice.GetSelection() != -1:
+            selected_labels.append(priority_labels[self.priority_choice.GetSelection()])
+        
+        if self.type_choice.GetSelection() != -1:
+            selected_labels.append(type_labels[self.type_choice.GetSelection()])
+        
+        return {
+            "title": self.title_ctrl.GetValue(),
+            "body": self.desc_ctrl.GetValue(),
+            "labels": list(set(selected_labels)),  # Rimuovi duplicati
+            "assignees": selected_assignees
+        }
+
+class CreatePullRequestDialog(wx.Dialog):
+    def __init__(self, parent, title, branches_list=None, current_branch=None):
+        super().__init__(parent, title=title, size=(600, 550))
+        
+        self.branches_list = branches_list or []
+        self.current_branch = current_branch
+        
+        self.init_ui()
+        self.Center()
+    
+    def init_ui(self):
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Titolo PR
+        title_label = wx.StaticText(panel, label=_("Titolo Pull Request*:"))
+        main_sizer.Add(title_label, 0, wx.ALL, 5)
+        
+        self.title_ctrl = wx.TextCtrl(panel, size=(550, -1))
+        main_sizer.Add(self.title_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Branch selection
+        branch_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Source branch (HEAD)
+        source_label = wx.StaticText(panel, label=_("Da branch:"))
+        self.source_choice = wx.Choice(panel, choices=self.branches_list)
+        if self.current_branch and self.current_branch in self.branches_list:
+            self.source_choice.SetSelection(self.branches_list.index(self.current_branch))
+        
+        # Target branch (BASE)
+        target_label = wx.StaticText(panel, label=_("Verso branch:"))
+        self.target_choice = wx.Choice(panel, choices=self.branches_list)
+        # Default a main/master
+        main_branches = ['main', 'master', 'develop']
+        for main_branch in main_branches:
+            if main_branch in self.branches_list:
+                self.target_choice.SetSelection(self.branches_list.index(main_branch))
+                break
+        
+        branch_sizer.Add(source_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        branch_sizer.Add(self.source_choice, 1, wx.ALL, 5)
+        branch_sizer.Add(target_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        branch_sizer.Add(self.target_choice, 1, wx.ALL, 5)
+        
+        main_sizer.Add(branch_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Descrizione
+        desc_label = wx.StaticText(panel, label=_("Descrizione:"))
+        main_sizer.Add(desc_label, 0, wx.ALL, 5)
+        
+        self.desc_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(550, 150))
+        self.desc_ctrl.SetValue(_("## Modifiche\n\n## Tipo di cambiamento\n- [ ] Bug fix\n- [ ] Nuova feature\n- [ ] Breaking change\n- [ ] Documentazione\n\n## Testing\n- [ ] Ho testato le modifiche\n- [ ] Ho aggiunto/aggiornato i test\n\n## Checklist\n- [ ] Il codice segue le convenzioni del progetto\n- [ ] Ho fatto self-review del codice\n- [ ] Ho commentato il codice, specialmente nelle parti complesse\n"))
+        main_sizer.Add(self.desc_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Opzioni
+        options_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        self.draft_checkbox = wx.CheckBox(panel, label=_("Crea come Draft"))
+        self.auto_merge_checkbox = wx.CheckBox(panel, label=_("Abilita auto-merge (se configurato)"))
+        
+        options_sizer.Add(self.draft_checkbox, 0, wx.ALL, 5)
+        options_sizer.Add(self.auto_merge_checkbox, 0, wx.ALL, 5)
+        
+        main_sizer.Add(options_sizer, 0, wx.ALL, 5)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
+        
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("Annulla"))
+        ok_btn = wx.Button(panel, wx.ID_OK, _("Crea Pull Request"))
+        ok_btn.SetDefault()
+        
+        btn_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(ok_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        panel.SetSizer(main_sizer)
+    
+    def GetValues(self):
+        source_idx = self.source_choice.GetSelection()
+        target_idx = self.target_choice.GetSelection()
+        
+        return {
+            "title": self.title_ctrl.GetValue(),
+            "body": self.desc_ctrl.GetValue(),
+            "head": self.branches_list[source_idx] if source_idx != -1 else "",
+            "base": self.branches_list[target_idx] if target_idx != -1 else "",
+            "draft": self.draft_checkbox.GetValue(),
+            "auto_merge": self.auto_merge_checkbox.GetValue()
+        }
+
 
 class GitFrame(wx.Frame):
     def __init__(self, *args, **kw):
@@ -789,7 +1012,249 @@ class GitFrame(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+
+    def get_repository_labels(self):
+        """Recupera le labels disponibili nel repository"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            return []
         
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        labels_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/labels"
+        
+        try:
+            response = requests.get(labels_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            labels_data = response.json()
+            return [label['name'] for label in labels_data]
+        except:
+            return ["bug", "enhancement", "documentation", "question", "help wanted", "good first issue"]
+
+    def get_repository_collaborators(self):
+        """Recupera i collaboratori del repository"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            return []
+        
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        collaborators_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/collaborators"
+        
+        try:
+            response = requests.get(collaborators_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            collaborators_data = response.json()
+            return [collab['login'] for collab in collaborators_data]
+        except:
+            return []
+
+    def get_repository_branches(self):
+        """Recupera i branch del repository"""
+        if not self.github_owner or not self.github_repo:
+            return []
+        
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+        
+        branches_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/branches"
+        
+        try:
+            response = requests.get(branches_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            branches_data = response.json()
+            return [branch['name'] for branch in branches_data]
+        except:
+            return ["main", "master", "develop"]
+
+    def get_current_git_branch(self):
+        """Recupera il branch corrente dal repository locale"""
+        try:
+            repo_path = self.repo_path_ctrl.GetValue()
+            result = subprocess.run(
+                ["git", "branch", "--show-current"],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except:
+            pass
+        return None
+
+    # Aggiungi queste parti al metodo ExecuteGithubCommand
+
+    def handle_create_issue(self, command_name_key, command_details):
+        """Gestisce la creazione di una nuova issue"""
+        if not self.github_owner or not self.github_repo:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            return
+        
+        if not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Token GitHub necessario per creare issue.\n"))
+            return
+        
+        # Recupera labels e assignees disponibili
+        self.output_text_ctrl.AppendText(_("Recupero informazioni repository...\n"))
+        wx.Yield()
+        
+        labels_list = self.get_repository_labels()
+        assignees_list = self.get_repository_collaborators()
+        
+        # Mostra dialog per creare issue
+        dlg = CreateIssueDialog(self, _("Crea Nuova Issue"), labels_list, assignees_list)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            values = dlg.GetValues()
+            
+            if not values["title"].strip():
+                self.output_text_ctrl.AppendText(_("ERRORE: Il titolo dell'issue è obbligatorio.\n"))
+                dlg.Destroy()
+                return
+            
+            # Prepara payload per API
+            payload = {
+                "title": values["title"],
+                "body": values["body"],
+                "labels": values["labels"],
+                "assignees": values["assignees"]
+            }
+            
+            # Crea issue via API
+            headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+            issues_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues"
+            
+            self.output_text_ctrl.AppendText(_("🚀 Creazione issue '{}' in corso...\n").format(values["title"]))
+            wx.Yield()
+            
+            try:
+                response = requests.post(issues_url, headers=headers, json=payload, timeout=15)
+                response.raise_for_status()
+                
+                issue_data = response.json()
+                issue_number = issue_data["number"]
+                issue_url = issue_data["html_url"]
+                
+                self.output_text_ctrl.AppendText(_("✅ Issue #{} creata con successo!\n").format(issue_number))
+                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(issue_url))
+                
+                # Opzione per aprire nel browser
+                open_browser_msg = _("Vuoi aprire l'issue nel browser?")
+                open_dlg = wx.MessageDialog(self, open_browser_msg, _("Apri Issue"), wx.YES_NO | wx.ICON_QUESTION)
+                if open_dlg.ShowModal() == wx.ID_YES:
+                    import webbrowser
+                    webbrowser.open(issue_url)
+                open_dlg.Destroy()
+                
+            except requests.exceptions.RequestException as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore durante la creazione dell'issue: {}\n").format(e))
+                if hasattr(e, 'response') and e.response is not None:
+                    self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(e.response.text[:300]))
+        else:
+            self.output_text_ctrl.AppendText(_("Creazione issue annullata.\n"))
+        
+        dlg.Destroy()
+
+    def handle_create_pull_request(self, command_name_key, command_details):
+        """Gestisce la creazione di una nuova pull request"""
+        if not self.github_owner or not self.github_repo:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            return
+        
+        if not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Token GitHub necessario per creare PR.\n"))
+            return
+        
+        # Recupera branch disponibili e branch corrente
+        self.output_text_ctrl.AppendText(_("Recupero informazioni branch...\n"))
+        wx.Yield()
+        
+        branches_list = self.get_repository_branches()
+        current_branch = self.get_current_git_branch()
+        
+        if not branches_list:
+            self.output_text_ctrl.AppendText(_("ERRORE: Impossibile recuperare i branch del repository.\n"))
+            return
+        
+        # Mostra dialog per creare PR
+        dlg = CreatePullRequestDialog(self, _("Crea Nuova Pull Request"), branches_list, current_branch)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            values = dlg.GetValues()
+            
+            if not values["title"].strip():
+                self.output_text_ctrl.AppendText(_("ERRORE: Il titolo della PR è obbligatorio.\n"))
+                dlg.Destroy()
+                return
+            
+            if not values["head"] or not values["base"]:
+                self.output_text_ctrl.AppendText(_("ERRORE: Branch di origine e destinazione sono obbligatori.\n"))
+                dlg.Destroy()
+                return
+            
+            if values["head"] == values["base"]:
+                self.output_text_ctrl.AppendText(_("ERRORE: Branch di origine e destinazione non possono essere uguali.\n"))
+                dlg.Destroy()
+                return
+            
+            # Prepara payload per API
+            payload = {
+                "title": values["title"],
+                "body": values["body"],
+                "head": values["head"],
+                "base": values["base"],
+                "draft": values["draft"]
+            }
+            
+            # Crea PR via API
+            headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+            pr_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls"
+            
+            self.output_text_ctrl.AppendText(_("🚀 Creazione PR '{}' da '{}' verso '{}'...\n").format(
+                values["title"], values["head"], values["base"]))
+            wx.Yield()
+            
+            try:
+                response = requests.post(pr_url, headers=headers, json=payload, timeout=15)
+                response.raise_for_status()
+                
+                pr_data = response.json()
+                pr_number = pr_data["number"]
+                pr_html_url = pr_data["html_url"]
+                
+                self.output_text_ctrl.AppendText(_("✅ Pull Request #{} creata con successo!\n").format(pr_number))
+                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(pr_html_url))
+                
+                # Se auto-merge è richiesto e la PR non è draft
+                if values["auto_merge"] and not values["draft"]:
+                    self.output_text_ctrl.AppendText(_("🔄 Tentativo di abilitare auto-merge...\n"))
+                    # Nota: l'auto-merge richiede API specifiche e configurazione repository
+                
+                # Opzione per aprire nel browser
+                open_browser_msg = _("Vuoi aprire la PR nel browser?")
+                open_dlg = wx.MessageDialog(self, open_browser_msg, _("Apri PR"), wx.YES_NO | wx.ICON_QUESTION)
+                if open_dlg.ShowModal() == wx.ID_YES:
+                    import webbrowser
+                    webbrowser.open(pr_html_url)
+                open_dlg.Destroy()
+                
+            except requests.exceptions.RequestException as e:
+                self.output_text_ctrl.AppendText(_("❌ Errore durante la creazione della PR: {}\n").format(e))
+                if hasattr(e, 'response') and e.response is not None:
+                    error_details = e.response.text[:300]
+                    self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(error_details))
+                    
+                    # Gestione errori specifici
+                    if "No commits between" in error_details:
+                        self.output_text_ctrl.AppendText(_("💡 Suggerimento: Assicurati che ci siano commit nel branch '{}' che non sono in '{}'.\n").format(values["head"], values["base"]))
+                    elif "A pull request already exists" in error_details:
+                        self.output_text_ctrl.AppendText(_("💡 Suggerimento: Una PR tra questi branch potrebbe già esistere.\n"))
+        else:
+            self.output_text_ctrl.AppendText(_("Creazione PR annullata.\n"))
+        
+        dlg.Destroy()
+
+
     def start_monitoring_run(self, run_id, owner, repo):
         """Avvia il monitoraggio periodico di un workflow run."""
         print(f"DEBUG_MONITOR: Avvio monitoraggio per run_id: {run_id}")
@@ -2308,7 +2773,13 @@ class GitFrame(wx.Frame):
                 self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
             return
+        elif command_name_key == CMD_GITHUB_CREATE_ISSUE:
+            self.handle_create_issue(command_name_key, command_details)
+            return
 
+        elif command_name_key == CMD_GITHUB_CREATE_PR:
+            self.handle_create_pull_request(command_name_key, command_details)
+            return
         elif command_name_key == CMD_GITHUB_TRIGGER_WORKFLOW:
             self.output_text_ctrl.AppendText(_("Recupero lista workflow disponibili...\n"))
             wx.Yield()
