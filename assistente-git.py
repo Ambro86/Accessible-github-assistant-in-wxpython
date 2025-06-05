@@ -1435,7 +1435,750 @@ class EditReleaseDialog(wx.Dialog):
             "assets_count": len(self.release_data.get('assets', [])),
             "new_assets_count": len(self.new_assets_paths)
         }
+
+class IssueManagementDialog(wx.Dialog):
+    def __init__(self, parent, issue_data, github_owner, github_repo, github_token):
+        super().__init__(parent, title=f"Gestione Issue #{issue_data['number']}: {issue_data['title'][:50]}...", size=(850, 750))
         
+        self.issue_data = issue_data
+        self.github_owner = github_owner
+        self.github_repo = github_repo
+        self.github_token = github_token
+        self.comments_data = []
+        
+        self.create_ui()
+        self.load_comments()
+        self.Center()
+    
+    def create_ui(self):
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con info issue
+        header_box = wx.StaticBox(panel, label=_("📋 Dettagli Issue"))
+        header_sizer = wx.StaticBoxSizer(header_box, wx.VERTICAL)
+        
+        # Titolo e stato
+        title_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        title_text = f"#{self.issue_data['number']}: {self.issue_data['title']}"
+        title_label = wx.StaticText(panel, label=title_text)
+        title_font = title_label.GetFont()
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        title_font.SetPointSize(12)
+        title_label.SetFont(title_font)
+        
+        state_icon = "🟢" if self.issue_data['state'] == 'open' else "🔴"
+        state_label = wx.StaticText(panel, label=f"{state_icon} {self.issue_data['state'].upper()}")
+        state_font = state_label.GetFont()
+        state_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        state_label.SetFont(state_font)
+        
+        title_sizer.Add(title_label, 1, wx.EXPAND | wx.ALL, 5)
+        title_sizer.Add(state_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        header_sizer.Add(title_sizer, 0, wx.EXPAND)
+        
+        # Info aggiuntive in formato tabella
+        info_grid = wx.FlexGridSizer(cols=2, gap=(10, 5))
+        info_grid.AddGrowableCol(1, 1)
+        
+        # Autore
+        author_label = wx.StaticText(panel, label="👤 Autore:")
+        author_value = wx.StaticText(panel, label=self.issue_data['user']['login'])
+        info_grid.Add(author_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(author_value, 1, wx.EXPAND)
+        
+        # Date
+        created_label = wx.StaticText(panel, label="📅 Creata:")
+        created_value = wx.StaticText(panel, label=self.issue_data['created_at'][:10])
+        info_grid.Add(created_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(created_value, 1, wx.EXPAND)
+        
+        updated_label = wx.StaticText(panel, label="🔄 Aggiornata:")
+        updated_value = wx.StaticText(panel, label=self.issue_data['updated_at'][:10])
+        info_grid.Add(updated_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(updated_value, 1, wx.EXPAND)
+        
+        # Assignees
+        if self.issue_data.get('assignees'):
+            assignees_label = wx.StaticText(panel, label="👥 Assegnata a:")
+            assignees_text = ", ".join([a['login'] for a in self.issue_data['assignees']])
+            assignees_value = wx.StaticText(panel, label=assignees_text)
+            info_grid.Add(assignees_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(assignees_value, 1, wx.EXPAND)
+        
+        # Labels
+        if self.issue_data.get('labels'):
+            labels_label = wx.StaticText(panel, label="🏷️ Labels:")
+            labels_text = ", ".join([l['name'] for l in self.issue_data['labels']])
+            labels_value = wx.StaticText(panel, label=labels_text)
+            info_grid.Add(labels_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(labels_value, 1, wx.EXPAND)
+        
+        header_sizer.Add(info_grid, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Descrizione
+        if self.issue_data.get('body') and self.issue_data['body'].strip():
+            desc_label = wx.StaticText(panel, label=_("📝 Descrizione:"))
+            desc_font = desc_label.GetFont()
+            desc_font.SetWeight(wx.FONTWEIGHT_BOLD)
+            desc_label.SetFont(desc_font)
+            header_sizer.Add(desc_label, 0, wx.TOP | wx.LEFT | wx.RIGHT, 10)
+            
+            desc_text = wx.TextCtrl(panel, value=self.issue_data['body'], 
+                                   style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 120))
+            desc_text.SetBackgroundColour(wx.Colour(250, 250, 250))
+            header_sizer.Add(desc_text, 0, wx.EXPAND | wx.ALL, 5)
+        
+        main_sizer.Add(header_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        # Separator
+        line1 = wx.StaticLine(panel)
+        main_sizer.Add(line1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Sezione commenti
+        comments_box = wx.StaticBox(panel, label=_("💬 Commenti"))
+        comments_sizer = wx.StaticBoxSizer(comments_box, wx.VERTICAL)
+        
+        # Info commenti e refresh
+        comments_info_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.comments_count_label = wx.StaticText(panel, label=_("Caricamento commenti..."))
+        self.refresh_btn = wx.Button(panel, label=_("🔄 Aggiorna"))
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.OnRefreshComments)
+        
+        comments_info_sizer.Add(self.comments_count_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        comments_info_sizer.Add(self.refresh_btn, 0, wx.ALL, 5)
+        comments_sizer.Add(comments_info_sizer, 0, wx.EXPAND)
+        
+        # Lista commenti con scrollbar
+        self.comments_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, size=(-1, 250))
+        # Font monospazio per migliore leggibilità
+        mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            self.comments_ctrl.SetFont(mono_font)
+        
+        comments_sizer.Add(self.comments_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        main_sizer.Add(comments_sizer, 1, wx.EXPAND | wx.ALL, 10)
+        
+        # Separator
+        line2 = wx.StaticLine(panel)
+        main_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Nuovo commento
+        new_comment_box = wx.StaticBox(panel, label=_("✍️ Scrivi Nuovo Commento"))
+        new_comment_sizer = wx.StaticBoxSizer(new_comment_box, wx.VERTICAL)
+        
+        self.new_comment_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(-1, 100))
+        self.new_comment_ctrl.SetHint(_("Scrivi il tuo commento qui... Supporta Markdown!"))
+        new_comment_sizer.Add(self.new_comment_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Contatore caratteri e bottoni
+        comment_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.char_count_label = wx.StaticText(panel, label="0 caratteri")
+        self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
+        
+        self.send_comment_btn = wx.Button(panel, label=_("📤 Invia Commento"))
+        self.send_comment_btn.Bind(wx.EVT_BUTTON, self.OnSendComment)
+        
+        self.clear_comment_btn = wx.Button(panel, label=_("🗑️ Pulisci"))
+        self.clear_comment_btn.Bind(wx.EVT_BUTTON, self.OnClearComment)
+        
+        comment_bottom_sizer.Add(self.char_count_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        comment_bottom_sizer.Add(self.clear_comment_btn, 0, wx.ALL, 5)
+        comment_bottom_sizer.Add(self.send_comment_btn, 0, wx.ALL, 5)
+        
+        new_comment_sizer.Add(comment_bottom_sizer, 0, wx.EXPAND)
+        main_sizer.Add(new_comment_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        # Bind per contatore caratteri
+        self.new_comment_ctrl.Bind(wx.EVT_TEXT, self.OnCommentTextChanged)
+        
+        # Separator finale
+        line3 = wx.StaticLine(panel)
+        main_sizer.Add(line3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Bottoni finali
+        final_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Info URL
+        url_label = wx.StaticText(panel, label=f"🔗 {self.issue_data['html_url']}")
+        url_label.SetForegroundColour(wx.Colour(0, 0, 255))
+        
+        # Pulsanti
+        self.open_browser_btn = wx.Button(panel, label=_("🌐 Apri nel Browser"))
+        self.open_browser_btn.Bind(wx.EVT_BUTTON, self.OnOpenInBrowser)
+        
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
+        close_btn.Bind(wx.EVT_BUTTON, self.OnClose)
+        close_btn.SetDefault()
+        
+        final_buttons_sizer.Add(url_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        final_buttons_sizer.Add(self.open_browser_btn, 0, wx.ALL, 5)
+        final_buttons_sizer.Add(close_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(final_buttons_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        panel.SetSizer(main_sizer)
+    
+    def load_comments(self):
+        """Carica i commenti della issue."""
+        if not self.github_token:
+            self.comments_ctrl.SetValue(_("❌ Token GitHub necessario per visualizzare i commenti."))
+            self.send_comment_btn.Enable(False)
+            self.comments_count_label.SetLabel(_("Token mancante"))
+            return
+        
+        self.comments_count_label.SetLabel(_("Caricamento..."))
+        wx.SafeYield()
+        
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        comments_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{self.issue_data['number']}/comments"
+        
+        try:
+            response = requests.get(comments_url, headers=headers, timeout=15)
+            response.raise_for_status()
+            self.comments_data = response.json()
+            
+            comment_count = len(self.comments_data)
+            self.comments_count_label.SetLabel(f"📊 {comment_count} commenti totali")
+            
+            if not self.comments_data:
+                self.comments_ctrl.SetValue(_("📭 Nessun commento ancora presente.\n\n💡 Scrivi il primo commento usando il campo qui sotto!"))
+            else:
+                comments_text = ""
+                for i, comment in enumerate(self.comments_data):
+                    author = comment['user']['login']
+                    created_at = comment['created_at'][:16].replace('T', ' ')
+                    updated_at = comment.get('updated_at', '')
+                    body = comment['body']
+                    
+                    # Header del commento
+                    comments_text += f"{'='*80}\n"
+                    comments_text += f"💬 Commento #{i+1} - {author} - {created_at}"
+                    
+                    if updated_at and updated_at != comment['created_at']:
+                        comments_text += f" (modificato: {updated_at[:16].replace('T', ' ')})"
+                    
+                    comments_text += f"\n{'='*80}\n"
+                    comments_text += f"{body}\n\n"
+                
+                self.comments_ctrl.SetValue(comments_text)
+                # Scroll all'inizio
+                self.comments_ctrl.SetInsertionPoint(0)
+        
+        except requests.exceptions.RequestException as e:
+            error_msg = f"❌ Errore nel caricare i commenti: {e}"
+            self.comments_ctrl.SetValue(error_msg)
+            self.send_comment_btn.Enable(False)
+            self.comments_count_label.SetLabel(_("Errore caricamento"))
+    
+    def OnRefreshComments(self, event):
+        """Ricarica i commenti."""
+        self.load_comments()
+    
+    def OnCommentTextChanged(self, event):
+        """Aggiorna il contatore caratteri."""
+        text = self.new_comment_ctrl.GetValue()
+        char_count = len(text)
+        self.char_count_label.SetLabel(f"{char_count} caratteri")
+        
+        # Cambia colore se troppo lungo
+        if char_count > 65536:  # Limite GitHub
+            self.char_count_label.SetForegroundColour(wx.Colour(255, 0, 0))
+        else:
+            self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
+        
+        event.Skip()
+    
+    def OnClearComment(self, event):
+        """Pulisce il campo commento."""
+        if self.new_comment_ctrl.GetValue().strip():
+            dlg = wx.MessageDialog(self, _("Sei sicuro di voler cancellare il commento che stai scrivendo?"), 
+                                 _("Conferma Cancellazione"), wx.YES_NO | wx.ICON_QUESTION)
+            if dlg.ShowModal() == wx.ID_YES:
+                self.new_comment_ctrl.SetValue("")
+            dlg.Destroy()
+    
+    def OnSendComment(self, event):
+        """Invia un nuovo commento."""
+        comment_text = self.new_comment_ctrl.GetValue().strip()
+        if not comment_text:
+            wx.MessageBox(_("Inserisci un commento prima di inviare."), _("Commento Vuoto"), 
+                         wx.OK | wx.ICON_WARNING, self)
+            self.new_comment_ctrl.SetFocus()
+            return
+        
+        if len(comment_text) > 65536:
+            wx.MessageBox(_("Il commento è troppo lungo (massimo 65536 caratteri)."), 
+                         _("Commento Troppo Lungo"), wx.OK | wx.ICON_ERROR, self)
+            return
+        
+        if not self.github_token:
+            wx.MessageBox(_("Token GitHub necessario per inviare commenti."), 
+                         _("Token Mancante"), wx.OK | wx.ICON_ERROR, self)
+            return
+        
+        # Conferma invio
+        confirm_dlg = wx.MessageDialog(self, 
+                                     _("Sei sicuro di voler inviare questo commento?\n\nIl commento sarà pubblico e visibile a tutti."), 
+                                     _("Conferma Invio Commento"), wx.YES_NO | wx.ICON_QUESTION)
+        
+        if confirm_dlg.ShowModal() != wx.ID_YES:
+            confirm_dlg.Destroy()
+            return
+        confirm_dlg.Destroy()
+        
+        # Disabilita pulsante durante invio
+        self.send_comment_btn.Enable(False)
+        self.send_comment_btn.SetLabel(_("📤 Invio..."))
+        wx.SafeYield()
+        
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        comments_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{self.issue_data['number']}/comments"
+        
+        payload = {"body": comment_text}
+        
+        try:
+            response = requests.post(comments_url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            wx.MessageBox(_("✅ Commento inviato con successo!"), _("Commento Inviato"), 
+                         wx.OK | wx.ICON_INFORMATION, self)
+            self.new_comment_ctrl.SetValue("")  # Pulisce il campo
+            self.load_comments()  # Ricarica i commenti
+            
+        except requests.exceptions.RequestException as e:
+            wx.MessageBox(f"❌ Errore nell'inviare il commento: {e}", _("Errore Invio"), 
+                         wx.OK | wx.ICON_ERROR, self)
+        finally:
+            # Riabilita pulsante
+            self.send_comment_btn.Enable(True)
+            self.send_comment_btn.SetLabel(_("📤 Invia Commento"))
+    
+    def OnOpenInBrowser(self, event):
+        """Apre la issue nel browser."""
+        try:
+            webbrowser.open(self.issue_data['html_url'])
+        except Exception as e:
+            wx.MessageBox(f"Errore nell'aprire il browser: {e}", "Errore", wx.OK | wx.ICON_ERROR, self)
+    
+    def OnClose(self, event):
+        """Chiude il dialog."""
+        # Controlla se c'è testo non salvato
+        if self.new_comment_ctrl.GetValue().strip():
+            dlg = wx.MessageDialog(self, 
+                                 _("Hai un commento non inviato. Sei sicuro di voler chiudere?"), 
+                                 _("Commento Non Salvato"), wx.YES_NO | wx.ICON_QUESTION)
+            if dlg.ShowModal() != wx.ID_YES:
+                dlg.Destroy()
+                return
+            dlg.Destroy()
+        
+        self.EndModal(wx.ID_CLOSE)
+
+class PullRequestManagementDialog(wx.Dialog):
+    def __init__(self, parent, pr_data, github_owner, github_repo, github_token):
+        super().__init__(parent, title=f"Gestione PR #{pr_data['number']}: {pr_data['title'][:50]}...", size=(850, 750))
+        
+        self.pr_data = pr_data
+        self.github_owner = github_owner
+        self.github_repo = github_repo
+        self.github_token = github_token
+        self.comments_data = []
+        
+        self.create_ui()
+        self.load_comments()
+        self.Center()
+    
+    def create_ui(self):
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con info PR
+        header_box = wx.StaticBox(panel, label=_("🔀 Dettagli Pull Request"))
+        header_sizer = wx.StaticBoxSizer(header_box, wx.VERTICAL)
+        
+        # Titolo e stato
+        title_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        title_text = f"#{self.pr_data['number']}: {self.pr_data['title']}"
+        title_label = wx.StaticText(panel, label=title_text)
+        title_font = title_label.GetFont()
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        title_font.SetPointSize(12)
+        title_label.SetFont(title_font)
+        
+        # Stato PR più dettagliato
+        if self.pr_data.get('merged_at'):
+            state_icon = "🟣"
+            state_text = "MERGED"
+        elif self.pr_data['state'] == 'open':
+            state_icon = "🟢"
+            state_text = "OPEN"
+        else:
+            state_icon = "🔴"
+            state_text = "CLOSED"
+        
+        if self.pr_data.get('draft', False):
+            state_text += " (DRAFT)"
+        
+        state_label = wx.StaticText(panel, label=f"{state_icon} {state_text}")
+        state_font = state_label.GetFont()
+        state_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        state_label.SetFont(state_font)
+        
+        title_sizer.Add(title_label, 1, wx.EXPAND | wx.ALL, 5)
+        title_sizer.Add(state_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        header_sizer.Add(title_sizer, 0, wx.EXPAND)
+        
+        # Info aggiuntive in formato tabella
+        info_grid = wx.FlexGridSizer(cols=2, gap=(10, 5))
+        info_grid.AddGrowableCol(1, 1)
+        
+        # Autore
+        author_label = wx.StaticText(panel, label="👤 Autore:")
+        author_value = wx.StaticText(panel, label=self.pr_data['user']['login'])
+        info_grid.Add(author_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(author_value, 1, wx.EXPAND)
+        
+        # Branch info
+        branch_label = wx.StaticText(panel, label="🌿 Branch:")
+        branch_text = f"{self.pr_data['head']['ref']} → {self.pr_data['base']['ref']}"
+        branch_value = wx.StaticText(panel, label=branch_text)
+        info_grid.Add(branch_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(branch_value, 1, wx.EXPAND)
+        
+        # Date
+        created_label = wx.StaticText(panel, label="📅 Creata:")
+        created_value = wx.StaticText(panel, label=self.pr_data['created_at'][:10])
+        info_grid.Add(created_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(created_value, 1, wx.EXPAND)
+        
+        updated_label = wx.StaticText(panel, label="🔄 Aggiornata:")
+        updated_value = wx.StaticText(panel, label=self.pr_data['updated_at'][:10])
+        info_grid.Add(updated_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(updated_value, 1, wx.EXPAND)
+        
+        # Data merge se presente
+        if self.pr_data.get('merged_at'):
+            merged_label = wx.StaticText(panel, label="🎯 Merged:")
+            merged_value = wx.StaticText(panel, label=self.pr_data['merged_at'][:10])
+            info_grid.Add(merged_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(merged_value, 1, wx.EXPAND)
+        
+        # Stato merge
+        mergeable_label = wx.StaticText(panel, label="🔀 Mergeable:")
+        mergeable_state = self.pr_data.get('mergeable_state', 'unknown')
+        mergeable_icons = {
+            'clean': '✅ Clean',
+            'dirty': '❌ Conflicts',
+            'unknown': '❓ Unknown',
+            'blocked': '🚫 Blocked',
+            'behind': '⏭️ Behind',
+            'unstable': '⚠️ Unstable'
+        }
+        mergeable_text = mergeable_icons.get(mergeable_state, f"❓ {mergeable_state}")
+        mergeable_value = wx.StaticText(panel, label=mergeable_text)
+        info_grid.Add(mergeable_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(mergeable_value, 1, wx.EXPAND)
+        
+        # Commit e file stats
+        if 'commits' in self.pr_data or 'changed_files' in self.pr_data:
+            stats_label = wx.StaticText(panel, label="📊 Stats:")
+            stats_text = ""
+            if 'commits' in self.pr_data:
+                stats_text += f"{self.pr_data['commits']} commits"
+            if 'changed_files' in self.pr_data:
+                if stats_text:
+                    stats_text += ", "
+                stats_text += f"{self.pr_data['changed_files']} files"
+            if 'additions' in self.pr_data and 'deletions' in self.pr_data:
+                stats_text += f" (+{self.pr_data['additions']} -{self.pr_data['deletions']})"
+            
+            stats_value = wx.StaticText(panel, label=stats_text)
+            info_grid.Add(stats_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(stats_value, 1, wx.EXPAND)
+        
+        # Reviewers se presenti
+        if self.pr_data.get('requested_reviewers'):
+            reviewers_label = wx.StaticText(panel, label="👥 Reviewers:")
+            reviewers_text = ", ".join([r['login'] for r in self.pr_data['requested_reviewers']])
+            reviewers_value = wx.StaticText(panel, label=reviewers_text)
+            info_grid.Add(reviewers_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(reviewers_value, 1, wx.EXPAND)
+        
+        # Labels
+        if self.pr_data.get('labels'):
+            labels_label = wx.StaticText(panel, label="🏷️ Labels:")
+            labels_text = ", ".join([l['name'] for l in self.pr_data['labels']])
+            labels_value = wx.StaticText(panel, label=labels_text)
+            info_grid.Add(labels_label, 0, wx.ALIGN_CENTER_VERTICAL)
+            info_grid.Add(labels_value, 1, wx.EXPAND)
+        
+        header_sizer.Add(info_grid, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Descrizione
+        if self.pr_data.get('body') and self.pr_data['body'].strip():
+            desc_label = wx.StaticText(panel, label=_("📝 Descrizione:"))
+            desc_font = desc_label.GetFont()
+            desc_font.SetWeight(wx.FONTWEIGHT_BOLD)
+            desc_label.SetFont(desc_font)
+            header_sizer.Add(desc_label, 0, wx.TOP | wx.LEFT | wx.RIGHT, 10)
+            
+            desc_text = wx.TextCtrl(panel, value=self.pr_data['body'], 
+                                   style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 120))
+            desc_text.SetBackgroundColour(wx.Colour(250, 250, 250))
+            header_sizer.Add(desc_text, 0, wx.EXPAND | wx.ALL, 5)
+        
+        main_sizer.Add(header_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        # Separator
+        line1 = wx.StaticLine(panel)
+        main_sizer.Add(line1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Sezione commenti
+        comments_box = wx.StaticBox(panel, label=_("💬 Commenti e Review"))
+        comments_sizer = wx.StaticBoxSizer(comments_box, wx.VERTICAL)
+        
+        # Info commenti e refresh
+        comments_info_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.comments_count_label = wx.StaticText(panel, label=_("Caricamento commenti..."))
+        self.refresh_btn = wx.Button(panel, label=_("🔄 Aggiorna"))
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.OnRefreshComments)
+        
+        comments_info_sizer.Add(self.comments_count_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        comments_info_sizer.Add(self.refresh_btn, 0, wx.ALL, 5)
+        comments_sizer.Add(comments_info_sizer, 0, wx.EXPAND)
+        
+        # Lista commenti con scrollbar
+        self.comments_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, size=(-1, 250))
+        # Font monospazio per migliore leggibilità
+        mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            self.comments_ctrl.SetFont(mono_font)
+        
+        comments_sizer.Add(self.comments_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        main_sizer.Add(comments_sizer, 1, wx.EXPAND | wx.ALL, 10)
+        
+        # Separator
+        line2 = wx.StaticLine(panel)
+        main_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Nuovo commento
+        new_comment_box = wx.StaticBox(panel, label=_("✍️ Scrivi Nuovo Commento"))
+        new_comment_sizer = wx.StaticBoxSizer(new_comment_box, wx.VERTICAL)
+        
+        self.new_comment_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(-1, 100))
+        self.new_comment_ctrl.SetHint(_("Scrivi il tuo commento sulla PR... Supporta Markdown!"))
+        new_comment_sizer.Add(self.new_comment_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Contatore caratteri e bottoni
+        comment_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.char_count_label = wx.StaticText(panel, label="0 caratteri")
+        self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
+        
+        self.send_comment_btn = wx.Button(panel, label=_("📤 Invia Commento"))
+        self.send_comment_btn.Bind(wx.EVT_BUTTON, self.OnSendComment)
+        
+        self.clear_comment_btn = wx.Button(panel, label=_("🗑️ Pulisci"))
+        self.clear_comment_btn.Bind(wx.EVT_BUTTON, self.OnClearComment)
+        
+        comment_bottom_sizer.Add(self.char_count_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        comment_bottom_sizer.Add(self.clear_comment_btn, 0, wx.ALL, 5)
+        comment_bottom_sizer.Add(self.send_comment_btn, 0, wx.ALL, 5)
+        
+        new_comment_sizer.Add(comment_bottom_sizer, 0, wx.EXPAND)
+        main_sizer.Add(new_comment_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        # Bind per contatore caratteri
+        self.new_comment_ctrl.Bind(wx.EVT_TEXT, self.OnCommentTextChanged)
+        
+        # Separator finale
+        line3 = wx.StaticLine(panel)
+        main_sizer.Add(line3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        
+        # Bottoni finali
+        final_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Info URL
+        url_label = wx.StaticText(panel, label=f"🔗 {self.pr_data['html_url']}")
+        url_label.SetForegroundColour(wx.Colour(0, 0, 255))
+        
+        # Pulsanti
+        self.open_browser_btn = wx.Button(panel, label=_("🌐 Apri nel Browser"))
+        self.open_browser_btn.Bind(wx.EVT_BUTTON, self.OnOpenInBrowser)
+        
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
+        close_btn.Bind(wx.EVT_BUTTON, self.OnClose)
+        close_btn.SetDefault()
+        
+        final_buttons_sizer.Add(url_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        final_buttons_sizer.Add(self.open_browser_btn, 0, wx.ALL, 5)
+        final_buttons_sizer.Add(close_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(final_buttons_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        panel.SetSizer(main_sizer)
+    
+    def load_comments(self):
+        """Carica i commenti della PR."""
+        if not self.github_token:
+            self.comments_ctrl.SetValue(_("❌ Token GitHub necessario per visualizzare i commenti."))
+            self.send_comment_btn.Enable(False)
+            self.comments_count_label.SetLabel(_("Token mancante"))
+            return
+        
+        self.comments_count_label.SetLabel(_("Caricamento..."))
+        wx.SafeYield()
+        
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        
+        # Le PR usano lo stesso endpoint delle issue per i commenti
+        comments_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{self.pr_data['number']}/comments"
+        
+        try:
+            response = requests.get(comments_url, headers=headers, timeout=15)
+            response.raise_for_status()
+            self.comments_data = response.json()
+            
+            comment_count = len(self.comments_data)
+            self.comments_count_label.SetLabel(f"📊 {comment_count} commenti totali")
+            
+            if not self.comments_data:
+                self.comments_ctrl.SetValue(_("📭 Nessun commento ancora presente.\n\n💡 Scrivi il primo commento usando il campo qui sotto!"))
+            else:
+                comments_text = ""
+                for i, comment in enumerate(self.comments_data):
+                    author = comment['user']['login']
+                    created_at = comment['created_at'][:16].replace('T', ' ')
+                    updated_at = comment.get('updated_at', '')
+                    body = comment['body']
+                    
+                    # Header del commento
+                    comments_text += f"{'='*80}\n"
+                    comments_text += f"💬 Commento #{i+1} - {author} - {created_at}"
+                    
+                    if updated_at and updated_at != comment['created_at']:
+                        comments_text += f" (modificato: {updated_at[:16].replace('T', ' ')})"
+                    
+                    comments_text += f"\n{'='*80}\n"
+                    comments_text += f"{body}\n\n"
+                
+                self.comments_ctrl.SetValue(comments_text)
+                # Scroll all'inizio
+                self.comments_ctrl.SetInsertionPoint(0)
+        
+        except requests.exceptions.RequestException as e:
+            error_msg = f"❌ Errore nel caricare i commenti: {e}"
+            self.comments_ctrl.SetValue(error_msg)
+            self.send_comment_btn.Enable(False)
+            self.comments_count_label.SetLabel(_("Errore caricamento"))
+    
+    def OnRefreshComments(self, event):
+        """Ricarica i commenti."""
+        self.load_comments()
+    
+    def OnCommentTextChanged(self, event):
+        """Aggiorna il contatore caratteri."""
+        text = self.new_comment_ctrl.GetValue()
+        char_count = len(text)
+        self.char_count_label.SetLabel(f"{char_count} caratteri")
+        
+        # Cambia colore se troppo lungo
+        if char_count > 65536:  # Limite GitHub
+            self.char_count_label.SetForegroundColour(wx.Colour(255, 0, 0))
+        else:
+            self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
+        
+        event.Skip()
+    
+    def OnClearComment(self, event):
+        """Pulisce il campo commento."""
+        if self.new_comment_ctrl.GetValue().strip():
+            dlg = wx.MessageDialog(self, _("Sei sicuro di voler cancellare il commento che stai scrivendo?"), 
+                                 _("Conferma Cancellazione"), wx.YES_NO | wx.ICON_QUESTION)
+            if dlg.ShowModal() == wx.ID_YES:
+                self.new_comment_ctrl.SetValue("")
+            dlg.Destroy()
+    
+    def OnSendComment(self, event):
+        """Invia un nuovo commento sulla PR."""
+        comment_text = self.new_comment_ctrl.GetValue().strip()
+        if not comment_text:
+            wx.MessageBox(_("Inserisci un commento prima di inviare."), _("Commento Vuoto"), 
+                         wx.OK | wx.ICON_WARNING, self)
+            self.new_comment_ctrl.SetFocus()
+            return
+        
+        if len(comment_text) > 65536:
+            wx.MessageBox(_("Il commento è troppo lungo (massimo 65536 caratteri)."), 
+                         _("Commento Troppo Lungo"), wx.OK | wx.ICON_ERROR, self)
+            return
+        
+        if not self.github_token:
+            wx.MessageBox(_("Token GitHub necessario per inviare commenti."), 
+                         _("Token Mancante"), wx.OK | wx.ICON_ERROR, self)
+            return
+        
+        # Conferma invio
+        confirm_dlg = wx.MessageDialog(self, 
+                                     _("Sei sicuro di voler inviare questo commento sulla PR?\n\nIl commento sarà pubblico e visibile a tutti."), 
+                                     _("Conferma Invio Commento"), wx.YES_NO | wx.ICON_QUESTION)
+        
+        if confirm_dlg.ShowModal() != wx.ID_YES:
+            confirm_dlg.Destroy()
+            return
+        confirm_dlg.Destroy()
+        
+        # Disabilita pulsante durante invio
+        self.send_comment_btn.Enable(False)
+        self.send_comment_btn.SetLabel(_("📤 Invio..."))
+        wx.SafeYield()
+        
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        # Le PR usano lo stesso endpoint delle issue per i commenti
+        comments_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{self.pr_data['number']}/comments"
+        
+        payload = {"body": comment_text}
+        
+        try:
+            response = requests.post(comments_url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            wx.MessageBox(_("✅ Commento inviato con successo!"), _("Commento Inviato"), 
+                         wx.OK | wx.ICON_INFORMATION, self)
+            self.new_comment_ctrl.SetValue("")  # Pulisce il campo
+            self.load_comments()  # Ricarica i commenti
+            
+        except requests.exceptions.RequestException as e:
+            wx.MessageBox(f"❌ Errore nell'inviare il commento: {e}", _("Errore Invio"), 
+                         wx.OK | wx.ICON_ERROR, self)
+        finally:
+            # Riabilita pulsante
+            self.send_comment_btn.Enable(True)
+            self.send_comment_btn.SetLabel(_("📤 Invia Commento"))
+    
+    def OnOpenInBrowser(self, event):
+        """Apre la PR nel browser."""
+        try:
+            webbrowser.open(self.pr_data['html_url'])
+        except Exception as e:
+            wx.MessageBox(f"Errore nell'aprire il browser: {e}", "Errore", wx.OK | wx.ICON_ERROR, self)
+    
+    def OnClose(self, event):
+        """Chiude il dialog."""
+        # Controlla se c'è testo non salvato
+        if self.new_comment_ctrl.GetValue().strip():
+            dlg = wx.MessageDialog(self, 
+                                 _("Hai un commento non inviato. Sei sicuro di voler chiudere?"), 
+                                 _("Commento Non Salvato"), wx.YES_NO | wx.ICON_QUESTION)
+            if dlg.ShowModal() != wx.ID_YES:
+                dlg.Destroy()
+                return
+            dlg.Destroy()
+        
+        self.EndModal(wx.ID_CLOSE)
+
 class GitFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(GitFrame, self).__init__(*args, **kw)
@@ -1586,32 +2329,16 @@ class GitFrame(wx.Frame):
                                              wx.CHOICEDLG_STYLE)
 
             if select_dlg.ShowModal() == wx.ID_OK:
+                print("L'utente ha cliccato su ok.")
                 selected_choice = select_dlg.GetStringSelection()
                 selected_issue = issue_map.get(selected_choice)
-                
                 if selected_issue:
-                    # Mostra dettagli issue
-                    details = (
-                        f"📋 DETTAGLI ISSUE #{selected_issue['number']}\n"
-                        f"{'='*50}\n"
-                        f"Titolo: {selected_issue['title']}\n"
-                        f"Stato: {selected_issue['state'].upper()}\n"
-                        f"Autore: {selected_issue['user']['login']}\n"
-                        f"Creata: {selected_issue['created_at'][:10]}\n"
-                        f"Aggiornata: {selected_issue['updated_at'][:10]}\n"
-                        f"URL: {selected_issue['html_url']}\n\n"
-                        f"DESCRIZIONE:\n{selected_issue['body'] or 'Nessuna descrizione'}\n\n"
+                    # Apri dialog di gestione issue
+                    issue_dialog = IssueManagementDialog(
+                        self, selected_issue, self.github_owner, self.github_repo, self.github_token
                     )
-                    
-                    if selected_issue.get('labels'):
-                        labels_list = [f"• {label['name']}" for label in selected_issue['labels']]
-                        details += f"LABELS:\n" + "\n".join(labels_list) + "\n\n"
-                    
-                    if selected_issue.get('assignees'):
-                        assignees_list = [f"• {assignee['login']}" for assignee in selected_issue['assignees']]
-                        details += f"ASSEGNATA A:\n" + "\n".join(assignees_list) + "\n\n"
-
-                    self.output_text_ctrl.AppendText(details)
+                    issue_dialog.ShowModal()
+                    issue_dialog.Destroy()
             else:
                 self.output_text_ctrl.AppendText(_("Nessuna issue selezionata.\n"))
             
@@ -1870,30 +2597,13 @@ class GitFrame(wx.Frame):
             if select_dlg.ShowModal() == wx.ID_OK:
                 selected_choice = select_dlg.GetStringSelection()
                 selected_pr = pr_map.get(selected_choice)
-                
                 if selected_pr:
-                    # Mostra dettagli PR
-                    merge_status = "MERGED" if selected_pr.get('merged_at') else selected_pr['state'].upper()
-                    draft_status = " (DRAFT)" if selected_pr.get('draft', False) else ""
-                    
-                    details = (
-                        f"🔀 DETTAGLI PULL REQUEST #{selected_pr['number']}\n"
-                        f"{'='*60}\n"
-                        f"Titolo: {selected_pr['title']}\n"
-                        f"Stato: {merge_status}{draft_status}\n"
-                        f"Autore: {selected_pr['user']['login']}\n"
-                        f"Branch: {selected_pr['head']['ref']} → {selected_pr['base']['ref']}\n"
-                        f"Creata: {selected_pr['created_at'][:10]}\n"
-                        f"Aggiornata: {selected_pr['updated_at'][:10]}\n"
+                    # Apri dialog di gestione PR
+                    pr_dialog = PullRequestManagementDialog(
+                        self, selected_pr, self.github_owner, self.github_repo, self.github_token
                     )
-                    
-                    if selected_pr.get('merged_at'):
-                        details += f"Merged: {selected_pr['merged_at'][:10]}\n"
-                    
-                    details += f"URL: {selected_pr['html_url']}\n\n"
-                    details += f"DESCRIZIONE:\n{selected_pr['body'] or 'Nessuna descrizione'}\n\n"
-
-                    self.output_text_ctrl.AppendText(details)
+                    pr_dialog.ShowModal()
+                    pr_dialog.Destroy()                
             else:
                 self.output_text_ctrl.AppendText(_("Nessuna PR selezionata.\n"))
             
