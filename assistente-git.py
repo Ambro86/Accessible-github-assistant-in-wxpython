@@ -107,7 +107,7 @@ CAT_STASH = _("Salvataggio Temporaneo (Stash)")
 CAT_SEARCH_UTIL = _("Ricerca e Utilità")
 CAT_RESTORE_RESET = _("Ripristino e Reset (Usare con Cautela!)")
 CAT_GITHUB_ACTIONS = _("GitHub Actions")
-
+CAT_GITHUB_PR_ISSUES = _("Pull Request e Issue")
 CMD_CLONE = _("Clona un repository (nella cartella corrente)")
 CMD_INIT_REPO = _("Inizializza un nuovo repository qui")
 CMD_ADD_TO_GITIGNORE = _("Aggiungi cartella/file da ignorare a .gitignore")
@@ -159,6 +159,12 @@ CMD_GITHUB_TRIGGER_WORKFLOW = "Trigger Workflow Manuale"
 CMD_GITHUB_CANCEL_WORKFLOW = "Cancella Workflow in Esecuzione"
 CMD_GITHUB_CREATE_ISSUE = _("Crea Nuova Issue")
 CMD_GITHUB_CREATE_PR = _("Crea Nuova Pull Request")
+CMD_GITHUB_LIST_ISSUES = _("Visualizza Issue del Repository")
+CMD_GITHUB_EDIT_ISSUE = _("Modifica Issue Esistente")
+CMD_GITHUB_DELETE_ISSUE = _("Chiudi/Elimina Issue")
+CMD_GITHUB_LIST_PRS = _("Visualizza Pull Request del Repository")
+CMD_GITHUB_EDIT_PR = _("Modifica Pull Request Esistente")
+CMD_GITHUB_DELETE_PR = _("Chiudi/Elimina Pull Request")
 # --- FINE NUOVO COMANDO ---
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
@@ -710,6 +716,37 @@ CMD_GITHUB_CREATE_PR: {
     "input_needed": False, 
     "info": _("Crea una nuova Pull Request su GitHub tra due branch. Permette di specificare titolo, descrizione, branch di origine e destinazione, con opzioni per draft e auto-merge.")
 },
+    CMD_GITHUB_LIST_ISSUES: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Elenca le issue del repository con filtri per stato (aperte/chiuse), labels e assignees. Permette di visualizzare dettagli e selezionare issue per modifiche.")
+    },
+    CMD_GITHUB_EDIT_ISSUE: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Modifica una issue esistente: titolo, descrizione, labels, assignees e stato. Permette di aggiornare completamente i dettagli di una issue selezionata.")
+    },
+    CMD_GITHUB_DELETE_ISSUE: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Chiude una issue esistente. Le issue non possono essere eliminate completamente da GitHub, ma possono essere chiuse definitivamente.")
+    },
+    CMD_GITHUB_LIST_PRS: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Elenca le Pull Request del repository con filtri per stato, branch e reviewer. Permette di visualizzare dettagli e selezionare PR per modifiche.")
+    },
+    CMD_GITHUB_EDIT_PR: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Modifica una Pull Request esistente: titolo, descrizione, branch di destinazione, reviewers e stato draft. Permette aggiornamento completo dei dettagli.")
+    },
+    CMD_GITHUB_DELETE_PR: {
+        "type": "github", 
+        "input_needed": False, 
+        "info": _("Chiude una Pull Request esistente. Le PR possono essere chiuse senza merge o forzatamente chiuse anche se non mergeabili.")
+    },
+
 }
 CATEGORIZED_COMMANDS = {
     CAT_REPO_OPS: {"info": _("Comandi fondamentali..."), "order": [ CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS]}},
@@ -722,8 +759,6 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
-            CMD_GITHUB_CREATE_ISSUE,        # ← AGGIUNGI QUI
-            CMD_GITHUB_CREATE_PR,           # ← AGGIUNGI QUI
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_TRIGGER_WORKFLOW,      # ← AGGIUNGI QUI
             CMD_GITHUB_CANCEL_WORKFLOW,       # ← AGGIUNGI QUI  
@@ -734,20 +769,42 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comando aggiunto qui
-            CMD_GITHUB_CREATE_ISSUE,        # ← AGGIUNGI QUI
-            CMD_GITHUB_CREATE_PR,           # ← AGGIUNGI QUI
             CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
         ]}
-    },    CAT_STASH: {"info": _("Salvataggio temporaneo..."), "order": [CMD_STASH_SAVE, CMD_STASH_POP], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_STASH_SAVE, CMD_STASH_POP]}},
+    },
+    CAT_GITHUB_PR_ISSUES: {
+        "info": _("Gestione completa di Pull Request e Issue: creazione, modifica, visualizzazione e chiusura."),
+        "order": [
+            CMD_GITHUB_CREATE_ISSUE,
+            CMD_GITHUB_LIST_ISSUES,
+            CMD_GITHUB_EDIT_ISSUE,
+            CMD_GITHUB_DELETE_ISSUE,
+            CMD_GITHUB_CREATE_PR,
+            CMD_GITHUB_LIST_PRS,
+            CMD_GITHUB_EDIT_PR,
+            CMD_GITHUB_DELETE_PR
+        ],
+        "commands": {k: ORIGINAL_COMMANDS[k] for k in [
+            CMD_GITHUB_CREATE_ISSUE,
+            CMD_GITHUB_LIST_ISSUES,
+            CMD_GITHUB_EDIT_ISSUE,
+            CMD_GITHUB_DELETE_ISSUE,
+            CMD_GITHUB_CREATE_PR,
+            CMD_GITHUB_LIST_PRS,
+            CMD_GITHUB_EDIT_PR,
+            CMD_GITHUB_DELETE_PR
+        ]}
+    },
+    CAT_STASH: {"info": _("Salvataggio temporaneo..."), "order": [CMD_STASH_SAVE, CMD_STASH_POP], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_STASH_SAVE, CMD_STASH_POP]}},
     CAT_SEARCH_UTIL: {"info": _("Ricerca e utilità..."), "order": [ CMD_GREP, CMD_LS_FILES ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_GREP, CMD_LS_FILES]}},
     CAT_RESTORE_RESET: {"info": _("Ripristino e reset (cautela!)..."), "order": [ CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT]}},
 }
 
 CATEGORY_DISPLAY_ORDER = [
     CAT_REPO_OPS, CAT_LOCAL_CHANGES, CAT_BRANCH_TAG,
-    CAT_REMOTE_OPS, CAT_GITHUB_ACTIONS, CAT_STASH,
+    CAT_REMOTE_OPS, CAT_GITHUB_ACTIONS, CAT_GITHUB_PR_ISSUES, CAT_STASH,
     CAT_SEARCH_UTIL, CAT_RESTORE_RESET
 ]
 
@@ -1013,6 +1070,584 @@ class GitFrame(wx.Frame):
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
+
+
+    def handle_list_issues(self, command_name_key, command_details):
+        """Gestisce la visualizzazione delle issue del repository"""
+        if not self.github_owner or not self.github_repo:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            return
+
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+
+        # Dialog per filtri
+        filter_dlg = wx.Dialog(self, title=_("Filtri per Issue"), size=(400, 300))
+        panel = wx.Panel(filter_dlg)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Stato
+        state_label = wx.StaticText(panel, label=_("Stato:"))
+        state_choice = wx.Choice(panel, choices=[_("Tutte"), _("Aperte"), _("Chiuse")])
+        state_choice.SetSelection(1)  # Default: Aperte
+        sizer.Add(state_label, 0, wx.ALL, 5)
+        sizer.Add(state_choice, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Labels
+        labels_label = wx.StaticText(panel, label=_("Filtra per Label (opzionale):"))
+        labels_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(-1, 80))
+        labels_ctrl.SetHint(_("bug,enhancement,help wanted\n(separati da virgola)"))
+        sizer.Add(labels_label, 0, wx.ALL, 5)
+        sizer.Add(labels_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ok_btn = wx.Button(panel, wx.ID_OK, _("Carica Issue"))
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("Annulla"))
+        btn_sizer.Add(ok_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        panel.SetSizer(sizer)
+        filter_dlg.Fit()
+
+        if filter_dlg.ShowModal() != wx.ID_OK:
+            self.output_text_ctrl.AppendText(_("Visualizzazione issue annullata.\n"))
+            filter_dlg.Destroy()
+            return
+
+        # Ottieni parametri filtro
+        state_map = {0: "all", 1: "open", 2: "closed"}
+        state = state_map[state_choice.GetSelection()]
+        labels_text = labels_ctrl.GetValue().strip()
+        
+        filter_dlg.Destroy()
+
+        # Chiamata API
+        issues_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues"
+        params = {"state": state, "per_page": 50, "sort": "updated", "direction": "desc"}
+        
+        if labels_text:
+            params["labels"] = labels_text
+
+        self.output_text_ctrl.AppendText(_("🔍 Recupero issue per {}/{}...\n").format(self.github_owner, self.github_repo))
+        wx.Yield()
+
+        try:
+            response = requests.get(issues_url, headers=headers, params=params, timeout=15)
+            response.raise_for_status()
+            issues_data = response.json()
+
+            # Filtra le PR (GitHub API include le PR nelle issue)
+            actual_issues = [issue for issue in issues_data if "pull_request" not in issue]
+
+            if not actual_issues:
+                self.output_text_ctrl.AppendText(_("Nessuna issue trovata con i filtri specificati.\n"))
+                return
+
+            # Mostra le issue in un dialog di selezione
+            issue_choices = []
+            issue_map = {}
+            
+            for issue in actual_issues:
+                state_icon = "🟢" if issue["state"] == "open" else "🔴"
+                assignee_text = f"→ {issue['assignee']['login']}" if issue.get('assignee') else "→ Non assegnata"
+                labels_text = ", ".join([label['name'] for label in issue.get('labels', [])])
+                labels_display = f" [{labels_text}]" if labels_text else ""
+                
+                choice_str = f"{state_icon} #{issue['number']}: {issue['title'][:60]}... {assignee_text}{labels_display}"
+                issue_choices.append(choice_str)
+                issue_map[choice_str] = issue
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona una issue per vedere i dettagli:"),
+                                             _("Issue di {}/{}").format(self.github_owner, self.github_repo),
+                                             issue_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() == wx.ID_OK:
+                selected_choice = select_dlg.GetStringSelection()
+                selected_issue = issue_map.get(selected_choice)
+                
+                if selected_issue:
+                    # Mostra dettagli issue
+                    details = (
+                        f"📋 DETTAGLI ISSUE #{selected_issue['number']}\n"
+                        f"{'='*50}\n"
+                        f"Titolo: {selected_issue['title']}\n"
+                        f"Stato: {selected_issue['state'].upper()}\n"
+                        f"Autore: {selected_issue['user']['login']}\n"
+                        f"Creata: {selected_issue['created_at'][:10]}\n"
+                        f"Aggiornata: {selected_issue['updated_at'][:10]}\n"
+                        f"URL: {selected_issue['html_url']}\n\n"
+                        f"DESCRIZIONE:\n{selected_issue['body'] or 'Nessuna descrizione'}\n\n"
+                    )
+                    
+                    if selected_issue.get('labels'):
+                        labels_list = [f"• {label['name']}" for label in selected_issue['labels']]
+                        details += f"LABELS:\n" + "\n".join(labels_list) + "\n\n"
+                    
+                    if selected_issue.get('assignees'):
+                        assignees_list = [f"• {assignee['login']}" for assignee in selected_issue['assignees']]
+                        details += f"ASSEGNATA A:\n" + "\n".join(assignees_list) + "\n\n"
+
+                    self.output_text_ctrl.AppendText(details)
+            else:
+                self.output_text_ctrl.AppendText(_("Nessuna issue selezionata.\n"))
+            
+            select_dlg.Destroy()
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante il recupero delle issue: {}\n").format(e))
+
+    def handle_edit_issue(self, command_name_key, command_details):
+        """Gestisce la modifica di una issue esistente"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub e token non configurati.\n"))
+            return
+
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        
+        # Prima, carica le issue aperte
+        issues_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues"
+        params = {"state": "open", "per_page": 30}
+
+        try:
+            response = requests.get(issues_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            issues_data = response.json()
+            
+            actual_issues = [issue for issue in issues_data if "pull_request" not in issue]
+            
+            if not actual_issues:
+                self.output_text_ctrl.AppendText(_("Nessuna issue aperta trovata da modificare.\n"))
+                return
+
+            # Selezione issue da modificare
+            issue_choices = [f"#{issue['number']}: {issue['title']}" for issue in actual_issues]
+            issue_map = {choice: issue for choice, issue in zip(issue_choices, actual_issues)}
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona la issue da modificare:"),
+                                             _("Modifica Issue"),
+                                             issue_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Modifica issue annullata.\n"))
+                select_dlg.Destroy()
+                return
+
+            selected_issue = issue_map[select_dlg.GetStringSelection()]
+            select_dlg.Destroy()
+
+            # Dialog di modifica
+            edit_dlg = CreateIssueDialog(self, _("Modifica Issue"), 
+                                       self.get_repository_labels(), 
+                                       self.get_repository_collaborators())
+            
+            # Pre-popola con dati esistenti
+            edit_dlg.title_ctrl.SetValue(selected_issue['title'])
+            edit_dlg.desc_ctrl.SetValue(selected_issue['body'] or "")
+            
+            # Pre-seleziona labels esistenti
+            existing_labels = [label['name'] for label in selected_issue.get('labels', [])]
+            for i in range(edit_dlg.labels_checklist.GetCount()):
+                if edit_dlg.labels_list[i] in existing_labels:
+                    edit_dlg.labels_checklist.Check(i)
+
+            if edit_dlg.ShowModal() == wx.ID_OK:
+                values = edit_dlg.GetValues()
+                
+                # Prepara payload per aggiornamento
+                update_payload = {
+                    "title": values["title"],
+                    "body": values["body"],
+                    "labels": values["labels"],
+                    "assignees": values["assignees"]
+                }
+
+                # Aggiorna issue via API
+                update_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{selected_issue['number']}"
+                
+                self.output_text_ctrl.AppendText(_("🔄 Aggiornamento issue #{}...\n").format(selected_issue['number']))
+                wx.Yield()
+
+                update_response = requests.patch(update_url, headers=headers, json=update_payload, timeout=15)
+                update_response.raise_for_status()
+                
+                updated_issue = update_response.json()
+                self.output_text_ctrl.AppendText(_("✅ Issue #{} aggiornata con successo!\n").format(updated_issue['number']))
+                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(updated_issue['html_url']))
+
+            edit_dlg.Destroy()
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante la modifica: {}\n").format(e))
+
+    def handle_delete_issue(self, command_name_key, command_details):
+        """Gestisce la chiusura di una issue"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub e token non configurati.\n"))
+            return
+
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        
+        # Carica issue aperte
+        issues_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues"
+        params = {"state": "open", "per_page": 50}
+
+        try:
+            response = requests.get(issues_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            issues_data = response.json()
+            
+            actual_issues = [issue for issue in issues_data if "pull_request" not in issue]
+            
+            if not actual_issues:
+                self.output_text_ctrl.AppendText(_("Nessuna issue aperta trovata da chiudere.\n"))
+                return
+
+            # Selezione issue da chiudere
+            issue_choices = [f"#{issue['number']}: {issue['title']}" for issue in actual_issues]
+            issue_map = {choice: issue for choice, issue in zip(issue_choices, actual_issues)}
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona la issue da chiudere:"),
+                                             _("Chiudi Issue"),
+                                             issue_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Chiusura issue annullata.\n"))
+                select_dlg.Destroy()
+                return
+
+            selected_issue = issue_map[select_dlg.GetStringSelection()]
+            select_dlg.Destroy()
+
+            # Conferma chiusura
+            confirm_msg = _("Sei sicuro di voler chiudere la issue:\n\n#{}: {}\n\nQuesta azione può essere annullata riaprendo la issue su GitHub.").format(
+                selected_issue['number'], selected_issue['title']
+            )
+            
+            confirm_dlg = wx.MessageDialog(self, confirm_msg, _("Conferma Chiusura Issue"), 
+                                         wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+
+            if confirm_dlg.ShowModal() != wx.ID_YES:
+                self.output_text_ctrl.AppendText(_("Chiusura issue annullata.\n"))
+                confirm_dlg.Destroy()
+                return
+            
+            confirm_dlg.Destroy()
+
+            # Chiudi issue via API
+            close_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/issues/{selected_issue['number']}"
+            close_payload = {"state": "closed"}
+
+            self.output_text_ctrl.AppendText(_("🔒 Chiusura issue #{}...\n").format(selected_issue['number']))
+            wx.Yield()
+
+            close_response = requests.patch(close_url, headers=headers, json=close_payload, timeout=15)
+            close_response.raise_for_status()
+            
+            self.output_text_ctrl.AppendText(_("✅ Issue #{} chiusa con successo!\n").format(selected_issue['number']))
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante la chiusura: {}\n").format(e))
+
+    def handle_list_prs(self, command_name_key, command_details):
+        """Gestisce la visualizzazione delle Pull Request del repository"""
+        if not self.github_owner or not self.github_repo:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            return
+
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if self.github_token:
+            headers["Authorization"] = f"Bearer {self.github_token}"
+
+        # Dialog per filtri
+        filter_dlg = wx.Dialog(self, title=_("Filtri per Pull Request"), size=(400, 200))
+        panel = wx.Panel(filter_dlg)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Stato
+        state_label = wx.StaticText(panel, label=_("Stato:"))
+        state_choice = wx.Choice(panel, choices=[_("Tutte"), _("Aperte"), _("Chiuse"), _("Mergiate")])
+        state_choice.SetSelection(1)  # Default: Aperte
+        sizer.Add(state_label, 0, wx.ALL, 5)
+        sizer.Add(state_choice, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ok_btn = wx.Button(panel, wx.ID_OK, _("Carica PR"))
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("Annulla"))
+        btn_sizer.Add(ok_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        panel.SetSizer(sizer)
+        filter_dlg.Fit()
+
+        if filter_dlg.ShowModal() != wx.ID_OK:
+            self.output_text_ctrl.AppendText(_("Visualizzazione PR annullata.\n"))
+            filter_dlg.Destroy()
+            return
+
+        # Ottieni parametri filtro
+        state_map = {0: "all", 1: "open", 2: "closed", 3: "all"}  # Mergiate vengono filtrate dopo
+        state = state_map[state_choice.GetSelection()]
+        show_merged_only = state_choice.GetSelection() == 3
+        
+        filter_dlg.Destroy()
+
+        # Chiamata API
+        prs_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls"
+        params = {"state": state, "per_page": 50, "sort": "updated", "direction": "desc"}
+
+        self.output_text_ctrl.AppendText(_("🔍 Recupero Pull Request per {}/{}...\n").format(self.github_owner, self.github_repo))
+        wx.Yield()
+
+        try:
+            response = requests.get(prs_url, headers=headers, params=params, timeout=15)
+            response.raise_for_status()
+            prs_data = response.json()
+
+            # Filtra per stato merged se richiesto
+            if show_merged_only:
+                prs_data = [pr for pr in prs_data if pr.get('merged_at') is not None]
+
+            if not prs_data:
+                self.output_text_ctrl.AppendText(_("Nessuna Pull Request trovata con i filtri specificati.\n"))
+                return
+
+            # Mostra le PR in un dialog di selezione
+            pr_choices = []
+            pr_map = {}
+            
+            for pr in prs_data:
+                if pr.get('merged_at'):
+                    state_icon = "🟣"  # Merged
+                    state_text = "MERGED"
+                elif pr["state"] == "open":
+                    state_icon = "🟢"  # Open
+                    state_text = "OPEN"
+                else:
+                    state_icon = "🔴"  # Closed
+                    state_text = "CLOSED"
+                
+                draft_text = " [DRAFT]" if pr.get('draft', False) else ""
+                choice_str = f"{state_icon} #{pr['number']}: {pr['title'][:50]}... ({pr['head']['ref']} → {pr['base']['ref']}){draft_text}"
+                pr_choices.append(choice_str)
+                pr_map[choice_str] = pr
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona una PR per vedere i dettagli:"),
+                                             _("Pull Request di {}/{}").format(self.github_owner, self.github_repo),
+                                             pr_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() == wx.ID_OK:
+                selected_choice = select_dlg.GetStringSelection()
+                selected_pr = pr_map.get(selected_choice)
+                
+                if selected_pr:
+                    # Mostra dettagli PR
+                    merge_status = "MERGED" if selected_pr.get('merged_at') else selected_pr['state'].upper()
+                    draft_status = " (DRAFT)" if selected_pr.get('draft', False) else ""
+                    
+                    details = (
+                        f"🔀 DETTAGLI PULL REQUEST #{selected_pr['number']}\n"
+                        f"{'='*60}\n"
+                        f"Titolo: {selected_pr['title']}\n"
+                        f"Stato: {merge_status}{draft_status}\n"
+                        f"Autore: {selected_pr['user']['login']}\n"
+                        f"Branch: {selected_pr['head']['ref']} → {selected_pr['base']['ref']}\n"
+                        f"Creata: {selected_pr['created_at'][:10]}\n"
+                        f"Aggiornata: {selected_pr['updated_at'][:10]}\n"
+                    )
+                    
+                    if selected_pr.get('merged_at'):
+                        details += f"Merged: {selected_pr['merged_at'][:10]}\n"
+                    
+                    details += f"URL: {selected_pr['html_url']}\n\n"
+                    details += f"DESCRIZIONE:\n{selected_pr['body'] or 'Nessuna descrizione'}\n\n"
+
+                    self.output_text_ctrl.AppendText(details)
+            else:
+                self.output_text_ctrl.AppendText(_("Nessuna PR selezionata.\n"))
+            
+            select_dlg.Destroy()
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante il recupero delle PR: {}\n").format(e))
+
+    def handle_edit_pr(self, command_name_key, command_details):
+        """Gestisce la modifica di una Pull Request esistente"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub e token non configurati.\n"))
+            return
+
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        
+        # Carica PR aperte
+        prs_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls"
+        params = {"state": "open", "per_page": 30}
+
+        try:
+            response = requests.get(prs_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            prs_data = response.json()
+            
+            if not prs_data:
+                self.output_text_ctrl.AppendText(_("Nessuna Pull Request aperta trovata da modificare.\n"))
+                return
+
+            # Selezione PR da modificare
+            pr_choices = [f"#{pr['number']}: {pr['title']} ({pr['head']['ref']} → {pr['base']['ref']})" for pr in prs_data]
+            pr_map = {choice: pr for choice, pr in zip(pr_choices, prs_data)}
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona la PR da modificare:"),
+                                             _("Modifica Pull Request"),
+                                             pr_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Modifica PR annullata.\n"))
+                select_dlg.Destroy()
+                return
+
+            selected_pr = pr_map[select_dlg.GetStringSelection()]
+            select_dlg.Destroy()
+
+            # Dialog di modifica semplificato
+            edit_dlg = wx.Dialog(self, title=_("Modifica Pull Request"), size=(500, 400))
+            panel = wx.Panel(edit_dlg)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+
+            # Titolo
+            title_label = wx.StaticText(panel, label=_("Titolo:"))
+            title_ctrl = wx.TextCtrl(panel, value=selected_pr['title'])
+            sizer.Add(title_label, 0, wx.ALL, 5)
+            sizer.Add(title_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+
+            # Descrizione
+            desc_label = wx.StaticText(panel, label=_("Descrizione:"))
+            desc_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE, value=selected_pr['body'] or "")
+            sizer.Add(desc_label, 0, wx.ALL, 5)
+            sizer.Add(desc_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+
+            # Draft checkbox
+            draft_cb = wx.CheckBox(panel, label=_("Draft"))
+            draft_cb.SetValue(selected_pr.get('draft', False))
+            sizer.Add(draft_cb, 0, wx.ALL, 5)
+
+            # Bottoni
+            btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            ok_btn = wx.Button(panel, wx.ID_OK, _("Aggiorna"))
+            cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("Annulla"))
+            btn_sizer.Add(ok_btn, 0, wx.ALL, 5)
+            btn_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+            sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+            panel.SetSizer(sizer)
+
+            if edit_dlg.ShowModal() == wx.ID_OK:
+                # Prepara payload per aggiornamento
+                update_payload = {
+                    "title": title_ctrl.GetValue(),
+                    "body": desc_ctrl.GetValue(),
+                    "draft": draft_cb.GetValue()
+                }
+
+                # Aggiorna PR via API
+                update_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls/{selected_pr['number']}"
+                
+                self.output_text_ctrl.AppendText(_("🔄 Aggiornamento PR #{}...\n").format(selected_pr['number']))
+                wx.Yield()
+
+                update_response = requests.patch(update_url, headers=headers, json=update_payload, timeout=15)
+                update_response.raise_for_status()
+                
+                updated_pr = update_response.json()
+                self.output_text_ctrl.AppendText(_("✅ PR #{} aggiornata con successo!\n").format(updated_pr['number']))
+                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(updated_pr['html_url']))
+
+            edit_dlg.Destroy()
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante la modifica: {}\n").format(e))
+
+    def handle_delete_pr(self, command_name_key, command_details):
+        """Gestisce la chiusura di una Pull Request"""
+        if not self.github_owner or not self.github_repo or not self.github_token:
+            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub e token non configurati.\n"))
+            return
+
+        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
+        
+        # Carica PR aperte
+        prs_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls"
+        params = {"state": "open", "per_page": 50}
+
+        try:
+            response = requests.get(prs_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            prs_data = response.json()
+            
+            if not prs_data:
+                self.output_text_ctrl.AppendText(_("Nessuna Pull Request aperta trovata da chiudere.\n"))
+                return
+
+            # Selezione PR da chiudere
+            pr_choices = [f"#{pr['number']}: {pr['title']} ({pr['head']['ref']} → {pr['base']['ref']})" for pr in prs_data]
+            pr_map = {choice: pr for choice, pr in zip(pr_choices, prs_data)}
+
+            select_dlg = wx.SingleChoiceDialog(self, 
+                                             _("Seleziona la PR da chiudere:"),
+                                             _("Chiudi Pull Request"),
+                                             pr_choices,
+                                             wx.CHOICEDLG_STYLE)
+
+            if select_dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Chiusura PR annullata.\n"))
+                select_dlg.Destroy()
+                return
+
+            selected_pr = pr_map[select_dlg.GetStringSelection()]
+            select_dlg.Destroy()
+
+            # Conferma chiusura
+            confirm_msg = _("Sei sicuro di voler chiudere la Pull Request:\n\n#{}: {}\n\nBranch: {} → {}\n\nQuesta azione può essere annullata riaprendo la PR su GitHub.").format(
+                selected_pr['number'], selected_pr['title'], selected_pr['head']['ref'], selected_pr['base']['ref']
+            )
+            
+            confirm_dlg = wx.MessageDialog(self, confirm_msg, _("Conferma Chiusura PR"), 
+                                         wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+
+            if confirm_dlg.ShowModal() != wx.ID_YES:
+                self.output_text_ctrl.AppendText(_("Chiusura PR annullata.\n"))
+                confirm_dlg.Destroy()
+                return
+            
+            confirm_dlg.Destroy()
+
+            # Chiudi PR via API
+            close_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls/{selected_pr['number']}"
+            close_payload = {"state": "closed"}
+
+            self.output_text_ctrl.AppendText(_("🔒 Chiusura PR #{}...\n").format(selected_pr['number']))
+            wx.Yield()
+
+            close_response = requests.patch(close_url, headers=headers, json=close_payload, timeout=15)
+            close_response.raise_for_status()
+            
+            self.output_text_ctrl.AppendText(_("✅ PR #{} chiusa con successo!\n").format(selected_pr['number']))
+
+        except requests.exceptions.RequestException as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante la chiusura: {}\n").format(e))
 
     def get_repository_labels(self):
         """Recupera le labels disponibili nel repository"""
@@ -2772,6 +3407,29 @@ class GitFrame(wx.Frame):
             else:
                 self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
+            return
+        elif command_name_key == CMD_GITHUB_LIST_ISSUES:
+            self.handle_list_issues(command_name_key, command_details)
+            return
+
+        elif command_name_key == CMD_GITHUB_EDIT_ISSUE:
+            self.handle_edit_issue(command_name_key, command_details)
+            return
+
+        elif command_name_key == CMD_GITHUB_DELETE_ISSUE:
+            self.handle_delete_issue(command_name_key, command_details)
+            return
+
+        elif command_name_key == CMD_GITHUB_LIST_PRS:
+            self.handle_list_prs(command_name_key, command_details)
+            return
+
+        elif command_name_key == CMD_GITHUB_EDIT_PR:
+            self.handle_edit_pr(command_name_key, command_details)
+            return
+
+        elif command_name_key == CMD_GITHUB_DELETE_PR:
+            self.handle_delete_pr(command_name_key, command_details)
             return
         elif command_name_key == CMD_GITHUB_CREATE_ISSUE:
             self.handle_create_issue(command_name_key, command_details)
