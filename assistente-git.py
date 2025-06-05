@@ -219,8 +219,7 @@ class GitHubConfigDialog(wx.Dialog):
         if current_token_present:
             token_label_text += _(" (Attualmente memorizzato. Inserisci per cambiare o lascia vuoto per tentare di rimuovere.)")
         else:
-            token_label_text += _(" (Opzionale, ma richiesto per repository privati o limiti API più alti.)")
-
+            token_label_text += _(" (Opzionale, ma consigliato per repository privati e operazioni complete. Supporta sia Fine-grained che Classic tokens.)")
         token_label = wx.StaticText(panel, label=token_label_text)
         self.token_ctrl = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
         main_sizer.Add(token_label, 0, wx.LEFT|wx.RIGHT|wx.TOP, 5)
@@ -248,7 +247,9 @@ class GitHubConfigDialog(wx.Dialog):
         btn_panel = wx.Panel(panel)
         btn_sizer_h = wx.BoxSizer(wx.HORIZONTAL)
         self.delete_config_button = wx.Button(btn_panel, label=_("Elimina Configurazione Salvata"))
-        btn_sizer_h.Add(self.delete_config_button, 0, wx.RIGHT, 20)
+        self.create_token_button = wx.Button(btn_panel, label=_("🌐 Crea Token GitHub"))
+        btn_sizer_h.Add(self.delete_config_button, 0, wx.RIGHT, 10)
+        btn_sizer_h.Add(self.create_token_button, 0, wx.RIGHT, 20)
         std_button_sizer = wx.StdDialogButtonSizer()
         ok_button = wx.Button(btn_panel, wx.ID_OK, label=_("Salva Configurazione"))
         ok_button.SetDefault()
@@ -264,6 +265,7 @@ class GitHubConfigDialog(wx.Dialog):
 
         self.owner_ctrl.SetFocus()
         self.delete_config_button.Bind(wx.EVT_BUTTON, self.OnDeleteConfig)
+        self.create_token_button.Bind(wx.EVT_BUTTON, self.OnCreateToken)
 
         self.UpdatePasswordControlsState() # Chiama per impostare lo stato iniziale
 
@@ -400,6 +402,35 @@ class GitHubConfigDialog(wx.Dialog):
             "strip_log_timestamps": self.strip_timestamps_cb.GetValue(),
             "monitoring_beep": self.monitoring_beep_cb.GetValue()
         }
+
+    def OnCreateToken(self, event):
+        """Apre la pagina GitHub per creare un nuovo token."""
+        try:
+            token_url = "https://github.com/settings/personal-access-tokens"
+            webbrowser.open(token_url)
+            
+            info_msg = _(
+                "Pagina GitHub aperta nel browser!\n\n"
+                "📋 Istruzioni rapide:\n"
+                "1. Clicca 'Generate new token'\n"
+                "2. Scegli 'Fine-grained' (consigliato) o 'Classic'\n"
+                "3. Inserisci descrizione e scadenza\n"
+                "4. Seleziona permessi appropriati per il tuo repository\n"
+                "5. Genera e copia subito il token\n"
+                "6. Incolla il token nel campo sopra\n\n"
+                "💡 Il token sarà visibile solo una volta!"
+            )
+            
+            wx.MessageBox(info_msg, _("Token GitHub - Istruzioni"), wx.OK | wx.ICON_INFORMATION, self)
+            
+        except Exception as e:
+            wx.MessageBox(
+                _("Errore nell'aprire il browser.\n\n"
+                  "Vai manualmente a:\n"
+                  "https://github.com/settings/personal-access-tokens"),
+                _("Errore Browser"), wx.OK | wx.ICON_ERROR, self
+            )
+            
 class WorkflowInputDialog(wx.Dialog):
     def __init__(self, parent, title, workflow_name):
         super().__init__(parent, title=title, size=(500, 400))
@@ -3123,6 +3154,64 @@ class GitFrame(wx.Frame):
             )
         
         dlg.Destroy()
+
+    def _handle_github_token_missing(self):
+        """Gestisce il caso in cui il token GitHub non sia configurato."""
+        message = _(
+            "Token GitHub Personal Access Token (PAT) non configurato o non caricato.\n\n"
+            "Molte operazioni GitHub richiedono un token per funzionare:\n"
+            "• Accesso a repository privati\n"
+            "• Creazione/modifica di release\n"
+            "• Gestione di issue e pull request\n"
+            "• Limiti API più alti\n\n"
+            "Vuoi aprire la pagina GitHub per creare un nuovo token?"
+        )
+        
+        dlg = wx.MessageDialog(
+            self, 
+            message,
+            _("Token GitHub Mancante"), 
+            wx.YES_NO | wx.ICON_QUESTION
+        )
+        
+        if dlg.ShowModal() == wx.ID_YES:
+            try:
+                token_url = "https://github.com/settings/personal-access-tokens"
+                webbrowser.open(token_url)
+                self.output_text_ctrl.AppendText(
+                    _("🌐 Apertura pagina creazione token GitHub: {}\n\n"
+                    "📋 Istruzioni per creare il token:\n"
+                    "1. Nella pagina appena aperta, clicca 'Generate new token'\n"
+                    "2. Scegli tra 'Fine-grained tokens' (moderni) o 'Tokens (classic)'\n"
+                    "3. Inserisci una descrizione (es: 'Assistente Git Desktop')\n"
+                    "4. Seleziona la scadenza desiderata\n"
+                    "5. Seleziona i permessi necessari:\n"
+                    "   • Per Fine-grained: Contents, Actions, Metadata\n"
+                    "   • Per Classic: repo, workflow\n"
+                    "6. Clicca 'Generate token'\n"
+                    "7. COPIA SUBITO il token (non sarà più visibile!)\n"
+                    "8. Torna qui e usa '{}' per configurarlo\n\n"
+                    "⚠️ IMPORTANTE: Conserva il token in un posto sicuro!\n\n").format(token_url, CMD_GITHUB_CONFIGURE)
+                )
+            except Exception as e:
+                self.output_text_ctrl.AppendText(
+                    _("❌ Errore nell'aprire il browser: {}\n"
+                      "📋 Vai manualmente a: https://github.com/settings/personal-access-tokens\n").format(e)
+                )
+                wx.MessageBox(
+                    _("Impossibile aprire automaticamente il browser.\n\n"
+                      "Vai manualmente a questo indirizzo per creare un token:\n\n"
+                      "https://github.com/settings/personal-access-tokens"),
+                    _("Apri Manualmente"), wx.OK | wx.ICON_INFORMATION
+                )
+        else:
+            self.output_text_ctrl.AppendText(
+                _("⚠️ Token GitHub non configurato. Alcune operazioni potrebbero fallire.\n"
+                  "💡 Per creare un token vai a: https://github.com/settings/personal-access-tokens\n"
+                  "🔧 Usa '{}' per configurarlo una volta ottenuto.\n\n").format(CMD_GITHUB_CONFIGURE)
+            )
+        
+        dlg.Destroy()
     def InitUI(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         repo_sizer_box = wx.StaticBoxSizer(wx.HORIZONTAL, self.panel, _("Cartella del Repository (Directory di Lavoro)"))
@@ -3877,8 +3966,8 @@ class GitFrame(wx.Frame):
             return
 
         if not self._ensure_github_config_loaded() and command_name_key not in [CMD_GITHUB_LIST_WORKFLOW_RUNS]:
-            self.output_text_ctrl.AppendText(_("Avviso: Token GitHub non caricato. L'operazione potrebbe fallire o avere funzionalità limitate.\n"))
-
+            self._handle_github_token_missing()
+            return
         headers = {"Accept": "application/vnd.github.v3+json", "X-GitHub-Api-Version": "2022-11-28"}
         if self.github_token:
             headers["Authorization"] = f"Bearer {self.github_token}"
