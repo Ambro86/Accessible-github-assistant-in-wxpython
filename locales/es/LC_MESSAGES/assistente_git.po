@@ -12,444 +12,2517 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "\n!!! Comando {} fallito con codice di uscita: {} !!!\n"
-msgstr "\n!!! Comando {} falló con código de salida: {} !!!\n"
 
-msgid "\n!!! Operazione '{}' fallita con codice di uscita: {} !!!\n"
-msgstr "\n!!! Operación '{}' falló con código de salida: {} !!!\n"
+#: assistente-git.py:87 assistente-git.py:3979
+msgid "Pronto."
+msgstr "Listo."
 
-msgid "\n*** CONFLITTI DI MERGE RILEVATI! ***\n"
-msgstr "\n*** ¡CONFLICTOS DE FUSIÓN DETECTADOS! ***\n"
+#: assistente-git.py:103
+msgid "Operazioni di Base sul Repository"
+msgstr "Operaciones Básicas del Repositorio"
 
-msgid ""
-"\n"
-"*** PROBLEMA PUSH: Il branch corrente non ha un upstream remoto configurato. ***\n"
-"Questo di solito accade la prima volta che si tenta di inviare (push) un nuovo branch locale al server remoto.\n"
-msgstr ""
-"\n"
-"*** PROBLEMA DE PUSH: La rama actual no tiene una rama remota (upstream) configurada. ***\n"
-"Esto suele ocurrir la primera vez que intentas enviar (push) una nueva rama local al servidor remoto.\n"
+#: assistente-git.py:104
+msgid "Modifiche Locali e Commit"
+msgstr "Modificaciones Locales y Commits"
 
-msgid ""
-"\n"
-"Avviso: impossibile aggiornare automaticamente il percorso dopo il clone: {}.\n"
-"Si prega di selezionare manualmente la nuova cartella del repository se necessario.\n"
-msgstr ""
-"\n"
-"Aviso: no se pudo actualizar automáticamente la ruta después de clonar: {}.\n"
-"Por favor, selecciona manualmente la nueva carpeta del repositorio si es necesario.\n"
-
-msgid "\nComando/i completato/i con successo.\n"
-msgstr "\nComando(s) completado(s) con éxito.\n"
-
-msgid "\nEliminazione forzata del branch locale non eseguita.\n"
-msgstr "\nEliminación forzada de la rama local no realizada.\n"
-
-msgid "\nErrore durante l'aggiornamento del file .gitignore.\n"
-msgstr "\nError al actualizar el archivo .gitignore.\n"
-
-msgid "\nErrore durante la ricerca dei file.\n"
-msgstr "\nError durante la búsqueda de archivos.\n"
-
-msgid "\nEsecuzione (o parte di essa) fallita o con errori. Controllare l'output per i dettagli.\n"
-msgstr "\nEjecución (o parte de ella) fallida o con errores. Comprueba la salida para más detalles.\n"
-
-msgid "\nEsecuzione di: {}...\n"
-msgstr "\nEjecutando: {}...\n"
-
-msgid "\nOperazione .gitignore completata con successo.\n"
-msgstr "\nOperación .gitignore completada con éxito.\n"
-
-msgid ""
-"\n"
-"Operazione annullata dall'utente. Il branch non è stato inviato né collegato al remoto.\n"
-"Se necessario, puoi eseguire manualmente il comando: {}\n"
-msgstr ""
-"\n"
-"Operación cancelada por el usuario. La rama no fue enviada ni vinculada al remoto.\n"
-"Si es necesario, puedes ejecutar manualmente el comando: {}\n"
-
-msgid "\nPercorso della cartella repository aggiornato a: {}\n"
-msgstr "\nRuta de la carpeta del repositorio actualizada a: {}\n"
-
-msgid "\nPush con --set-upstream per '{}' completato con successo.\n"
-msgstr "\nPush con --set-upstream para '{}' completado con éxito.\n"
-
-msgid "\nPush forzato non eseguito.\n"
-msgstr "\nPush forzado no realizado.\n"
-
-msgid "\nRicerca file completata.\n"
-msgstr "\nBúsqueda de archivos completada.\n"
-
-msgid "\nTentativo di forzare l'eliminazione del branch locale '{}'...\n"
-msgstr "\nIntentando forzar la eliminación de la rama local '{}'...\n"
-
-msgid "\nTentativo di push con --set-upstream per '{}' fallito. Controlla l'output sopra per i dettagli.\n"
-msgstr "\nIntento de push con --set-upstream para '{}' fallido. Comprueba la salida anterior para más detalles.\n"
-
-msgid "\nTentativo di push forzato a 'origin' in corso...\n"
-msgstr "\nIntentando push forzado a 'origin'...\n"
-
-msgid "'{}' aggiunto correttamente a .gitignore.\n"
-msgstr "'{}' añadido correctamente a .gitignore.\n"
-
-msgid "'{}' non è un comando eseguibile.\n"
-msgstr "'{}' no es un comando ejecutable.\n"
-
-msgid "*.py (lascia vuoto per tutti)"
-msgstr "*.py (dejar vacío para todos)"
-
-msgid ""
-"--- Messaggi/Errori ({}) ---\n"
-"{}\n"
-msgstr ""
-"--- Mensajes/Errores ({}) ---\n"
-"{}\n"
-
-msgid ""
-"--- Messaggi/Errori ({}): ---\n"
-"{}\n"
-msgstr ""
-"--- Mensajes/Errores ({}): ---\n"
-"{}\n"
-
-msgid ""
-"--- Messaggi/Errori da 'git ls-files' ---\n"
-"{}\n"
-msgstr ""
-"--- Mensajes/Errores de 'git ls-files' ---\n"
-"{}\n"
-
-msgid ""
-"--- Output ({}) ---\n"
-"{}\n"
-msgstr ""
-"--- Salida ({}) ---\n"
-"{}\n"
-
-msgid ""
-"--- Output ({}): ---\n"
-"{}\n"
-msgstr ""
-"--- Salida ({}): ---\n"
-"{}\n"
-
-msgid "--- Risultati per il pattern '{}' ---\n"
-msgstr "--- Resultados para el patrón '{}' ---\n"
-
-msgid "--- Tutti i file tracciati da Git nel repository ---\n{}"
-msgstr "--- Todos los archivos rastreados por Git en el repositorio ---\n{}"
-
-msgid "1. Risolvi manualmente i conflitti (poi fai 'add' e 'commit')"
-msgstr "1. Resolver conflictos manualmente (luego hacer 'add' y 'commit')"
-
-msgid "2. Usa versione del BRANCH CORRENTE per tutti i conflitti (--ours)"
-msgstr "2. Usar versión de la RAMA ACTUAL para todos los conflictos (--ours)"
-
-msgid "3. Usa versione del BRANCH DA UNIRE per tutti i conflitti (--theirs)"
-msgstr "3. Usar versión de la RAMA A FUSIONAR para todos los conflictos (--theirs)"
-
-msgid "4. Annulla il merge (git merge --abort)"
-msgstr "4. Abortar la fusión (git merge --abort)"
-
-msgid "ATTENZIONE MASSIMA: Sposta il puntatore del branch corrente al commit specificato."
-msgstr "ATENCIÓN MÁXIMA: Mueve el puntero de la rama actual al commit especificado."
-
-msgid "ATTENZIONE MASSIMA: Stai per eliminare forzatamente il branch locale '{input_val}'. Commit non mergiati verranno PERSI. Sei sicuro?"
-msgstr "ATENCIÓN MÁXIMA: Estás a punto de eliminar forzosamente la rama local '{input_val}'. Los commits no fusionados se PERDERÁN. ¿Estás seguro?"
-
-msgid "ATTENZIONE: Annulla TUTTE le modifiche locali non committate e resetta all'ultimo commit?"
-msgstr "ATENCIÓN: ¿Descartar TODOS los cambios locales no confirmados y resetear al último commit?"
-
-msgid "ATTENZIONE: Elimina un branch locale forzatamente, anche se contiene commit non mergiati."
-msgstr "ATENCIÓN: Elimina una rama local forzosamente, incluso si contiene commits no fusionados."
-
-msgid "ATTENZIONE: Resetta il branch locale CORRENTE allo stato del branch remoto 'origin/<nome-branch>'. Modifiche e commit locali non inviati verranno PERSI."
-msgstr "ATENCIÓN: Restablece la rama local ACTUAL al estado de la rama remota 'origin/<nombre-rama>'. Los cambios locales y los commits no enviados (push) se PERDERÁN."
-
-msgid "ATTENZIONE: Ripristina file modificati E RIMUOVE file/directory non tracciati? Azione IRREVERSIBILE."
-msgstr "ATENCIÓN: ¿Restaurar archivos modificados Y ELIMINAR archivos/directorios no rastreados? Acción IRREVERSIBLE."
-
-msgid "ATTENZIONE: Sovrascrive i file con le versioni del commit E RIMUOVE i file/directory non tracciati."
-msgstr "ATENCIÓN: Sobrescribe los archivos con las versiones del commit Y ELIMINA archivos/directorios no rastreados."
-
-msgid "Aggiunge tutte le modifiche correnti (file nuovi, modificati, cancellati) nella directory di lavoro all'area di stage, preparandole per il prossimo commit. Usato anche per marcare conflitti di merge come risolti."
-msgstr "Añade todos los cambios actuales (archivos nuevos, modificados, eliminados) en el directorio de trabajo al área de preparación (stage), preparándolos para el próximo commit. También se usa para marcar conflictos de fusión como resueltos."
-
-msgid "Aggiungi cartella/file da ignorare a .gitignore"
-msgstr "Añadir carpeta/archivo a ignorar a .gitignore"
-
-msgid "Aggiungi repository remoto 'origin'"
-msgstr "Añadir repositorio remoto 'origin'"
-
-msgid "Aggiungi tutte le modifiche all'area di stage"
-msgstr "Añadir todos los cambios al área de preparación"
-
-msgid ""
-"Alcuni o tutti i file non sono stati processati con successo con la strategia '{}'.\n"
-"Controlla l'output. Potrebbe essere necessario risolvere manualmente, aggiungere i file e committare, oppure annullare il merge.\n"
-msgstr ""
-"Algunos o todos los archivos no se procesaron con éxito con la estrategia '{}'.\n"
-"Comprueba la salida. Podría ser necesario resolver manualmente, añadir los archivos y confirmar (commit), o abortar la fusión.\n"
-
-msgid "Annulla le modifiche non ancora in stage per un file specifico (selezionato tramite dialogo), riportandolo allo stato dell'ultimo commit."
-msgstr "Descarta los cambios aún no preparados (staged) para un archivo específico (seleccionado mediante diálogo), restaurándolo al estado del último commit."
-
-msgid "Annulla modifiche locali (reset --hard HEAD)"
-msgstr "Descartar cambios locales (reset --hard HEAD)"
-
-msgid "Annulla modifiche nei file tracciati e rimuove file/directory non tracciati."
-msgstr "Descarta cambios en archivos rastreados y elimina archivos/directorios no rastreados."
-
-msgid "Annulla modifiche su file specifico (restore)"
-msgstr "Descartar cambios en archivo específico (restore)"
-
-msgid "Annulla tentativo di merge (abort)"
-msgstr "Abortar intento de fusión (abort)"
-
-msgid "Annulla un tentativo di merge fallito a causa di conflitti, riportando il repository allo stato precedente al merge."
-msgstr "Aborta un intento de fusión fallido debido a conflictos, devolviendo el repositorio al estado anterior a la fusión."
-
-msgid "Applica le modifiche dall'ultimo stash e lo rimuove dalla lista."
-msgstr "Aplica los cambios del último stash y lo elimina de la lista."
-
-msgid "Applica ultime modifiche da stash (stash pop)"
-msgstr "Aplicar últimos cambios de stash (stash pop)"
-
-msgid "Applica {} a {}"
-msgstr "Aplicar {} a {}"
-
-msgid "Applicazione della strategia '{}' per i file in conflitto...\n"
-msgstr "Aplicando la estrategia '{}' para los archivos en conflicto...\n"
-
-msgid "Assistente Git Semplice v5.0 - Gestione Push Upstream"
-msgstr "Asistente Git Simple v5.0 - Gestión de Push Upstream"
-
-msgid "Attenzione: fallimento nell'applicare la strategia a {}. Controlla l'output.\n"
-msgstr "Atención: fallo al aplicar la estrategia a {}. Comprueba la salida.\n"
-
-msgid "Attivazione item...\n"
-msgstr "Activando ítem...\n"
-
-msgid "Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n"
-msgstr "Aviso: La carpeta '{}' no parece ser un repositorio Git. El archivo .gitignore se creará/modificará, pero Git podría no utilizarlo hasta la inicialización del repositorio ('{}').\n"
-
-msgid "Azione annullata dall'utente.\n"
-msgstr "Acción cancelada por el usuario.\n"
-
-msgid ""
-"Azione richiesta:\n"
-"1. Apri i file in conflitto (elencati sopra) nel tuo editor di testo preferito.\n"
-"2. Cerca e risolvi i marcatori di conflitto Git (es. <<<<<<<, =======, >>>>>>>).\n"
-"3. Dopo aver risolto tutti i conflitti in un file, usa il comando '{}' per marcare il file come risolto.\n"
-"4. Una volta che tutti i file in conflitto sono stati aggiunti, usa il comando '{}' per completare il merge. Puoi lasciare il messaggio di commit vuoto se Git ne propone uno di default.\n"
-msgstr ""
-"Acción requerida:\n"
-"1. Abre los archivos en conflicto (listados arriba) en tu editor de texto preferido.\n"
-"2. Busca y resuelve los marcadores de conflicto de Git (ej. <<<<<<<, =======, >>>>>>>).\n"
-"3. Después de resolver todos los conflictos en un archivo, usa el comando '{}' para marcar el archivo como resuelto.\n"
-"4. Una vez que todos los archivos en conflicto hayan sido añadidos, usa el comando '{}' para completar la fusión. Puedes dejar el mensaje de commit vacío si Git propone uno por defecto.\n"
-
-msgid "Branch corrente rilevato dall'errore Git: '{}'\n"
-msgstr "Rama actual detectada del error de Git: '{}'\n"
-
+#: assistente-git.py:105
 msgid "Branch e Tag"
-msgstr "Ramas y Etiquetas"
+msgstr "Ramas y Etiquetas (Branches y Tags)"
 
-msgid "Branch locale '{}' eliminato forzatamente.\n"
-msgstr "Rama local '{}' eliminada forzosamente.\n"
+#: assistente-git.py:106
+msgid "Operazioni con Repository Remoti"
+msgstr "Operaciones con Repositorios Remotos"
 
-msgid "CONFERMA ESTREMA: Resettare il branch locale CORRENTE a 'origin/{input_val}'? TUTTI i commit locali non inviati e le modifiche non committate su questo branch verranno PERSI IRREVERSIBILMENTE. Sei sicuro?"
-msgstr "CONFIRMACIÓN EXTREMA: ¿Restablecer la rama local ACTUAL a 'origin/{input_val}'? TODOS los commits locales no enviados y los cambios no confirmados en esta rama se PERDERÁN IRREVERSIBLEMENTE. ¿Estás seguro?"
+#: assistente-git.py:107
+msgid "Salvataggio Temporaneo (Stash)"
+msgstr "Almacenamiento Temporal (Stash)"
 
-msgid "CONFERMA ESTREMA: Stai per resettare il branch corrente a un commit precedente e PERDERE TUTTI i commit e le modifiche locali successive. Azione IRREVERSIBILE. Sei assolutamente sicuro?"
-msgstr "CONFIRMACIÓN EXTREMA: Estás a punto de restablecer la rama actual a un commit anterior y PERDER TODOS los commits y cambios locales posteriores. Acción IRREVERSIBLE. ¿Estás absolutamente seguro?"
+#: assistente-git.py:108
+msgid "Ricerca e Utilità"
+msgstr "Búsqueda y Utilidades"
 
-msgid "Cartella"
-msgstr "Carpeta"
+#: assistente-git.py:109
+msgid "Ripristino e Reset (Usare con Cautela!)"
+msgstr "Restauración y Reset (¡Usar con Cuidado!)"
 
-msgid "Cartella Repository: {}\n\n"
-msgstr "Carpeta del Repositorio: {}\n\n"
+#: assistente-git.py:110
+msgid "GitHub Actions"
+msgstr "GitHub Actions"
 
-msgid "Cartella del Repository (Directory di Lavoro)"
-msgstr "Carpeta del Repositorio (Directorio de Trabajo)"
+#: assistente-git.py:111
+msgid "Pull Request e Issue"
+msgstr "Pull Requests e Issues"
 
-msgid "Cartella repository impostata a: {}"
-msgstr "Carpeta del repositorio establecida en: {}"
-
-msgid "Categoria '{}' espansa/collassata.\n"
-msgstr "Categoría '{}' expandida/colapsada.\n"
-
-msgid "Cerca file nel progetto (tracciati da Git)"
-msgstr "Buscar archivos en el proyecto (rastreados por Git)"
-
-msgid "Cerca testo nei file (git grep)"
-msgstr "Buscar texto en archivos (git grep)"
-
-msgid "Cerca un pattern di testo (case-insensitive) nei file tracciati da Git. Mostra nome file e numero di riga delle corrispondenze."
-msgstr "Busca un patrón de texto (insensible a mayúsculas/minúsculas) en los archivos rastreados por Git. Muestra el nombre del archivo y el número de línea de las coincidencias."
-
+#: assistente-git.py:112
 msgid "Clona un repository (nella cartella corrente)"
 msgstr "Clonar un repositorio (en la carpeta actual)"
 
-msgid "Clona un repository remoto specificato dall'URL in una nuova sottocartella all'interno della 'Cartella Repository' attualmente selezionata. Utile per iniziare a lavorare su un progetto esistente."
-msgstr "Clona un repositorio remoto especificado por la URL en una nueva subcarpeta dentro de la 'Carpeta del Repositorio' actualmente seleccionada. Útil para empezar a trabajar en un proyecto existente."
+#: assistente-git.py:113
+msgid "Inizializza un nuovo repository qui"
+msgstr "Inicializar un nuevo repositorio aquí"
 
-msgid "Collega il tuo repository locale a un repository remoto."
-msgstr "Conecta tu repositorio local a un repositorio remoto."
+#: assistente-git.py:114
+msgid "Aggiungi cartella/file da ignorare a .gitignore"
+msgstr "Añadir carpeta/archivo a ignorar en .gitignore"
 
-msgid "Comandi Git"
-msgstr "Comandos Git"
-
-msgid "Comandi fondamentali per iniziare, clonare, configurare file da ignorare e controllare lo stato generale del repository."
-msgstr "Comandos fundamentales para iniciar, clonar, configurar archivos a ignorar y comprobar el estado general del repositorio."
-
-msgid "Comandi per cercare testo all'interno dei file del progetto e per trovare file specifici tracciati da Git."
-msgstr "Comandos para buscar texto dentro de los archivos del proyecto y para encontrar archivos específicos rastreados por Git."
-
-msgid "Comandi per interagire con i repository remoti: scaricare (fetch/pull), inviare (push), configurare remoti ed eliminare branch remoti."
-msgstr "Comandos para interactuar con repositorios remotos: descargar (fetch/pull), enviar (push), configurar remotos y eliminar ramas remotas."
-
-msgid "Comandi per la gestione dei branch (creazione, visualizzazione, cambio, unione, eliminazione) e dei tag."
-msgstr "Comandos para la gestión de ramas (creación, visualización, cambio, fusión, eliminación) y etiquetas."
-
-msgid "Comandi per mettere temporaneamente da parte le modifiche non committate."
-msgstr "Comandos para guardar temporalmente los cambios no confirmados."
-
-msgid "Comandi per visualizzare le differenze, aggiungere file all'area di stage, creare e modificare commit, e ispezionare la cronologia."
-msgstr "Comandos para visualizar las diferencias, añadir archivos al área de preparación (stage), crear y modificar commits, e inspeccionar el historial."
-
-msgid "Comandi potenti per annullare modifiche, ripristinare file a versioni precedenti o resettare lo stato del repository. Queste azioni possono portare alla perdita di dati se non usate correttamente."
-msgstr "Comandos potentes para deshacer cambios, restaurar archivos a versiones anteriores o restablecer el estado del repositorio. Estas acciones pueden llevar a la pérdida de datos si no se usan correctamente."
-
-msgid "Comando selezionato: {}\n"
-msgstr "Comando seleccionado: {}\n"
-
-msgid ""
-"Commit modificato con successo.\n"
-"\n"
-"ATTENZIONE: Se questo commit era già stato inviato (push) a un repository condiviso, forzare il push (push --force) sovrascriverà la cronologia sul server. Questo può creare problemi per altri collaboratori.\n"
-"\n"
-"Vuoi tentare un push forzato a 'origin' ora?"
-msgstr ""
-"Commit modificado con éxito.\n"
-"\n"
-"ATENCIÓN: Si este commit ya había sido enviado (push) a un repositorio compartido, forzar el push (push --force) sobrescribirá el historial en el servidor. Esto puede crear problemas para otros colaboradores.\n"
-"\n"
-"¿Quieres intentar un push forzado a 'origin' ahora?"
-
-msgid "Conferma Azione"
-msgstr "Confirmar Acción"
-
-msgid "Conferma Azione PERICOLOSA!"
-msgstr "¡Confirmar Acción PELIGROSA!"
-
-msgid "Conferma Commit Vuoto"
-msgstr "Confirmar Commit Vacío"
-
-msgid "Controlla branch corrente"
-msgstr "Comprobar rama actual"
-
-msgid "Controlla indirizzi remoti configurati"
-msgstr "Comprobar direcciones remotas configuradas"
-
+#: assistente-git.py:115
 msgid "Controlla lo stato del repository"
-msgstr "Comprobar estado del repositorio"
+msgstr "Comprobar el estado del repositorio"
 
-msgid "Cosa vuoi aggiungere a .gitignore?"
-msgstr "¿Qué quieres añadir a .gitignore?"
+#: assistente-git.py:116
+msgid "Visualizza modifiche non in stage (diff)"
+msgstr "Ver modificaciones no preparadas (diff)"
 
-msgid "Crea e passa a un nuovo branch"
-msgstr "Crear y cambiar a una nueva rama"
+#: assistente-git.py:117
+msgid "Visualizza modifiche in stage (diff --staged)"
+msgstr "Ver modificaciones preparadas (diff --staged)"
 
+#: assistente-git.py:118
+msgid "Aggiungi tutte le modifiche all'area di stage"
+msgstr "Añadir todas las modificaciones al área de preparación (stage)"
+
+#: assistente-git.py:119
+msgid "Crea un commit (salva modifiche)"
+msgstr "Crear un commit (guardar modificaciones)"
+
+#: assistente-git.py:120
+msgid "Rinomina ultimo commit (amend)"
+msgstr "Renombrar último commit (amend)"
+
+#: assistente-git.py:121
+msgid "Mostra dettagli di un commit specifico"
+msgstr "Mostrar detalles de un commit específico"
+
+#: assistente-git.py:122
+msgid "Visualizza cronologia commit (numero personalizzato)"
+msgstr "Ver historial de commits (número personalizado)"
+
+#: assistente-git.py:123
+msgid "Cerca testo nei file (git grep)"
+msgstr "Buscar texto en los archivos (git grep)"
+
+#: assistente-git.py:124
+msgid "Cerca file nel progetto (tracciati da Git)"
+msgstr "Buscar archivos en el proyecto (seguidos por Git)"
+
+#: assistente-git.py:125
 msgid "Crea nuovo Tag (leggero)"
 msgstr "Crear nueva Etiqueta (ligera)"
 
+#: assistente-git.py:126
+msgid "Scarica da remoto 'origin' (fetch)"
+msgstr "Descargar del remoto 'origin' (fetch)"
+
+#: assistente-git.py:127
+msgid "Scarica le modifiche dal server e unisci (pull)"
+msgstr "Descargar las modificaciones del servidor y fusionar (pull)"
+
+#: assistente-git.py:128
+msgid "Invia le modifiche al server (push)"
+msgstr "Enviar las modificaciones al servidor (push)"
+
+#: assistente-git.py:129
+msgid "Aggiungi repository remoto 'origin'"
+msgstr "Añadir repositorio remoto 'origin'"
+
+#: assistente-git.py:130
+msgid "Modifica URL del repository remoto 'origin'"
+msgstr "Modificar URL del repositorio remoto 'origin'"
+
+#: assistente-git.py:131
+msgid "Controlla indirizzi remoti configurati"
+msgstr "Comprobar direcciones remotas configuradas"
+
+#: assistente-git.py:132
+msgid "Visualizza tutti i branch (locali e remoti)"
+msgstr "Ver todas las ramas (locales y remotas)"
+
+#: assistente-git.py:133
+msgid "Controlla branch corrente"
+msgstr "Comprobar rama actual"
+
+#: assistente-git.py:134
 msgid "Crea nuovo branch (senza cambiare)"
 msgstr "Crear nueva rama (sin cambiar)"
 
-msgid "Crea un commit (salva modifiche)"
-msgstr "Crear un commit (guardar cambios)"
+#: assistente-git.py:135
+msgid "Crea e passa a un nuovo branch"
+msgstr "Crear y cambiar a una nueva rama"
 
-msgid "Crea un nuovo branch locale basato sul commit corrente, ma non ti sposta automaticamente su di esso."
-msgstr "Crea una nueva rama local basada en el commit actual, pero no te cambia automáticamente a ella."
+#: assistente-git.py:136
+msgid "Passa a un branch esistente"
+msgstr "Cambiar a una rama existente"
 
-msgid "Crea un nuovo branch locale e ti sposta immediatamente su di esso."
-msgstr "Crea una nueva rama local y te cambia inmediatamente a ella."
+#: assistente-git.py:137
+msgid "Unisci branch specificato nel corrente (merge)"
+msgstr "Fusionar rama especificada en la actual (merge)"
 
-msgid "Crea un nuovo repository Git vuoto nella 'Cartella Repository' specificata. Questo è il primo passo per iniziare un nuovo progetto sotto controllo di versione."
-msgstr "Crea un nuevo repositorio Git vacío en la 'Carpeta del Repositorio' especificada. Este es el primer paso para iniciar un nuevo proyecto bajo control de versiones."
+#: assistente-git.py:138
+msgid "Annulla tentativo di merge (abort)"
+msgstr "Cancelar intento de fusión (abort)"
 
-msgid "Crea un tag leggero per marcare un punto specifico nella cronologia, solitamente usato per le release (es. v1.0). Può essere applicato al commit corrente (HEAD) o a un commit specifico."
-msgstr "Crea una etiqueta ligera para marcar un punto específico en el historial, usualmente usada para las versiones (ej. v1.0). Puede ser aplicada al commit actual (HEAD) o a un commit específico."
-
-msgid "Creazione del commit annullata.\n"
-msgstr "Creación del commit cancelada.\n"
-
-msgid "Dettagli del comando non trovati per: {}\n"
-msgstr "Detalles del comando no encontrados para: {}\n"
-
-msgid "Dettagli: {}"
-msgstr "Detalles: {}"
-
-msgid "ERRORE durante 'git add .' dopo l'applicazione della strategia. Controlla l'output e lo stato del repository. Potrebbe essere necessario un intervento manuale.\n"
-msgstr "ERROR durante 'git add .' después de aplicar la estrategia. Comprueba la salida y el estado del repositorio. Podría ser necesaria una intervención manual.\n"
-
-msgid "Elenca i file tracciati da Git. Puoi fornire un pattern (case-insensitive, cerca come sottostringa) per filtrare i risultati. Lascia vuoto per vedere tutti i file."
-msgstr "Enumera los archivos rastreados por Git. Puedes proporcionar un patrón (insensible a mayúsculas/minúsculas, busca como subcadena) para filtrar los resultados. Deja vacío para ver todos los archivos."
-
-msgid "Elenca tutti i branch locali e tutti i branch remoti tracciati."
-msgstr "Enumera todas las ramas locales y todas las ramas remotas rastreadas."
-
-msgid "Elimina branch locale (forzato, -D)"
-msgstr "Eliminar rama local (forzado, -D)"
-
+#: assistente-git.py:139
 msgid "Elimina branch locale (sicuro, -d)"
 msgstr "Eliminar rama local (seguro, -d)"
 
+#: assistente-git.py:140
+msgid "Elimina branch locale (forzato, -D)"
+msgstr "Eliminar rama local (forzado, -D)"
+
+#: assistente-git.py:141
 msgid "Elimina branch remoto ('origin')"
 msgstr "Eliminar rama remota ('origin')"
 
+#: assistente-git.py:142
+msgid "Salva modifiche temporaneamente (stash)"
+msgstr "Guardar modificaciones temporalmente (stash)"
+
+#: assistente-git.py:143
+msgid "Applica ultime modifiche da stash (stash pop)"
+msgstr "Aplicar últimas modificaciones del stash (stash pop)"
+
+#: assistente-git.py:144
+msgid "Annulla modifiche su file specifico (restore)"
+msgstr "Deshacer modificaciones en un archivo específico (restore)"
+
+#: assistente-git.py:145
+msgid ""
+"Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)"
+msgstr "Sobrescribir archivos con commit y limpiar (checkout <commit> . && clean -fd)"
+
+#: assistente-git.py:146
+msgid "Ripristina file modificati e pulisci file non tracciati"
+msgstr "Restaurar archivos modificados y limpiar archivos no seguidos"
+
+#: assistente-git.py:147
+msgid "Ispeziona commit specifico (checkout - detached HEAD)"
+msgstr "Inspeccionar commit específico (checkout - detached HEAD)"
+
+#: assistente-git.py:148
+msgid "Resetta branch locale a versione remota (origin/nome-branch)"
+msgstr "Resetear rama local a la versión remota (origin/nombre-rama)"
+
+#: assistente-git.py:149
+msgid "Resetta branch corrente a commit specifico (reset --hard)"
+msgstr "Resetear rama actual a un commit específico (reset --hard)"
+
+#: assistente-git.py:150
+msgid "Annulla modifiche locali (reset --hard HEAD)"
+msgstr "Deshacer modificaciones locales (reset --hard HEAD)"
+
+#: assistente-git.py:152
+msgid "Configura Repository GitHub & Opzioni"
+msgstr "Configurar Repositorio de GitHub y Opciones"
+
+#: assistente-git.py:153
+msgid "Visualizza/Seleziona Esecuzione Workflow Recente"
+msgstr "Ver/Seleccionar Ejecución de Workflow Reciente"
+
+#: assistente-git.py:154
+msgid "Log Esecuzione Workflow Selezionata"
+msgstr "Log de Ejecución de Workflow Seleccionada"
+
+#: assistente-git.py:155
+msgid "Elenca e Scarica Artefatti Esecuzione Selezionata"
+msgstr "Listar y Descargar Artefactos de Ejecución Seleccionada"
+
+#: assistente-git.py:157
+msgid "Crea Nuova Release GitHub con Asset"
+msgstr "Crear Nueva Release de GitHub con Activos (Assets)"
+
+#: assistente-git.py:158
+msgid "Elimina Release GitHub (per ID o Tag)"
+msgstr "Eliminar Release de GitHub (por ID o Etiqueta)"
+
+#: assistente-git.py:159
+msgid "Modifica Release GitHub Esistente"
+msgstr "Modificar Release de GitHub Existente"
+
+#: assistente-git.py:162 assistente-git.py:2894
+msgid "Crea Nuova Issue"
+msgstr "Crear Nuevo Issue"
+
+#: assistente-git.py:163 assistente-git.py:2969
+msgid "Crea Nuova Pull Request"
+msgstr "Crear Nueva Pull Request"
+
+#: assistente-git.py:164
+msgid "Visualizza Issue del Repository"
+msgstr "Ver Issues del Repositorio"
+
+#: assistente-git.py:165
+msgid "Modifica Issue Esistente"
+msgstr "Modificar Issue Existente"
+
+#: assistente-git.py:166
+msgid "Chiudi/Elimina Issue"
+msgstr "Cerrar/Eliminar Issue"
+
+#: assistente-git.py:167
+msgid "Visualizza Pull Request del Repository"
+msgstr "Ver Pull Requests del Repositorio"
+
+#: assistente-git.py:168
+msgid "Modifica Pull Request Esistente"
+msgstr "Modificar Pull Request Existente"
+
+#: assistente-git.py:169
+msgid "Chiudi/Elimina Pull Request"
+msgstr "Cerrar/Eliminar Pull Request"
+
+#: assistente-git.py:206
+msgid "Configura i dettagli del repository GitHub e le opzioni."
+msgstr "Configura los detalles del repositorio de GitHub y las opciones."
+
+#: assistente-git.py:208
+msgid "Proprietario (utente/organizzazione GitHub):"
+msgstr "Propietario (usuario/organización de GitHub):"
+
+#: assistente-git.py:213
+msgid "Nome Repository GitHub:"
+msgstr "Nombre del Repositorio de GitHub:"
+
+#: assistente-git.py:218
+msgid "Personal Access Token (PAT) GitHub:"
+msgstr "Token de Acceso Personal (PAT) de GitHub:"
+
+#: assistente-git.py:220
+msgid ""
+" (Attualmente memorizzato. Inserisci per cambiare o lascia vuoto per tentare "
+"di rimuovere.)"
+msgstr ""
+" (Actualmente almacenado. Introduce para cambiar o deja en blanco para "
+"intentar eliminar.)"
+
+#: assistente-git.py:222
+msgid ""
+" (Opzionale, ma consigliato per repository privati e operazioni complete. "
+"Supporta sia Fine-grained che Classic tokens.)"
+msgstr ""
+" (Opcional, pero recomendado para repositorios privados y operaciones "
+"completas. Soporta tanto tokens Fine-grained como Classic.)"
+
+#: assistente-git.py:228
+msgid "Password Master (per crittografare/decrittografare il token):"
+msgstr "Contraseña Maestra (para cifrar/descifrar el token):"
+
+#: assistente-git.py:236
+msgid "Richiedi password master all'avvio per funzionalità GitHub"
+msgstr "Solicitar contraseña maestra al inicio para funcionalidades de GitHub"
+
+#: assistente-git.py:241
+msgid "Rimuovi timestamp dai log di GitHub Actions"
+msgstr "Eliminar marcas de tiempo de los logs de GitHub Actions"
+
+#: assistente-git.py:244
+msgid "Beep sonoro durante monitoraggio workflow"
+msgstr "Beep sonoro durante el monitoreo del workflow"
+
+#: assistente-git.py:249
+msgid "Elimina Configurazione Salvata"
+msgstr "Eliminar Configuración Guardada"
+
+#: assistente-git.py:250
+msgid "🌐 Crea Token GitHub"
+msgstr "🌐 Crear Token de GitHub"
+
+#: assistente-git.py:254
+msgid "Salva Configurazione"
+msgstr "Guardar Configuración"
+
+#: assistente-git.py:290
+msgid "Obbligatoria se si inserisce/modifica il token"
+msgstr "Obligatoria si se introduce/modifica el token"
+
+#: assistente-git.py:292
+msgid ""
+"La Password Master è OBBLIGATORIA qui se si inserisce o modifica il Token "
+"PAT.\n"
+"Lasciare vuoto il Token PAT per non salvarlo o tentare di rimuoverlo."
+msgstr ""
+"La Contraseña Maestra es OBLIGATORIA aquí si se introduce o modifica el "
+"Token PAT.\n"
+"Dejar en blanco el Token PAT para no guardarlo o intentar eliminarlo."
+
+#: assistente-git.py:299
+msgid ""
+"Poiché 'Richiedi password all'avvio' è disabilitato:\n"
+"- Non verrà chiesta una Password Master all'avvio.\n"
+"- Se inserisci un Token PAT qui sopra, sarà salvato usando una\n"
+"  crittografia basata su una password vuota (operazione meno sicura)."
+msgstr ""
+"Dado que 'Solicitar contraseña al inicio' está desactivado:\n"
+"- No se solicitará una Contraseña Maestra al inicio.\n"
+"- Si introduces un Token PAT arriba, se guardará usando un\n"
+"  cifrado basado en una contraseña vacía (operación menos segura)."
+
+#: assistente-git.py:321
+msgid ""
+"Sei sicuro di voler eliminare tutta la configurazione GitHub salvata "
+"(incluso il token)?\n"
+"Questa azione è irreversibile."
+msgstr ""
+"¿Estás seguro de que quieres eliminar toda la configuración de GitHub "
+"guardada (incluido el token)?\n"
+"Esta acción es irreversible."
+
+#: assistente-git.py:323
+msgid "Conferma Eliminazione Configurazione"
+msgstr "Confirmar Eliminación de Configuración"
+
+#: assistente-git.py:348
+msgid ""
+"Inserisci la Password Master per confermare l'eliminazione della "
+"configurazione (lascia vuoto se hai disabilitato 'Richiedi password "
+"all'avvio'):"
+msgstr ""
+"Introduce la Contraseña Maestra para confirmar la eliminación de la "
+"configuración (deja en blanco si has desactivado 'Solicitar contraseña al "
+"inicio'):"
+
+#: assistente-git.py:350
+msgid "Conferma Password per Eliminazione"
+msgstr "Confirmar Contraseña para Eliminación"
+
+#: assistente-git.py:370
+msgid "Configurazione GitHub eliminata con successo."
+msgstr "Configuración de GitHub eliminada con éxito."
+
+#: assistente-git.py:371
+msgid "Configurazione Eliminata"
+msgstr "Configuración Eliminada"
+
+#: assistente-git.py:413
+msgid ""
+"Pagina GitHub aperta nel browser!\n"
+"\n"
+"📋 Istruzioni rapide:\n"
+"1. Clicca 'Generate new token'\n"
+"2. Scegli 'Fine-grained' (consigliato) o 'Classic'\n"
+"3. Inserisci descrizione e scadenza\n"
+"4. Seleziona permessi appropriati per il tuo repository\n"
+"5. Genera e copia subito il token\n"
+"6. Incolla il token nel campo sopra\n"
+"\n"
+"💡 Il token sarà visibile solo una volta!"
+msgstr ""
+"¡Página de GitHub abierta en el navegador!\n"
+"\n"
+"📋 Instrucciones rápidas:\n"
+"1. Haz clic en 'Generate new token'\n"
+"2. Elige 'Fine-grained' (recomendado) o 'Classic'\n"
+"3. Introduce una descripción y fecha de caducidad\n"
+"4. Selecciona los permisos apropiados para tu repositorio\n"
+"5. Genera y copia el token inmediatamente\n"
+"6. Pega el token en el campo de arriba\n"
+"\n"
+"💡 ¡El token solo será visible una vez!"
+
+#: assistente-git.py:424
+msgid "Token GitHub - Istruzioni"
+msgstr "Token de GitHub - Instrucciones"
+
+#: assistente-git.py:428
+msgid ""
+"Errore nell'aprire il browser.\n"
+"\n"
+"Vai manualmente a:\n"
+"https://github.com/settings/personal-access-tokens"
+msgstr ""
+"Error al abrir el navegador.\n"
+"\n"
+"Ve manualmente a:\n"
+"https://github.com/settings/personal-access-tokens"
+
+#: assistente-git.py:431
+msgid "Errore Browser"
+msgstr "Error del Navegador"
+
+#: assistente-git.py:565
+msgid "Tag della Release (es: v1.0.0):"
+msgstr "Etiqueta de la Release (ej: v1.0.0):"
+
+#: assistente-git.py:571
+msgid "Titolo della Release:"
+msgstr "Título de la Release:"
+
+#: assistente-git.py:577
+msgid "Descrizione della Release (breve):"
+msgstr "Descripción de la Release (breve):"
+
+#: assistente-git.py:585
+msgid "Asset da Caricare (Opzionale)"
+msgstr "Activos a Subir (Opcional)"
+
+#: assistente-git.py:592
+msgid "Aggiungi File..."
+msgstr "Añadir Archivo..."
+
+#: assistente-git.py:593
+msgid "Rimuovi Selezionato"
+msgstr "Quitar Seleccionado"
+
+#: assistente-git.py:594
+msgid "Rimuovi Tutti"
+msgstr "Quitar Todos"
+
+#: assistente-git.py:605
+msgid "Crea Release"
+msgstr "Crear Release"
+
+#: assistente-git.py:631
+msgid "Il Tag della Release è obbligatorio."
+msgstr "La Etiqueta de la Release es obligatoria."
+
+#: assistente-git.py:631 assistente-git.py:635 assistente-git.py:1324
+msgid "Input Mancante"
+msgstr "Entrada Faltante"
+
+#: assistente-git.py:635 assistente-git.py:1323
+msgid "Il Titolo della Release è obbligatorio."
+msgstr "El Título de la Release es obligatorio."
+
+#: assistente-git.py:645
+msgid ""
+"Seleziona file da includere come asset (Ctrl/Cmd per selezionare multipli)"
+msgstr ""
+"Selecciona archivos para incluir como activos (Ctrl/Cmd para seleccionar "
+"múltiples)"
+
+#: assistente-git.py:646 assistente-git.py:1253
+msgid "Tutti i file (*.*)|*.*"
+msgstr "Todos los archivos (*.*)|*.*"
+
+#: assistente-git.py:670
+msgid "Sei sicuro di voler rimuovere tutti gli asset dalla lista?"
+msgstr "¿Estás seguro de que quieres quitar todos los activos de la lista?"
+
+#: assistente-git.py:671 assistente-git.py:1301
+msgid "Conferma Rimozione"
+msgstr "Confirmar Eliminación"
+
+#: assistente-git.py:691
+msgid "URL del Repository da clonare:"
+msgstr "URL del Repositorio a clonar:"
+
+#: assistente-git.py:691
+msgid "Clona un repository remoto specificato dall'URL..."
+msgstr "Clona un repositorio remoto especificado por la URL..."
+
+#: assistente-git.py:692
+msgid "Crea un nuovo repository Git vuoto..."
+msgstr "Crea un nuevo repositorio Git vacío..."
+
+#: assistente-git.py:693
+msgid ""
+"Permette di selezionare una cartella o un file da aggiungere al "
+"file .gitignore..."
+msgstr ""
+"Permite seleccionar una carpeta o un archivo para añadir al archivo "
+".gitignore..."
+
+#: assistente-git.py:694
+msgid "Mostra lo stato attuale della directory di lavoro..."
+msgstr "Muestra el estado actual del directorio de trabajo..."
+
+#: assistente-git.py:695
+msgid "Mostra le modifiche apportate ai file tracciati..."
+msgstr "Muestra las modificaciones realizadas en los archivos seguidos..."
+
+#: assistente-git.py:696
+msgid "Mostra le modifiche che sono state aggiunte all'area di stage..."
+msgstr ""
+"Muestra las modificaciones que han sido añadidas al área de preparación "
+"(stage)..."
+
+#: assistente-git.py:697
+msgid "Aggiunge tutte le modifiche correnti..."
+msgstr "Añade todas las modificaciones actuales..."
+
+#: assistente-git.py:698
+msgid "Messaggio di Commit:"
+msgstr "Mensaje de Commit:"
+
+#: assistente-git.py:698
+msgid "Salva istantanea delle modifiche..."
+msgstr "Guarda una instantánea de las modificaciones..."
+
+#: assistente-git.py:699
+msgid "Nuovo messaggio per l'ultimo commit:"
+msgstr "Nuevo mensaje para el último commit:"
+
+#: assistente-git.py:699
+msgid "Messaggio corretto del commit"
+msgstr "Mensaje corregido del commit"
+
+#: assistente-git.py:699
+msgid "Modifica il messaggio e/o i file dell'ultimo commit..."
+msgstr "Modifica el mensaje y/o los archivos del último commit..."
+
+#: assistente-git.py:700
+msgid "Hash, tag o riferimento del commit (es. HEAD~2):"
+msgstr "Hash, etiqueta o referencia del commit (ej. HEAD~2):"
+
+#: assistente-git.py:700
+msgid "es. a1b2c3d o HEAD"
+msgstr "ej. a1b2c3d o HEAD"
+
+#: assistente-git.py:700
+msgid "Mostra informazioni dettagliate su un commit specifico..."
+msgstr "Muestra información detallada sobre un commit específico..."
+
+#: assistente-git.py:701
+msgid "Quanti commit vuoi visualizzare? (numero):"
+msgstr "¿Cuántos commits quieres ver? (número):"
+
+#: assistente-git.py:701
+msgid "Mostra la cronologia dei commit..."
+msgstr "Muestra el historial de commits..."
+
+#: assistente-git.py:702
+msgid "Testo da cercare nei file del repository:"
+msgstr "Texto a buscar en los archivos del repositorio:"
+
+#: assistente-git.py:702
+msgid "la mia stringa di ricerca"
+msgstr "mi cadena de búsqueda"
+
+#: assistente-git.py:702
+msgid "Cerca un pattern di testo..."
+msgstr "Busca un patrón de texto..."
+
+#: assistente-git.py:703
+msgid "Pattern nome file (opzionale, es: *.py o parte del nome):"
+msgstr "Patrón de nombre de archivo (opcional, ej: *.py o parte del nombre):"
+
+#: assistente-git.py:703
+msgid "*.py (lascia vuoto per tutti)"
+msgstr "*.py (dejar en blanco para todos)"
+
+#: assistente-git.py:703
+msgid "Elenca i file tracciati da Git..."
+msgstr "Lista los archivos seguidos por Git..."
+
+#: assistente-git.py:704
+msgid "Nome Tag [opz: HashCommit/Rif] (es: v1.0 o v1.0 a1b2c3d):"
+msgstr "Nombre Etiqueta [opc: HashCommit/Ref] (ej: v1.0 o v1.0 a1b2c3d):"
+
+#: assistente-git.py:704
+msgid "v1.0 (per HEAD) oppure v1.0 a1b2c3d"
+msgstr "v1.0 (para HEAD) o v1.0 a1b2c3d"
+
+#: assistente-git.py:704
+msgid "Crea un tag leggero..."
+msgstr "Crea una etiqueta ligera..."
+
+#: assistente-git.py:705
+msgid "Scarica tutte le novità..."
+msgstr "Descarga todas las novedades..."
+
+#: assistente-git.py:706
+msgid "Equivalente a un 'git fetch' seguito da un 'git merge'..."
+msgstr "Equivalente a un 'git fetch' seguido de un 'git merge'..."
+
+#: assistente-git.py:707
+msgid "Invia i commit del tuo branch locale..."
+msgstr "Envía los commits de tu rama local..."
+
+#: assistente-git.py:708
+msgid "URL del repository remoto (origin):"
+msgstr "URL del repositorio remoto (origin):"
+
+#: assistente-git.py:708
+msgid "Collega il tuo repository locale..."
+msgstr "Conecta tu repositorio local..."
+
+#: assistente-git.py:709
+msgid "Nuovo URL del repository remoto (origin):"
+msgstr "Nueva URL del repositorio remoto (origin):"
+
+#: assistente-git.py:709
+msgid "Modifica l'URL di un repository remoto esistente."
+msgstr "Modifica la URL de un repositorio remoto existente."
+
+#: assistente-git.py:710
+msgid "Mostra l'elenco dei repository remoti configurati."
+msgstr "Muestra la lista de repositorios remotos configurados."
+
+#: assistente-git.py:711
+msgid "Elenca tutti i branch locali e remoti..."
+msgstr "Lista todas las ramas locales y remotas..."
+
+#: assistente-git.py:712
+msgid "Mostra il nome del branch Git..."
+msgstr "Muestra el nombre de la rama Git..."
+
+#: assistente-git.py:713
+msgid "Nome del nuovo branch da creare:"
+msgstr "Nombre de la nueva rama a crear:"
+
+#: assistente-git.py:713
+msgid "nuovo-branch-locale"
+msgstr "nueva-rama-local"
+
+#: assistente-git.py:713
+msgid "Crea un nuovo branch locale..."
+msgstr "Crea una nueva rama local..."
+
+#: assistente-git.py:714
+msgid "Nome del nuovo branch da creare e a cui passare:"
+msgstr "Nombre de la nueva rama a crear y a la que cambiar:"
+
+#: assistente-git.py:714
+msgid "feature/nome-branch"
+msgstr "feature/nombre-rama"
+
+#: assistente-git.py:714
+msgid "Crea un nuovo branch locale e ti sposta..."
+msgstr "Crea una nueva rama local y te mueve a ella..."
+
+#: assistente-git.py:715
+msgid "Nome del branch a cui passare:"
+msgstr "Nombre de la rama a la que cambiar:"
+
+#: assistente-git.py:715 assistente-git.py:727
+msgid "main"
+msgstr "main"
+
+#: assistente-git.py:715
+msgid "Ti sposta su un altro branch locale esistente."
+msgstr "Te mueve a otra rama local existente."
+
+#: assistente-git.py:716
+msgid "Nome del branch da unire in quello corrente:"
+msgstr "Nombre de la rama a fusionar en la actual:"
+
+#: assistente-git.py:716
+msgid "feature/branch-da-unire"
+msgstr "feature/rama-a-fusionar"
+
+#: assistente-git.py:716
+msgid "Integra le modifiche da un altro branch..."
+msgstr "Integra las modificaciones de otra rama..."
+
+#: assistente-git.py:717
+msgid "Annulla un tentativo di merge fallito..."
+msgstr "Cancela un intento de fusión fallido..."
+
+#: assistente-git.py:717
+msgid ""
+"Sei sicuro di voler annullare il merge corrente e scartare le modifiche del "
+"tentativo di merge?"
+msgstr ""
+"¿Estás seguro de que quieres cancelar la fusión actual y descartar las "
+"modificaciones del intento de fusión?"
+
+#: assistente-git.py:718
+msgid "Nome del branch locale da eliminare (sicuro):"
+msgstr "Nombre de la rama local a eliminar (seguro):"
+
+#: assistente-git.py:718
+msgid "feature/vecchio-branch"
+msgstr "feature/rama-antigua"
+
+#: assistente-git.py:718
+msgid "Elimina un branch locale solo se è stato completamente unito..."
+msgstr "Elimina una rama local solo si ha sido completamente fusionada..."
+
+#: assistente-git.py:718
+#, python-brace-format
+msgid ""
+"Sei sicuro di voler tentare di eliminare il branch locale '{input_val}'?"
+msgstr ""
+"¿Estás seguro de que quieres intentar eliminar la rama local '{input_val}'?"
+
+#: assistente-git.py:719
+msgid "Nome del branch locale da eliminare (FORZATO):"
+msgstr "Nombre de la rama local a eliminar (FORZADO):"
+
+#: assistente-git.py:719
+msgid "feature/branch-da-forzare"
+msgstr "feature/rama-a-forzar"
+
+#: assistente-git.py:719
+msgid "ATTENZIONE: Elimina un branch locale forzatamente..."
+msgstr "ATENCIÓN: Elimina una rama local forzadamente..."
+
+#: assistente-git.py:719
+#, python-brace-format
+msgid ""
+"ATTENZIONE MASSIMA: Stai per eliminare forzatamente il branch locale "
+"'{input_val}'. Commit non mergiati verranno PERSI. Sei sicuro?"
+msgstr ""
+"MÁXIMA ATENCIÓN: Estás a punto de eliminar forzadamente la rama local "
+"'{input_val}'. Los commits no fusionados se PERDERÁN. ¿Estás seguro?"
+
+#: assistente-git.py:720
+msgid "Nome del branch su 'origin' da eliminare:"
+msgstr "Nombre de la rama en 'origin' a eliminar:"
+
+#: assistente-git.py:720
+msgid "feature/branch-remoto-obsoleto"
+msgstr "feature/rama-remota-obsoleta"
+
+#: assistente-git.py:720
 msgid "Elimina un branch dal repository remoto 'origin'."
 msgstr "Elimina una rama del repositorio remoto 'origin'."
 
-msgid "Elimina un branch locale solo se è stato completamente unito. Se fallisce perché non mergiato, ti verrà chiesto se vuoi forzare."
-msgstr "Elimina una rama local solo si ha sido completamente fusionada. Si falla porque no está fusionada, se te preguntará si quieres forzar."
+#: assistente-git.py:720
+#, python-brace-format
+msgid ""
+"Sei sicuro di voler eliminare il branch '{input_val}' dal remoto 'origin'?"
+msgstr ""
+"¿Estás seguro de que quieres eliminar la rama '{input_val}' del remoto "
+"'origin'?"
 
-msgid "Eliminazione forzata del branch locale '{}' fallita. Controlla l'output.\n"
-msgstr "Eliminación forzada de la rama local '{}' fallida. Comprueba la salida.\n"
+#: assistente-git.py:721
+msgid "Mette da parte le modifiche non committate..."
+msgstr "Guarda las modificaciones no enviadas (commit)..."
 
-msgid "Equivalente a un 'git fetch' seguito da un 'git merge' del branch remoto tracciato nel tuo branch locale corrente."
-msgstr "Equivalente a un 'git fetch' seguido de un 'git merge' de la rama remota rastreada en tu rama local actual."
+#: assistente-git.py:722
+msgid "Applica le modifiche dall'ultimo stash..."
+msgstr "Aplica las modificaciones del último stash..."
 
+#: assistente-git.py:723
+msgid "Annulla le modifiche non ancora in stage per un file specifico..."
+msgstr ""
+"Deshace las modificaciones aún no preparadas (stage) para un archivo "
+"específico..."
+
+#: assistente-git.py:724
+msgid "Hash/riferimento del commit da cui ripristinare i file:"
+msgstr "Hash/referencia del commit desde el que restaurar los archivos:"
+
+#: assistente-git.py:724
+msgid "es. a1b2c3d o HEAD~1"
+msgstr "ej. a1b2c3d o HEAD~1"
+
+#: assistente-git.py:724
+msgid "ATTENZIONE: Sovrascrive i file con le versioni del commit..."
+msgstr "ATENCIÓN: Sobrescribe los archivos con las versiones del commit..."
+
+#: assistente-git.py:724
+#, python-brace-format
+msgid ""
+"Sei sicuro di voler sovrascrivere i file con le versioni del commit "
+"'{input_val}' E RIMUOVERE tutti i file/directory non tracciati?"
+msgstr ""
+"¿Estás seguro de que quieres sobrescribir los archivos con las versiones del "
+"commit '{input_val}' Y ELIMINAR todos los archivos/directorios no seguidos?"
+
+#: assistente-git.py:725
+msgid ""
+"ATTENZIONE: Ripristina file modificati E RIMUOVE file/directory non "
+"tracciati? Azione IRREVERSIBILE."
+msgstr ""
+"ATENCIÓN: ¿Restaurar archivos modificados Y ELIMINAR archivos/directorios no "
+"seguidos? Acción IRREVERSIBLE."
+
+#: assistente-git.py:725
+msgid "Annulla modifiche nei file tracciati..."
+msgstr "Deshace modificaciones en los archivos seguidos..."
+
+#: assistente-git.py:726
+msgid "Hash/riferimento del commit da ispezionare:"
+msgstr "Hash/referencia del commit a inspeccionar:"
+
+#: assistente-git.py:726
+msgid "es. a1b2c3d o HEAD~3"
+msgstr "ej. a1b2c3d o HEAD~3"
+
+#: assistente-git.py:726
+msgid "Ti sposta su un commit specifico..."
+msgstr "Te mueve a un commit específico..."
+
+#: assistente-git.py:726
+msgid ""
+"Stai per entrare in uno stato 'detached HEAD'. Nuove modifiche non "
+"apparterranno a nessun branch a meno che non ne crei uno. Continuare?"
+msgstr ""
+"Estás a punto de entrar en un estado 'detached HEAD'. Las nuevas "
+"modificaciones no pertenecerán a ninguna rama a menos que crees una. "
+"¿Continuar?"
+
+#: assistente-git.py:727
+msgid "Nome del branch remoto (es. main) a cui resettare:"
+msgstr "Nombre de la rama remota (ej. main) a la que resetear:"
+
+#: assistente-git.py:727
+msgid "ATTENZIONE: Resetta il branch locale CORRENTE..."
+msgstr "ATENCIÓN: Resetea la rama local ACTUAL..."
+
+#: assistente-git.py:727
+#, python-brace-format
+msgid ""
+"CONFERMA ESTREMA: Resettare il branch locale CORRENTE a 'origin/"
+"{input_val}'? TUTTI i commit locali non inviati e le modifiche non "
+"committate su questo branch verranno PERSI IRREVERSIBILMENTE. Sei sicuro?"
+msgstr ""
+"CONFIRMACIÓN EXTREMA: ¿Resetear la rama local ACTUAL a 'origin/{input_val}'? "
+"TODOS los commits locales no enviados y las modificaciones no confirmadas en "
+"esta rama se PERDERÁN IRREVERSIBLEMENTE. ¿Estás seguro?"
+
+#: assistente-git.py:728
+msgid "Hash/riferimento del commit a cui resettare:"
+msgstr "Hash/referencia del commit al que resetear:"
+
+#: assistente-git.py:728
+msgid "es. a1b2c3d"
+msgstr "ej. a1b2c3d"
+
+#: assistente-git.py:728
+msgid "ATTENZIONE MASSIMA: Sposta il puntatore del branch corrente..."
+msgstr "MÁXIMA ATENCIÓN: Mueve el puntero de la rama actual..."
+
+#: assistente-git.py:728
+msgid ""
+"CONFERMA ESTREMA: Stai per resettare il branch corrente a un commit "
+"precedente e PERDERE TUTTI i commit e le modifiche locali successive. Azione "
+"IRREVERSIBILE. Sei assolutamente sicuro?"
+msgstr ""
+"CONFIRMACIÓN EXTREMA: Estás a punto de resetear la rama actual a un commit "
+"anterior y PERDER TODOS los commits y modificaciones locales posteriores. "
+"Acción IRREVERSIBLE. ¿Estás absolutamente seguro?"
+
+#: assistente-git.py:729
+msgid ""
+"ATTENZIONE: Annulla TUTTE le modifiche locali non committate e resetta "
+"all'ultimo commit?"
+msgstr ""
+"ATENCIÓN: ¿Deshacer TODAS las modificaciones locales no confirmadas y "
+"resetear al último commit?"
+
+#: assistente-git.py:729
+msgid "Resetta il branch corrente all'ultimo commit..."
+msgstr "Resetea la rama actual al último commit..."
+
+#: assistente-git.py:731
+msgid ""
+"Imposta il repository GitHub (proprietario/repo), il Personal Access Token e "
+"le opzioni di caricamento/log."
+msgstr ""
+"Establece el repositorio de GitHub (propietario/repo), el Token de Acceso "
+"Personal y las opciones de subida/log."
+
+#: assistente-git.py:732
+msgid ""
+"Elenca le esecuzioni recenti del workflow per il branch principale e "
+"permette di selezionarne una."
+msgstr ""
+"Lista las ejecuciones recientes del workflow para la rama principal y "
+"permite seleccionar una."
+
+#: assistente-git.py:733
+msgid ""
+"Scarica e visualizza i log dell'esecuzione del workflow precedentemente "
+"selezionata."
+msgstr ""
+"Descarga y visualiza los logs de la ejecución del workflow previamente "
+"seleccionada."
+
+#: assistente-git.py:734
+msgid ""
+"Elenca gli artefatti dell'esecuzione del workflow selezionata e permette di "
+"scaricarli."
+msgstr ""
+"Lista los artefactos de la ejecución del workflow seleccionada y permite "
+"descargarlos."
+
+#: assistente-git.py:735
+msgid "Crea una nuova release su GitHub, con opzione per caricare asset."
+msgstr ""
+"Crea una nueva release en GitHub, con opción para subir activos (assets)."
+
+#: assistente-git.py:739
+msgid ""
+"Elenca le release esistenti su GitHub e permette di selezionarne una per "
+"l'eliminazione. L'eliminazione del tag Git associato è un'opzione aggiuntiva "
+"post-eliminazione della release."
+msgstr ""
+"Lista las releases existentes en GitHub y permite seleccionar una para su "
+"eliminación. La eliminación de la etiqueta Git asociada es una opción "
+"adicional después de eliminar la release."
+
+#: assistente-git.py:741
+#, python-brace-format
+msgid ""
+"ATTENZIONE: Stai per eliminare la release GitHub '{release_display_name}'. "
+"Questa azione è generalmente irreversibile sul sito di GitHub. Sei sicuro di "
+"voler procedere con l'eliminazione?"
+msgstr ""
+"ATENCIÓN: Estás a punto de eliminar la release de GitHub "
+"'{release_display_name}'. Esta acción es generalmente irreversible en el "
+"sitio de GitHub. ¿Estás seguro de que quieres proceder con la eliminación?"
+
+#: assistente-git.py:746
+msgid ""
+"Modifica una release esistente: titolo, descrizione e aggiunta di nuovi "
+"asset. Permette di aggiornare i dettagli di una release già pubblicata su "
+"GitHub."
+msgstr ""
+"Modifica una release existente: título, descripción y adición de nuevos "
+"activos. Permite actualizar los detalles de una release ya publicada en "
+"GitHub."
+
+#: assistente-git.py:751
+msgid ""
+"Avvia manualmente un workflow GitHub Actions dal repository configurato. "
+"Permette di selezionare il workflow e specificare parametri di input."
+msgstr ""
+"Inicia manualmente un workflow de GitHub Actions desde el repositorio "
+"configurado. Permite seleccionar el workflow y especificar parámetros de "
+"entrada."
+
+#: assistente-git.py:756
+msgid ""
+"Cancella un workflow GitHub Actions attualmente in esecuzione. Mostra una "
+"lista dei workflow in corso e permette di selezionarne uno da interrompere."
+msgstr ""
+"Cancela un workflow de GitHub Actions actualmente en ejecución. Muestra una "
+"lista de los workflows en curso y permite seleccionar uno para interrumpirlo."
+
+#: assistente-git.py:762
+msgid ""
+"Crea una nuova issue su GitHub con titolo, descrizione, labels e assignees. "
+"Supporta template predefiniti e assegnazione automatica di labels basate su "
+"priorità e tipo."
+msgstr ""
+"Crea un nuevo issue en GitHub con título, descripción, etiquetas (labels) y "
+"asignados (assignees). Soporta plantillas predefinidas y asignación "
+"automática de etiquetas basadas en prioridad y tipo."
+
+#: assistente-git.py:767
+msgid ""
+"Crea una nuova Pull Request su GitHub tra due branch. Permette di "
+"specificare titolo, descrizione, branch di origine e destinazione, con "
+"opzioni per draft e auto-merge."
+msgstr ""
+"Crea una nueva Pull Request en GitHub entre dos ramas. Permite especificar "
+"título, descripción, rama de origen y destino, con opciones para borrador "
+"(draft) y auto-fusión (auto-merge)."
+
+#: assistente-git.py:772
+msgid ""
+"Elenca le issue del repository con filtri per stato (aperte/chiuse), labels "
+"e assignees. Permette di visualizzare dettagli e selezionare issue per "
+"modifiche."
+msgstr ""
+"Lista los issues del repositorio con filtros por estado (abiertos/cerrados), "
+"etiquetas (labels) y asignados (assignees). Permite ver detalles y "
+"seleccionar issues para modificarlos."
+
+#: assistente-git.py:777
+msgid ""
+"Modifica una issue esistente: titolo, descrizione, labels, assignees e "
+"stato. Permette di aggiornare completamente i dettagli di una issue "
+"selezionata."
+msgstr ""
+"Modifica un issue existente: título, descripción, etiquetas (labels), "
+"asignados (assignees) y estado. Permite actualizar completamente los "
+"detalles de un issue seleccionado."
+
+#: assistente-git.py:782
+msgid ""
+"Chiude una issue esistente. Le issue non possono essere eliminate "
+"completamente da GitHub, ma possono essere chiuse definitivamente."
+msgstr ""
+"Cierra un issue existente. Los issues no se pueden eliminar completamente de "
+"GitHub, pero se pueden cerrar definitivamente."
+
+#: assistente-git.py:787
+msgid ""
+"Elenca le Pull Request del repository con filtri per stato, branch e "
+"reviewer. Permette di visualizzare dettagli e selezionare PR per modifiche."
+msgstr ""
+"Lista las Pull Requests del repositorio con filtros por estado, rama y "
+"revisor (reviewer). Permite ver detalles y seleccionar PRs para modificarlas."
+
+#: assistente-git.py:792
+msgid ""
+"Modifica una Pull Request esistente: titolo, descrizione, branch di "
+"destinazione, reviewers e stato draft. Permette aggiornamento completo dei "
+"dettagli."
+msgstr ""
+"Modifica una Pull Request existente: título, descripción, rama de destino, "
+"revisores (reviewers) y estado de borrador (draft). Permite la actualización "
+"completa de los detalles."
+
+#: assistente-git.py:797
+msgid ""
+"Chiude una Pull Request esistente. Le PR possono essere chiuse senza merge o "
+"forzatamente chiuse anche se non mergeabili."
+msgstr ""
+"Cierra una Pull Request existente. Las PRs se pueden cerrar sin fusionar o "
+"forzadamente cerradas aunque no sean fusionables."
+
+#: assistente-git.py:802
+msgid "Comandi fondamentali..."
+msgstr "Comandos fundamentales..."
+
+#: assistente-git.py:803
+msgid "Comandi per modifiche locali..."
+msgstr "Comandos para modificaciones locales..."
+
+#: assistente-git.py:804
+msgid "Gestione branch e tag..."
+msgstr "Gestión de ramas y etiquetas..."
+
+#: assistente-git.py:805
+msgid "Operazioni con remoti..."
+msgstr "Operaciones con remotos..."
+
+#: assistente-git.py:807
+msgid ""
+"Interagisci con GitHub Actions e Releases per il repository configurato."
+msgstr ""
+"Interactúa con GitHub Actions y Releases para el repositorio configurado."
+
+#: assistente-git.py:829
+msgid ""
+"Gestione completa di Pull Request e Issue: creazione, modifica, "
+"visualizzazione e chiusura."
+msgstr ""
+"Gestión completa de Pull Requests e Issues: creación, modificación, "
+"visualización y cierre."
+
+#: assistente-git.py:851
+msgid "Salvataggio temporaneo..."
+msgstr "Almacenamiento temporal..."
+
+#: assistente-git.py:852
+msgid "Ricerca e utilità..."
+msgstr "Búsqueda y utilidades..."
+
+#: assistente-git.py:853
+msgid "Ripristino e reset (cautela!)..."
+msgstr "Restauración y reset (¡con cuidado!)..."
+
+#: assistente-git.py:877
+msgid "Titolo Issue*:"
+msgstr "Título del Issue*:"
+
+#: assistente-git.py:884 assistente-git.py:1022 assistente-git.py:2666
+msgid "Descrizione:"
+msgstr "Descripción:"
+
+#: assistente-git.py:888
+msgid ""
+"## Descrizione\n"
+"\n"
+"## Passi per riprodurre\n"
+"1. \n"
+"2. \n"
+"3. \n"
+"\n"
+"## Comportamento atteso\n"
+"\n"
+"## Comportamento attuale\n"
+"\n"
+"## Informazioni aggiuntive\n"
+msgstr ""
+"## Descripción\n"
+"\n"
+"## Pasos para reproducir\n"
+"1. \n"
+"2. \n"
+"3. \n"
+"\n"
+"## Comportamiento esperado\n"
+"\n"
+"## Comportamiento actual\n"
+"\n"
+"## Información adicional\n"
+
+#: assistente-git.py:895
+msgid "Labels"
+msgstr "Etiquetas (Labels)"
+
+#: assistente-git.py:901
+msgid "Assignees"
+msgstr "Asignados (Assignees)"
+
+#: assistente-git.py:912
+msgid "Priorità:"
+msgstr "Prioridad:"
+
+#: assistente-git.py:913
+msgid "Bassa"
+msgstr "Baja"
+
+#: assistente-git.py:913
+msgid "Media"
+msgstr "Media"
+
+#: assistente-git.py:913
+msgid "Alta"
+msgstr "Alta"
+
+#: assistente-git.py:913
+msgid "Critica"
+msgstr "Crítica"
+
+#: assistente-git.py:920
+msgid "Tipo:"
+msgstr "Tipo:"
+
+#: assistente-git.py:921
+msgid "Bug"
+msgstr "Bug"
+
+#: assistente-git.py:921
+msgid "Feature"
+msgstr "Feature"
+
+#: assistente-git.py:921
+msgid "Enhancement"
+msgstr "Mejora (Enhancement)"
+
+#: assistente-git.py:921
+msgid "Documentation"
+msgstr "Documentación"
+
+#: assistente-git.py:921
+msgid "Question"
+msgstr "Pregunta (Question)"
+
+#: assistente-git.py:933 assistente-git.py:1044 assistente-git.py:2269
+#: assistente-git.py:2531 assistente-git.py:2679
+msgid "Annulla"
+msgstr "Cancelar"
+
+#: assistente-git.py:934
+msgid "Crea Issue"
+msgstr "Crear Issue"
+
+#: assistente-git.py:989
+msgid "Titolo Pull Request*:"
+msgstr "Título de la Pull Request*:"
+
+#: assistente-git.py:999
+msgid "Da branch:"
+msgstr "Desde la rama:"
+
+#: assistente-git.py:1005
+msgid "Verso branch:"
+msgstr "Hacia la rama:"
+
+#: assistente-git.py:1026
+msgid ""
+"## Modifiche\n"
+"\n"
+"## Tipo di cambiamento\n"
+"- [ ] Bug fix\n"
+"- [ ] Nuova feature\n"
+"- [ ] Breaking change\n"
+"- [ ] Documentazione\n"
+"\n"
+"## Testing\n"
+"- [ ] Ho testato le modifiche\n"
+"- [ ] Ho aggiunto/aggiornato i test\n"
+"\n"
+"## Checklist\n"
+"- [ ] Il codice segue le convenzioni del progetto\n"
+"- [ ] Ho fatto self-review del codice\n"
+"- [ ] Ho commentato il codice, specialmente nelle parti complesse\n"
+msgstr ""
+"## Modificaciones\n"
+"\n"
+"## Tipo de cambio\n"
+"- [ ] Corrección de bug (Bug fix)\n"
+"- [ ] Nueva funcionalidad (Feature)\n"
+"- [ ] Cambio que rompe la compatibilidad (Breaking change)\n"
+"- [ ] Documentación\n"
+"\n"
+"## Pruebas (Testing)\n"
+"- [ ] He probado las modificaciones\n"
+"- [ ] He añadido/actualizado las pruebas\n"
+"\n"
+"## Lista de verificación (Checklist)\n"
+"- [ ] El código sigue las convenciones del proyecto\n"
+"- [ ] He hecho una auto-revisión del código\n"
+"- [ ] He comentado el código, especialmente en las partes complejas\n"
+
+#: assistente-git.py:1032
+msgid "Crea come Draft"
+msgstr "Crear como Borrador (Draft)"
+
+#: assistente-git.py:1033
+msgid "Abilita auto-merge (se configurato)"
+msgstr "Habilitar auto-fusión (si está configurado)"
+
+#: assistente-git.py:1045
+msgid "Crea Pull Request"
+msgstr "Crear Pull Request"
+
+#: assistente-git.py:1082
+msgid "Modifica Release Esistente"
+msgstr "Modificar Release Existente"
+
+#: assistente-git.py:1097
+msgid "Dettagli Release"
+msgstr "Detalles de la Release"
+
+#: assistente-git.py:1104
+msgid "Tag della Release:"
+msgstr "Etiqueta de la Release:"
+
+#: assistente-git.py:1120
+msgid "Titolo della Release:*"
+msgstr "Título de la Release:*"
+
+#: assistente-git.py:1128
+msgid "Descrizione della Release:"
+msgstr "Descripción de la Release:"
+
+#: assistente-git.py:1140
+msgid "Asset Attualmente Presenti"
+msgstr "Activos Actualmente Presentes"
+
+#: assistente-git.py:1160
+msgid "📭 Nessun asset presente in questa release"
+msgstr "📭 No hay activos presentes en esta release"
+
+#: assistente-git.py:1168
+msgid "🗑️ Elimina Selezionati"
+msgstr "🗑️ Eliminar Seleccionados"
+
+#: assistente-git.py:1169
+msgid "↶ Ripristina Eliminati"
+msgstr "↶ Restaurar Eliminados"
+
+#: assistente-git.py:1179
+msgid "Nuovi Asset da Aggiungere"
+msgstr "Nuevos Activos para Añadir"
+
+#: assistente-git.py:1187
+msgid "➕ Aggiungi File..."
+msgstr "➕ Añadir Archivo..."
+
+#: assistente-git.py:1188
+msgid "➖ Rimuovi Selezionato"
+msgstr "➖ Quitar Seleccionado"
+
+#: assistente-git.py:1189
+msgid "🗑️ Rimuovi Tutti"
+msgstr "🗑️ Quitar Todos"
+
+#: assistente-git.py:1202
+msgid ""
+"ℹ️ Nota: Gli asset esistenti non verranno modificati, verranno solo aggiunti "
+"i nuovi file selezionati."
+msgstr ""
+"ℹ️ Nota: Los activos existentes no se modificarán, solo se añadirán los "
+"nuevos archivos seleccionados."
+
+#: assistente-git.py:1218
+msgid "❌ Annulla"
+msgstr "❌ Cancelar"
+
+#: assistente-git.py:1219
+msgid "✅ Aggiorna Release"
+msgstr "✅ Actualizar Release"
+
+#: assistente-git.py:1252
+msgid ""
+"Seleziona file da aggiungere come nuovi asset (Ctrl/Cmd per selezione "
+"multipla)"
+msgstr ""
+"Selecciona archivos para añadir como nuevos activos (Ctrl/Cmd para "
+"selección múltiple)"
+
+#: assistente-git.py:1285
+msgid "Seleziona un file da rimuovere."
+msgstr "Selecciona un archivo para quitar."
+
+#: assistente-git.py:1286 assistente-git.py:1350
+msgid "Nessuna Selezione"
+msgstr "Ninguna Selección"
+
+#: assistente-git.py:1300
+msgid "Sei sicuro di voler rimuovere tutti i nuovi asset dalla lista?"
+msgstr "¿Estás seguro de que quieres quitar todos los nuevos activos de la lista?"
+
+#: assistente-git.py:1337
+msgid ""
+"I seguenti file non sono più accessibili:\n"
+"\n"
+"{}\n"
+"\n"
+"Rimuovili dalla lista o verifica che esistano ancora."
+msgstr ""
+"Los siguientes archivos ya no son accesibles:\n"
+"\n"
+"{}\n"
+"\n"
+"Quítalos de la lista o verifica que todavía existan."
+
+#: assistente-git.py:1339
+msgid "File Non Trovati"
+msgstr "Archivos No Encontrados"
+
+#: assistente-git.py:1349
+msgid "Seleziona un asset da eliminare."
+msgstr "Selecciona un activo para eliminar."
+
+#: assistente-git.py:1357
+msgid "L'asset selezionato è già segnato per l'eliminazione."
+msgstr "El activo seleccionado ya está marcado para su eliminación."
+
+#: assistente-git.py:1358
+msgid "Già Segnato"
+msgstr "Ya Marcado"
+
+#: assistente-git.py:1363
+msgid ""
+"Sei sicuro di voler eliminare questo asset dalla release?\n"
+"\n"
+"• {}\n"
+"\n"
+"ATTENZIONE: Questa operazione è irreversibile!"
+msgstr ""
+"¿Estás seguro de que quieres eliminar este activo de la release?\n"
+"\n"
+"• {}\n"
+"\n"
+"ATENCIÓN: ¡Esta operación es irreversible!"
+
+#: assistente-git.py:1368
+msgid "Conferma Eliminazione Asset"
+msgstr "Confirmar Eliminación de Activo"
+
+#: assistente-git.py:1386
+msgid "Nessun asset da ripristinare."
+msgstr "No hay activos para restaurar."
+
+#: assistente-git.py:1387
+msgid "Nessun Asset"
+msgstr "Ningún Activo"
+
+#: assistente-git.py:1405
+msgid "Tutti gli asset sono stati ripristinati."
+msgstr "Todos los activos han sido restaurados."
+
+#: assistente-git.py:1406
+msgid "Ripristino Completato"
+msgstr "Restauración Completada"
+
+#: assistente-git.py:1458
+msgid "📋 Dettagli Issue"
+msgstr "📋 Detalles del Issue"
+
+#: assistente-git.py:1521 assistente-git.py:1921
+msgid "📝 Descrizione:"
+msgstr "📝 Descripción:"
+
+#: assistente-git.py:1539
+msgid "💬 Commenti"
+msgstr "💬 Comentarios"
+
+#: assistente-git.py:1544 assistente-git.py:1944
+msgid "Caricamento commenti..."
+msgstr "Cargando comentarios..."
+
+#: assistente-git.py:1545 assistente-git.py:1945
+msgid "🔄 Aggiorna"
+msgstr "🔄 Actualizar"
+
+#: assistente-git.py:1568 assistente-git.py:1968
+msgid "✍️ Scrivi Nuovo Commento"
+msgstr "✍️ Escribir Nuevo Comentario"
+
+#: assistente-git.py:1572
+msgid "Scrivi il tuo commento qui... Supporta Markdown!"
+msgstr "Escribe tu comentario aquí... ¡Soporta Markdown!"
+
+#: assistente-git.py:1580 assistente-git.py:1756 assistente-git.py:1980
+#: assistente-git.py:2159
+msgid "📤 Invia Commento"
+msgstr "📤 Enviar Comentario"
+
+#: assistente-git.py:1583 assistente-git.py:1983
+msgid "🗑️ Pulisci"
+msgstr "🗑️ Limpiar"
+
+#: assistente-git.py:1608 assistente-git.py:2008
+msgid "🌐 Apri nel Browser"
+msgstr "🌐 Abrir en el Navegador"
+
+#: assistente-git.py:1611 assistente-git.py:2011
+msgid "✖️ Chiudi"
+msgstr "✖️ Cerrar"
+
+#: assistente-git.py:1626 assistente-git.py:2026
+msgid "❌ Token GitHub necessario per visualizzare i commenti."
+msgstr "❌ Se necesita un token de GitHub para ver los comentarios."
+
+#: assistente-git.py:1628 assistente-git.py:2028
+msgid "Token mancante"
+msgstr "Token faltante"
+
+#: assistente-git.py:1631 assistente-git.py:2031
+msgid "Caricamento..."
+msgstr "Cargando..."
+
+#: assistente-git.py:1646 assistente-git.py:2048
+msgid ""
+"📭 Nessun commento ancora presente.\n"
+"\n"
+"💡 Scrivi il primo commento usando il campo qui sotto!"
+msgstr ""
+"📭 Aún no hay comentarios.\n"
+"\n"
+"💡 ¡Escribe el primer comentario usando el campo de abajo!"
+
+#: assistente-git.py:1673 assistente-git.py:2075
+msgid "Errore caricamento"
+msgstr "Error de carga"
+
+#: assistente-git.py:1696 assistente-git.py:2098
+msgid "Sei sicuro di voler cancellare il commento che stai scrivendo?"
+msgstr "¿Estás seguro de que quieres borrar el comentario que estás escribiendo?"
+
+#: assistente-git.py:1697 assistente-git.py:2099 assistente-git.py:5132
+msgid "Conferma Cancellazione"
+msgstr "Confirmar Borrado"
+
+#: assistente-git.py:1706 assistente-git.py:2108
+msgid "Inserisci un commento prima di inviare."
+msgstr "Introduce un comentario antes de enviar."
+
+#: assistente-git.py:1706 assistente-git.py:2108
+msgid "Commento Vuoto"
+msgstr "Comentario Vacío"
+
+#: assistente-git.py:1712 assistente-git.py:2114
+msgid "Il commento è troppo lungo (massimo 65536 caratteri)."
+msgstr "El comentario es demasiado largo (máximo 65536 caracteres)."
+
+#: assistente-git.py:1713 assistente-git.py:2115
+msgid "Commento Troppo Lungo"
+msgstr "Comentario Demasiado Largo"
+
+#: assistente-git.py:1717 assistente-git.py:2119
+msgid "Token GitHub necessario per inviare commenti."
+msgstr "Se necesita un token de GitHub para enviar comentarios."
+
+#: assistente-git.py:1718 assistente-git.py:2120
+msgid "Token Mancante"
+msgstr "Token Faltante"
+
+#: assistente-git.py:1723
+msgid ""
+"Sei sicuro di voler inviare questo commento?\n"
+"\n"
+"Il commento sarà pubblico e visibile a tutti."
+msgstr ""
+"¿Estás seguro de que quieres enviar este comentario?\n"
+"\n"
+"El comentario será público y visible para todos."
+
+#: assistente-git.py:1724 assistente-git.py:2126
+msgid "Conferma Invio Commento"
+msgstr "Confirmar Envío de Comentario"
+
+#: assistente-git.py:1733 assistente-git.py:2135
+msgid "📤 Invio..."
+msgstr "📤 Enviando..."
+
+#: assistente-git.py:1745 assistente-git.py:2148
+msgid "✅ Commento inviato con successo!"
+msgstr "✅ ¡Comentario enviado con éxito!"
+
+#: assistente-git.py:1745 assistente-git.py:2148
+msgid "Commento Inviato"
+msgstr "Comentario Enviado"
+
+#: assistente-git.py:1751 assistente-git.py:2154
+msgid "Errore Invio"
+msgstr "Error de Envío"
+
+#: assistente-git.py:1770 assistente-git.py:2173
+msgid "Hai un commento non inviato. Sei sicuro di voler chiudere?"
+msgstr "Tienes un comentario no enviado. ¿Estás seguro de que quieres cerrar?"
+
+#: assistente-git.py:1771 assistente-git.py:2174
+msgid "Commento Non Salvato"
+msgstr "Comentario No Guardado"
+
+#: assistente-git.py:1798
+msgid "🔀 Dettagli Pull Request"
+msgstr "🔀 Detalles de la Pull Request"
+
+#: assistente-git.py:1939
+msgid "💬 Commenti e Review"
+msgstr "💬 Comentarios y Revisiones (Review)"
+
+#: assistente-git.py:1972
+msgid "Scrivi il tuo commento sulla PR... Supporta Markdown!"
+msgstr "Escribe tu comentario sobre la PR... ¡Soporta Markdown!"
+
+#: assistente-git.py:2125
+msgid ""
+"Sei sicuro di voler inviare questo commento sulla PR?\n"
+"\n"
+"Il commento sarà pubblico e visibile a tutti."
+msgstr ""
+"¿Estás seguro de que quieres enviar este comentario sobre la PR?\n"
+"\n"
+"El comentario será público y visible para todos."
+
+#: assistente-git.py:2210
+msgid "Assistente Git Semplice v1.1"
+msgstr "Asistente Git Simple v1.1"
+
+#: assistente-git.py:2220
+msgid ""
+"Richiesta password all'avvio per GitHub disabilitata. Il token (se salvato) "
+"non è stato caricato.\n"
+msgstr ""
+"Solicitud de contraseña al inicio para GitHub desactivada. El token (si "
+"está guardado) no se ha cargado.\n"
+
+#: assistente-git.py:2240 assistente-git.py:2509 assistente-git.py:2879
+#: assistente-git.py:2950
+msgid "ERRORE: Repository GitHub non configurato.\n"
+msgstr "ERROR: Repositorio de GitHub no configurado.\n"
+
+#: assistente-git.py:2248
+msgid "Filtri per Issue"
+msgstr "Filtros para Issues"
+
+#: assistente-git.py:2253 assistente-git.py:2522
+msgid "Stato:"
+msgstr "Estado:"
+
+#: assistente-git.py:2254 assistente-git.py:2523
+msgid "Tutte"
+msgstr "Todos"
+
+#: assistente-git.py:2254 assistente-git.py:2523
+msgid "Aperte"
+msgstr "Abiertos"
+
+#: assistente-git.py:2254 assistente-git.py:2523
+msgid "Chiuse"
+msgstr "Cerrados"
+
+#: assistente-git.py:2260
+msgid "Filtra per Label (opzionale):"
+msgstr "Filtrar por Etiqueta (opcional):"
+
+#: assistente-git.py:2262
+msgid ""
+"bug,enhancement,help wanted\n"
+"(separati da virgola)"
+msgstr ""
+"bug,enhancement,help wanted\n"
+"(separados por coma)"
+
+#: assistente-git.py:2268
+msgid "Carica Issue"
+msgstr "Cargar Issues"
+
+#: assistente-git.py:2278
+msgid "Visualizzazione issue annullata.\n"
+msgstr "Visualización de issues cancelada.\n"
+
+#: assistente-git.py:2296
+msgid "🔍 Recupero issue per {}/{}...\n"
+msgstr "🔍 Obteniendo issues para {}/{}...\n"
+
+#: assistente-git.py:2308
+msgid "Nessuna issue trovata con i filtri specificati.\n"
+msgstr "No se encontraron issues con los filtros especificados.\n"
+
+#: assistente-git.py:2326
+msgid "Seleziona una issue per vedere i dettagli:"
+msgstr "Selecciona un issue para ver los detalles:"
+
+#: assistente-git.py:2327
+msgid "Issue di {}/{}"
+msgstr "Issues de {}/{}"
+
+#: assistente-git.py:2343
+msgid "Nessuna issue selezionata.\n"
+msgstr "Ningún issue seleccionado.\n"
+
+#: assistente-git.py:2348
+msgid "❌ Errore durante il recupero delle issue: {}\n"
+msgstr "❌ Error al obtener los issues: {}\n"
+
+#: assistente-git.py:2353 assistente-git.py:2438 assistente-git.py:2618
+#: assistente-git.py:2715
+msgid "ERRORE: Repository GitHub e token non configurati.\n"
+msgstr "ERROR: Repositorio de GitHub y token no configurados.\n"
+
+#: assistente-git.py:2370
+msgid "Nessuna issue aperta trovata da modificare.\n"
+msgstr "No se encontraron issues abiertos para modificar.\n"
+
+#: assistente-git.py:2378
+msgid "Seleziona la issue da modificare:"
+msgstr "Selecciona el issue a modificar:"
+
+#: assistente-git.py:2379 assistente-git.py:2392
+msgid "Modifica Issue"
+msgstr "Modificar Issue"
+
+#: assistente-git.py:2384
+msgid "Modifica issue annullata.\n"
+msgstr "Modificación de issue cancelada.\n"
+
+#: assistente-git.py:2420
+msgid "🔄 Aggiornamento issue #{}...\n"
+msgstr "🔄 Actualizando issue #{}...\n"
+
+#: assistente-git.py:2427
+msgid "✅ Issue #{} aggiornata con successo!\n"
+msgstr "✅ ¡Issue #{} actualizado con éxito!\n"
+
+#: assistente-git.py:2428 assistente-git.py:2705 assistente-git.py:2928
+#: assistente-git.py:3015 assistente-git.py:4835
+msgid "🔗 URL: {}\n"
+msgstr "🔗 URL: {}\n"
+
+#: assistente-git.py:2433 assistente-git.py:2710
+msgid "❌ Errore durante la modifica: {}\n"
+msgstr "❌ Error durante la modificación: {}\n"
+
+#: assistente-git.py:2455
+msgid "Nessuna issue aperta trovata da chiudere.\n"
+msgstr "No se encontraron issues abiertos para cerrar.\n"
+
+#: assistente-git.py:2463
+msgid "Seleziona la issue da chiudere:"
+msgstr "Selecciona el issue a cerrar:"
+
+#: assistente-git.py:2464
+msgid "Chiudi Issue"
+msgstr "Cerrar Issue"
+
+#: assistente-git.py:2469 assistente-git.py:2485
+msgid "Chiusura issue annullata.\n"
+msgstr "Cierre de issue cancelado.\n"
+
+#: assistente-git.py:2477
+msgid ""
+"Sei sicuro di voler chiudere la issue:\n"
+"\n"
+"#{}: {}\n"
+"\n"
+"Questa azione può essere annullata riaprendo la issue su GitHub."
+msgstr ""
+"¿Estás seguro de que quieres cerrar el issue:\n"
+"\n"
+"#{}: {}\n"
+"\n"
+"Esta acción puede deshacerse reabriendo el issue en GitHub."
+
+#: assistente-git.py:2481
+msgid "Conferma Chiusura Issue"
+msgstr "Confirmar Cierre de Issue"
+
+#: assistente-git.py:2495
+msgid "🔒 Chiusura issue #{}...\n"
+msgstr "🔒 Cerrando issue #{}...\n"
+
+#: assistente-git.py:2501
+msgid "✅ Issue #{} chiusa con successo!\n"
+msgstr "✅ ¡Issue #{} cerrado con éxito!\n"
+
+#: assistente-git.py:2504 assistente-git.py:2779
+msgid "❌ Errore durante la chiusura: {}\n"
+msgstr "❌ Error durante el cierre: {}\n"
+
+#: assistente-git.py:2517
+msgid "Filtri per Pull Request"
+msgstr "Filtros para Pull Requests"
+
+#: assistente-git.py:2523
+msgid "Mergiate"
+msgstr "Fusionadas"
+
+#: assistente-git.py:2530
+msgid "Carica PR"
+msgstr "Cargar PRs"
+
+#: assistente-git.py:2540
+msgid "Visualizzazione PR annullata.\n"
+msgstr "Visualización de PRs cancelada.\n"
+
+#: assistente-git.py:2555
+msgid "🔍 Recupero Pull Request per {}/{}...\n"
+msgstr "🔍 Obteniendo Pull Requests para {}/{}...\n"
+
+#: assistente-git.py:2568
+msgid "Nessuna Pull Request trovata con i filtri specificati.\n"
+msgstr "No se encontraron Pull Requests con los filtros especificados.\n"
+
+#: assistente-git.py:2592
+msgid "Seleziona una PR per vedere i dettagli:"
+msgstr "Selecciona una PR para ver los detalles:"
+
+#: assistente-git.py:2593
+msgid "Pull Request di {}/{}"
+msgstr "Pull Requests de {}/{}"
+
+#: assistente-git.py:2608
+msgid "Nessuna PR selezionata.\n"
+msgstr "Ninguna PR seleccionada.\n"
+
+#: assistente-git.py:2613
+msgid "❌ Errore durante il recupero delle PR: {}\n"
+msgstr "❌ Error al obtener las PRs: {}\n"
+
+#: assistente-git.py:2633
+msgid "Nessuna Pull Request aperta trovata da modificare.\n"
+msgstr "No se encontraron Pull Requests abiertas para modificar.\n"
+
+#: assistente-git.py:2641
+msgid "Seleziona la PR da modificare:"
+msgstr "Selecciona la PR a modificar:"
+
+#: assistente-git.py:2642 assistente-git.py:2655
+msgid "Modifica Pull Request"
+msgstr "Modificar Pull Request"
+
+#: assistente-git.py:2647
+msgid "Modifica PR annullata.\n"
+msgstr "Modificación de PR cancelada.\n"
+
+#: assistente-git.py:2660
+msgid "Titolo:"
+msgstr "Título:"
+
+#: assistente-git.py:2672
+msgid "Draft"
+msgstr "Borrador (Draft)"
+
+#: assistente-git.py:2678
+msgid "Aggiorna"
+msgstr "Actualizar"
+
+#: assistente-git.py:2697
+msgid "🔄 Aggiornamento PR #{}...\n"
+msgstr "🔄 Actualizando PR #{}...\n"
+
+#: assistente-git.py:2704
+msgid "✅ PR #{} aggiornata con successo!\n"
+msgstr "✅ ¡PR #{} actualizada con éxito!\n"
+
+#: assistente-git.py:2730
+msgid "Nessuna Pull Request aperta trovata da chiudere.\n"
+msgstr "No se encontraron Pull Requests abiertas para cerrar.\n"
+
+#: assistente-git.py:2738
+msgid "Seleziona la PR da chiudere:"
+msgstr "Selecciona la PR a cerrar:"
+
+#: assistente-git.py:2739
+msgid "Chiudi Pull Request"
+msgstr "Cerrar Pull Request"
+
+#: assistente-git.py:2744 assistente-git.py:2760
+msgid "Chiusura PR annullata.\n"
+msgstr "Cierre de PR cancelado.\n"
+
+#: assistente-git.py:2752
+msgid ""
+"Sei sicuro di voler chiudere la Pull Request:\n"
+"\n"
+"#{}: {}\n"
+"\n"
+"Branch: {} → {}\n"
+"\n"
+"Questa azione può essere annullata riaprendo la PR su GitHub."
+msgstr ""
+"¿Estás seguro de que quieres cerrar la Pull Request:\n"
+"\n"
+"#{}: {}\n"
+"\n"
+"Rama: {} → {}\n"
+"\n"
+"Esta acción puede deshacerse reabriendo la PR en GitHub."
+
+#: assistente-git.py:2756
+msgid "Conferma Chiusura PR"
+msgstr "Confirmar Cierre de PR"
+
+#: assistente-git.py:2770
+msgid "🔒 Chiusura PR #{}...\n"
+msgstr "🔒 Cerrando PR #{}...\n"
+
+#: assistente-git.py:2776
+msgid "✅ PR #{} chiusa con successo!\n"
+msgstr "✅ ¡PR #{} cerrada con éxito!\n"
+
+#: assistente-git.py:2883
+msgid "ERRORE: Token GitHub necessario per creare issue.\n"
+msgstr "ERROR: Se necesita un token de GitHub para crear issues.\n"
+
+#: assistente-git.py:2887
+msgid "Recupero informazioni repository...\n"
+msgstr "Obteniendo información del repositorio...\n"
+
+#: assistente-git.py:2900
+msgid "ERRORE: Il titolo dell'issue è obbligatorio.\n"
+msgstr "ERROR: El título del issue es obligatorio.\n"
+
+#: assistente-git.py:2916
+msgid "🚀 Creazione issue '{}' in corso...\n"
+msgstr "🚀 Creando issue '{}' en curso...\n"
+
+#: assistente-git.py:2927
+msgid "✅ Issue #{} creata con successo!\n"
+msgstr "✅ ¡Issue #{} creado con éxito!\n"
+
+#: assistente-git.py:2931
+msgid "Vuoi aprire l'issue nel browser?"
+msgstr "¿Quieres abrir el issue en el navegador?"
+
+#: assistente-git.py:2932
+msgid "Apri Issue"
+msgstr "Abrir Issue"
+
+#: assistente-git.py:2939
+msgid "❌ Errore durante la creazione dell'issue: {}\n"
+msgstr "❌ Error durante la creación del issue: {}\n"
+
+#: assistente-git.py:2941 assistente-git.py:3034 assistente-git.py:4924
+#: assistente-git.py:4935
+msgid "Dettagli errore: {}\n"
+msgstr "Detalles del error: {}\n"
+
+#: assistente-git.py:2943
+msgid "Creazione issue annullata.\n"
+msgstr "Creación de issue cancelada.\n"
+
+#: assistente-git.py:2954
+msgid "ERRORE: Token GitHub necessario per creare PR.\n"
+msgstr "ERROR: Se necesita un token de GitHub para crear PRs.\n"
+
+#: assistente-git.py:2958
+msgid "Recupero informazioni branch...\n"
+msgstr "Obteniendo información de las ramas...\n"
+
+#: assistente-git.py:2965
+msgid "ERRORE: Impossibile recuperare i branch del repository.\n"
+msgstr "ERROR: No se pudieron obtener las ramas del repositorio.\n"
+
+#: assistente-git.py:2975
+msgid "ERRORE: Il titolo della PR è obbligatorio.\n"
+msgstr "ERROR: El título de la PR es obligatorio.\n"
+
+#: assistente-git.py:2980
+msgid "ERRORE: Branch di origine e destinazione sono obbligatori.\n"
+msgstr "ERROR: Las ramas de origen y destino son obligatorias.\n"
+
+#: assistente-git.py:2985
+msgid "ERRORE: Branch di origine e destinazione non possono essere uguali.\n"
+msgstr "ERROR: Las ramas de origen y destino no pueden ser iguales.\n"
+
+#: assistente-git.py:3002
+msgid "🚀 Creazione PR '{}' da '{}' verso '{}'...\n"
+msgstr "🚀 Creando PR '{}' de '{}' hacia '{}'...\n"
+
+#: assistente-git.py:3014
+msgid "✅ Pull Request #{} creata con successo!\n"
+msgstr "✅ ¡Pull Request #{} creada con éxito!\n"
+
+#: assistente-git.py:3019
+msgid "🔄 Tentativo di abilitare auto-merge...\n"
+msgstr "🔄 Intentando habilitar la auto-fusión...\n"
+
+#: assistente-git.py:3023
+msgid "Vuoi aprire la PR nel browser?"
+msgstr "¿Quieres abrir la PR en el navegador?"
+
+#: assistente-git.py:3024
+msgid "Apri PR"
+msgstr "Abrir PR"
+
+#: assistente-git.py:3031
+msgid "❌ Errore durante la creazione della PR: {}\n"
+msgstr "❌ Error durante la creación de la PR: {}\n"
+
+#: assistente-git.py:3038
+msgid ""
+"💡 Suggerimento: Assicurati che ci siano commit nel branch '{}' che non sono "
+"in '{}'.\n"
+msgstr ""
+"💡 Sugerencia: Asegúrate de que haya commits en la rama '{}' que no estén en "
+"'{}'.\n"
+
+#: assistente-git.py:3040
+msgid "💡 Suggerimento: Una PR tra questi branch potrebbe già esistere.\n"
+msgstr "💡 Sugerencia: Es posible que ya exista una PR entre estas ramas.\n"
+
+#: assistente-git.py:3042
+msgid "Creazione PR annullata.\n"
+msgstr "Creación de PR cancelada.\n"
+
+#: assistente-git.py:3380
+msgid "Password Master errata o dati corrotti (InvalidToken)."
+msgstr "Contraseña Maestra incorrecta o datos corruptos (InvalidToken)."
+
+#: assistente-git.py:3401
+msgid "Errore nel salvare le opzioni dell'applicazione: {}\n"
+msgstr "Error al guardar las opciones de la aplicación: {}\n"
+
+#: assistente-git.py:3424
+msgid "Opzione 'Richiedi password all'avvio': {}.\n"
+msgstr "Opción 'Solicitar contraseña al inicio': {}.\n"
+
+#: assistente-git.py:3425
+msgid "Abilitata"
+msgstr "Habilitada"
+
+#: assistente-git.py:3425
+msgid "Disabilitata"
+msgstr "Deshabilitada"
+
+#: assistente-git.py:3435
+msgid ""
+"Se 'Richiedi password master all'avvio' è selezionato, la Password Master è "
+"necessaria per salvare/aggiornare il token o i dettagli GitHub crittografati."
+msgstr ""
+"Si 'Solicitar contraseña maestra al inicio' está seleccionado, la Contraseña "
+"Maestra es necesaria para guardar/actualizar el token o los detalles de "
+"GitHub cifrados."
+
+#: assistente-git.py:3436
+msgid "Password Mancante"
+msgstr "Contraseña Faltante"
+
+#: assistente-git.py:3458
+msgid "Fallimento crittografia: {}\n"
+msgstr "Fallo de cifrado: {}\n"
+
+#: assistente-git.py:3460
+msgid ""
+"Errore durante la crittografia dei dati: {}\n"
+"Configurazione non salvata."
+msgstr "Error al cifrar los datos: {}\nConfiguración no guardada."
+
+#: assistente-git.py:3461 assistente-git.py:3471
+msgid "Errore Crittografia"
+msgstr "Error de Cifrado"
+
+#: assistente-git.py:3467
+msgid ""
+"Errore interno sconosciuto durante la crittografia (salt o dati None).\n"
+msgstr "Error interno desconocido durante el cifrado (salt o datos None).\n"
+
+#: assistente-git.py:3470
+msgid ""
+"Errore interno sconosciuto durante la crittografia. Configurazione non "
+"salvata."
+msgstr "Error interno desconocido durante el cifrado. Configuración no guardada."
+
+#: assistente-git.py:3487
+msgid "Configurazione GitHub salvata e crittografata con successo.\n"
+msgstr "Configuración de GitHub guardada y cifrada con éxito.\n"
+
+#: assistente-git.py:3499
+msgid ""
+"Errore durante il salvataggio del file di configurazione crittografato: {}\n"
+msgstr "Error al guardar el archivo de configuración cifrado: {}\n"
+
+#: assistente-git.py:3502
+msgid "Errore durante il salvataggio della configurazione nel file: {}"
+msgstr "Error al guardar la configuración en el archivo: {}"
+
+#: assistente-git.py:3503
+msgid "Errore Salvataggio File"
+msgstr "Error al Guardar Archivo"
+
+#: assistente-git.py:3509
+msgid "File di configurazione GitHub sicuro non trovato. Configurare prima.\n"
+msgstr ""
+"Archivo de configuración seguro de GitHub no encontrado. Configurar primero.\n"
+
+#: assistente-git.py:3510
+msgid "File di configurazione GitHub non trovato. Utilizza '{}'."
+msgstr "Archivo de configuración de GitHub no encontrado. Utiliza '{}'."
+
+#: assistente-git.py:3510
+msgid "Configurazione Mancante"
+msgstr "Configuración Faltante"
+
+#: assistente-git.py:3513
+msgid ""
+"Inserisci la Password Master per sbloccare i dati GitHub (token, owner, "
+"repo):"
+msgstr ""
+"Introduce la Contraseña Maestra para desbloquear los datos de GitHub (token, "
+"owner, repo):"
+
+#: assistente-git.py:3513
+msgid "Password Master Richiesta"
+msgstr "Se Requiere Contraseña Maestra"
+
+#: assistente-git.py:3517
+msgid "Password non inserita. Impossibile caricare i dati GitHub.\n"
+msgstr "Contraseña no introducida. No se pueden cargar los datos de GitHub.\n"
+
+#: assistente-git.py:3528
+msgid ""
+"File di configurazione dati sensibili non valido o corrotto (magic number/"
+"UUID errato)."
+msgstr ""
+"Archivo de configuración de datos sensibles no válido o corrupto (número "
+"mágico/UUID incorrecto)."
+
+#: assistente-git.py:3530 assistente-git.py:3537 assistente-git.py:3576
+msgid "Errore Caricamento"
+msgstr "Error de Carga"
+
+#: assistente-git.py:3535
+msgid ""
+"Versione del file di configurazione dati sensibili (v{}) non supportata (max "
+"v{}).\n"
+"Si prega di aggiornare l'applicazione o eliminare il file di configurazione."
+msgstr ""
+"Versión del archivo de configuración de datos sensibles (v{}) no soportada "
+"(máx v{}).\n"
+"Por favor, actualiza la aplicación o elimina el archivo de configuración."
+
+#: assistente-git.py:3547
+msgid "Errore durante la decrittografia dei dati sensibili: {}\n"
+msgstr "Error al descifrar los datos sensibles: {}\n"
+
+#: assistente-git.py:3548
+msgid "Errore durante la decrittografia: {}"
+msgstr "Error durante el descifrado: {}"
+
+#: assistente-git.py:3549 assistente-git.py:3568
+msgid "Errore Decrittografia"
+msgstr "Error de Descifrado"
+
+#: assistente-git.py:3561
+msgid "Dati sensibili GitHub (owner, repo, token) caricati con successo.\n"
+msgstr ""
+"Datos sensibles de GitHub (owner, repo, token) cargados con éxito.\n"
+
+#: assistente-git.py:3562 assistente-git.py:3619
+msgid "Token PAT GitHub caricato.\n"
+msgstr "Token PAT de GitHub cargado.\n"
+
+#: assistente-git.py:3563
+msgid "Token PAT GitHub non presente nella configurazione caricata.\n"
+msgstr "Token PAT de GitHub no presente en la configuración cargada.\n"
+
+#: assistente-git.py:3566
+msgid ""
+"Errore sconosciuto durante la decrittografia dei dati sensibili (possibile "
+"password errata)."
+msgstr ""
+"Error desconocido durante el descifrado de los datos sensibles (posible "
+"contraseña incorrecta)."
+
+#: assistente-git.py:3571
+msgid "File di configurazione GitHub sicuro non trovato.\n"
+msgstr "Archivo de configuración seguro de GitHub no encontrado.\n"
+
+#: assistente-git.py:3575
+msgid "Errore durante il caricamento dei dati GitHub: {}\n"
+msgstr "Error al cargar los datos de GitHub: {}\n"
+
+#: assistente-git.py:3576
+msgid "Errore imprevisto durante il caricamento: {}"
+msgstr "Error inesperado durante la carga: {}"
+
+#: assistente-git.py:3579
+msgid "Caricamento dati GitHub annullato (password non inserita).\n"
+msgstr "Carga de datos de GitHub cancelada (contraseña no introducida).\n"
+
+#: assistente-git.py:3590
+msgid "Errore: file di configurazione GitHub non trovato. Usa '{}'.\n"
+msgstr "Error: archivo de configuración de GitHub no encontrado. Usa '{}'.\n"
+
+#: assistente-git.py:3617
+msgid "Configurazione GitHub caricata (senza password) con successo.\n"
+msgstr "Configuración de GitHub cargada (sin contraseña) con éxito.\n"
+
+#: assistente-git.py:3621
+msgid "Token PAT non trovato nella configurazione.\n"
+msgstr "Token PAT no encontrado en la configuración.\n"
+
+#: assistente-git.py:3625
+msgid ""
+"Errore: impossibile decriptare configurazione con password vuota. "
+"Configurazione corrotta o password non valida.\n"
+msgstr ""
+"Error: no se puede descifrar la configuración con contraseña vacía. "
+"Configuración corrupta o contraseña no válida.\n"
+
+#: assistente-git.py:3630
+msgid ""
+"Errore durante il caricamento silenzioso del file di configurazione: {}\n"
+msgstr "Error durante la carga silenciosa del archivo de configuración: {}\n"
+
+#: assistente-git.py:3635
+msgid ""
+"Token GitHub non in memoria. Richiesta password master per questa "
+"operazione...\n"
+msgstr ""
+"Token de GitHub no en memoria. Se requiere contraseña maestra para esta "
+"operación...\n"
+
+#: assistente-git.py:3652
+msgid "Nessuna configurazione GitHub salvata da rimuovere.\n"
+msgstr "No hay ninguna configuración de GitHub guardada para eliminar.\n"
+
+#: assistente-git.py:3689
+msgid "Errore: magic prefix non corrisponde.\n"
+msgstr "Error: el prefijo mágico no coincide.\n"
+
+#: assistente-git.py:3695
+msgid "Errore: UUID utente non corrisponde.\n"
+msgstr "Error: el UUID del usuario no coincide.\n"
+
+#: assistente-git.py:3701
+msgid "Errore: versione file ({}) maggiore di VERSIONE SUPPORTATA ({}).\n"
+msgstr "Error: versión del archivo ({}) mayor que la VERSIÓN SOPORTADA ({}).\n"
+
+#: assistente-git.py:3725
+msgid "Errore decrittografia: {}. Impossibile rimuovere.\n"
+msgstr "Error de descifrado: {}. No se puede eliminar.\n"
+
+#: assistente-git.py:3729
+msgid ""
+"Password Master errata o dati corrotti. Rimozione annullata.\n"
+"Errore: {}"
+msgstr ""
+"Contraseña Maestra incorrecta o datos corruptos. Eliminación cancelada.\n"
+"Error: {}"
+
+#: assistente-git.py:3730 assistente-git.py:3777
+msgid "Errore Rimozione"
+msgstr "Error de Eliminación"
+
+#: assistente-git.py:3735
+msgid "File di configurazione criptato rimosso.\n"
+msgstr "Archivo de configuración cifrado eliminado.\n"
+
+#: assistente-git.py:3765
+msgid ""
+"Configurazione GitHub, UUID utente e impostazioni app rimossi con successo.\n"
+msgstr ""
+"Configuración de GitHub, UUID de usuario y ajustes de la app eliminados con "
+"éxito.\n"
+
+#: assistente-git.py:3772
+msgid "Errore imprevisto durante la rimozione: {}\n"
+msgstr "Error inesperado durante la eliminación: {}\n"
+
+#: assistente-git.py:3776
+msgid "Errore durante la rimozione della configurazione: {}"
+msgstr "Error al eliminar la configuración: {}"
+
+#: assistente-git.py:3788
+msgid "Timer di monitoraggio per run ID {} arrestato.\n"
+msgstr "Temporizador de monitoreo para el ID de ejecución {} detenido.\n"
+
+#: assistente-git.py:3821
+msgid "il tuo sistema operativo"
+msgstr "tu sistema operativo"
+
+#: assistente-git.py:3824
+msgid ""
+"Git non sembra essere installato o non è nel PATH di sistema.\n"
+"L'applicazione non funzionerà correttamente senza Git.\n"
+"\n"
+"Sistema rilevato: {}\n"
+"\n"
+"Vuoi aprire la pagina di download di Git per {}?"
+msgstr ""
+"Git no parece estar instalado o no está en el PATH del sistema.\n"
+"La aplicación no funcionará correctamente sin Git.\n"
+"\n"
+"Sistema detectado: {}\n"
+"\n"
+"¿Quieres abrir la página de descarga de Git para {}?"
+
+#: assistente-git.py:3833
+msgid "Git Non Trovato - Download Richiesto"
+msgstr "Git No Encontrado - Se Requiere Descarga"
+
+#: assistente-git.py:3841
+msgid ""
+"🌐 Apertura pagina di download Git: {}\n"
+"\n"
+"📋 Istruzioni:\n"
+"1. Scarica e installa Git dal sito web appena aperto\n"
+"2. Riavvia questo programma dopo l'installazione\n"
+"3. Se necessario, riavvia il computer per aggiornare il PATH\n"
+"\n"
+"💡 Su Windows: durante l'installazione assicurati che l'opzione\n"
+"   'Git from the command line and also from 3rd-party software' sia "
+"selezionata.\n"
+"\n"
+msgstr ""
+"🌐 Abriendo página de descarga de Git: {}\n"
+"\n"
+"📋 Instrucciones:\n"
+"1. Descarga e instala Git desde el sitio web recién abierto\n"
+"2. Reinicia este programa después de la instalación\n"
+"3. Si es necesario, reinicia el ordenador para actualizar el PATH\n"
+"\n"
+"💡 En Windows: durante la instalación, asegúrate de que la opción\n"
+"   'Git from the command line and also from 3rd-party software' esté "
+"seleccionada.\n"
+"\n"
+
+#: assistente-git.py:3851
+msgid ""
+"❌ Errore nell'aprire il browser: {}\n"
+"📋 Vai manualmente a: {}\n"
+msgstr "❌ Error al abrir el navegador: {}\n📋 Ve manualmente a: {}\n"
+
+#: assistente-git.py:3855
+msgid ""
+"Impossibile aprire automaticamente il browser.\n"
+"\n"
+"Vai manualmente a questo indirizzo per scaricare Git:\n"
+"\n"
+"{}"
+msgstr ""
+"No se pudo abrir el navegador automáticamente.\n"
+"\n"
+"Ve manualmente a esta dirección para descargar Git:\n"
+"\n"
+"{}"
+
+#: assistente-git.py:3858 assistente-git.py:3915
+msgid "Apri Manualmente"
+msgstr "Abrir Manualmente"
+
+#: assistente-git.py:3862
+msgid ""
+"⚠️ Git non installato. Molte funzionalità non saranno disponibili.\n"
+"📋 Per installare Git vai a: {}\n"
+"\n"
+msgstr ""
+"⚠️ Git no instalado. Muchas funcionalidades no estarán disponibles.\n"
+"📋 Para instalar Git, ve a: {}\n"
+"\n"
+
+#: assistente-git.py:3871
+msgid ""
+"Token GitHub Personal Access Token (PAT) non configurato o non caricato.\n"
+"\n"
+"Molte operazioni GitHub richiedono un token per funzionare:\n"
+"• Accesso a repository privati\n"
+"• Creazione/modifica di release\n"
+"• Gestione di issue e pull request\n"
+"• Limiti API più alti\n"
+"\n"
+"Vuoi aprire la pagina GitHub per creare un nuovo token?"
+msgstr ""
+"Token de Acceso Personal (PAT) de GitHub no configurado o no cargado.\n"
+"\n"
+"Muchas operaciones de GitHub requieren un token para funcionar:\n"
+"• Acceso a repositorios privados\n"
+"• Creación/modificación de releases\n"
+"• Gestión de issues y pull requests\n"
+"• Límites de API más altos\n"
+"\n"
+"¿Quieres abrir la página de GitHub para crear un nuevo token?"
+
+#: assistente-git.py:3883
+msgid "Token GitHub Mancante"
+msgstr "Token de GitHub Faltante"
+
+#: assistente-git.py:3892
+msgid ""
+"🌐 Apertura pagina creazione token GitHub: {}\n"
+"\n"
+"📋 Istruzioni per creare il token:\n"
+"1. Nella pagina appena aperta, clicca 'Generate new token'\n"
+"2. Scegli tra 'Fine-grained tokens' (moderni) o 'Tokens (classic)'\n"
+"3. Inserisci una descrizione (es: 'Assistente Git Desktop')\n"
+"4. Seleziona la scadenza desiderata\n"
+"5. Seleziona i permessi necessari:\n"
+"   • Per Fine-grained: Contents, Actions, Metadata\n"
+"   • Per Classic: repo, workflow\n"
+"6. Clicca 'Generate token'\n"
+"7. COPIA SUBITO il token (non sarà più visibile!)\n"
+"8. Torna qui e usa '{}' per configurarlo\n"
+"\n"
+"⚠️ IMPORTANTE: Conserva il token in un posto sicuro!\n"
+"\n"
+msgstr ""
+"🌐 Abriendo página de creación de token de GitHub: {}\n"
+"\n"
+"📋 Instrucciones para crear el token:\n"
+"1. En la página recién abierta, haz clic en 'Generate new token'\n"
+"2. Elige entre 'Fine-grained tokens' (modernos) o 'Tokens (classic)'\n"
+"3. Introduce una descripción (ej: 'Asistente Git de Escritorio')\n"
+"4. Selecciona la fecha de caducidad deseada\n"
+"5. Selecciona los permisos necesarios:\n"
+"   • Para Fine-grained: Contents, Actions, Metadata\n"
+"   • Para Classic: repo, workflow\n"
+"6. Haz clic en 'Generate token'\n"
+"7. COPIA EL TOKEN INMEDIATAMENTE (¡no volverá a ser visible!)\n"
+"8. Vuelve aquí y usa '{}' para configurarlo\n"
+"\n"
+"⚠️ IMPORTANTE: ¡Guarda el token en un lugar seguro!\n"
+"\n"
+
+#: assistente-git.py:3908
+msgid ""
+"❌ Errore nell'aprire il browser: {}\n"
+"📋 Vai manualmente a: https://github.com/settings/personal-access-tokens\n"
+msgstr ""
+"❌ Error al abrir el navegador: {}\n"
+"📋 Ve manualmente a: https://github.com/settings/personal-access-tokens\n"
+
+#: assistente-git.py:3912
+msgid ""
+"Impossibile aprire automaticamente il browser.\n"
+"\n"
+"Vai manualmente a questo indirizzo per creare un token:\n"
+"\n"
+"https://github.com/settings/personal-access-tokens"
+msgstr ""
+"No se pudo abrir el navegador automáticamente.\n"
+"\n"
+"Ve manualmente a esta dirección para crear un token:\n"
+"\n"
+"https://github.com/settings/personal-access-tokens"
+
+#: assistente-git.py:3919
+msgid ""
+"⚠️ Token GitHub non configurato. Alcune operazioni potrebbero fallire.\n"
+"💡 Per creare un token vai a: https://github.com/settings/personal-access-"
+"tokens\n"
+"🔧 Usa '{}' per configurarlo una volta ottenuto.\n"
+"\n"
+msgstr ""
+"⚠️ Token de GitHub no configurado. Algunas operaciones podrían fallar.\n"
+"💡 Para crear un token, ve a: https://github.com/settings/personal-access-"
+"tokens\n"
+"🔧 Usa '{}' para configurarlo una vez obtenido.\n"
+"\n"
+
+#: assistente-git.py:3927
+msgid "Cartella del Repository (Directory di Lavoro)"
+msgstr "Carpeta del Repositorio (Directorio de Trabajo)"
+
+#: assistente-git.py:3928
+msgid "Percorso:"
+msgstr "Ruta:"
+
+#: assistente-git.py:3933
+msgid "Sfoglia..."
+msgstr "Examinar..."
+
+#: assistente-git.py:3939
+msgid "Seleziona Comando"
+msgstr "Seleccionar Comando"
+
+#: assistente-git.py:3941
+msgid "Comandi"
+msgstr "Comandos"
+
+#: assistente-git.py:3968
+msgid "Output del Comando / Log Actions"
+msgstr "Salida del Comando / Log de Actions"
+
+#: assistente-git.py:4017 assistente-git.py:4036
+msgid "Nessun elemento selezionato."
+msgstr "Ningún elemento seleccionado."
+
+#: assistente-git.py:4017 assistente-git.py:4028
+msgid "Info"
+msgstr "Info"
+
+#: assistente-git.py:4021
+msgid "Dettagli: {}"
+msgstr "Detalles: {}"
+
+#: assistente-git.py:4023
+msgid "Nessuna informazione disponibile per questa categoria."
+msgstr "No hay información disponible para esta categoría."
+
+#: assistente-git.py:4026
+msgid "Nessuna informazione disponibile per questo comando."
+msgstr "No hay información disponible para este comando."
+
+#: assistente-git.py:4028
+msgid "Nessuna informazione dettagliata trovata per '{}'."
+msgstr "No se encontró información detallada para '{}'."
+
+#: assistente-git.py:4029
+msgid "Nessun dato associato all'elemento '{}'."
+msgstr "No hay datos asociados al elemento '{}'."
+
+#: assistente-git.py:4029
 msgid "Errore"
 msgstr "Error"
 
-msgid "Errore Git"
-msgstr "Error de Git"
+#: assistente-git.py:4040
+msgid "Seleziona un comando o una categoria per maggiori dettagli."
+msgstr "Selecciona un comando o una categoría para más detalles."
 
-msgid ""
-"Errore durante il tentativo di gestione dei conflitti di merge: {}\n"
-"Controlla 'git status' per maggiori dettagli.\n"
-msgstr ""
-"Error al intentar gestionar los conflictos de fusión: {}\n"
-"Comprueba 'git status' para más detalles.\n"
+#: assistente-git.py:4044
+msgid "Informazioni sulla categoria non disponibili."
+msgstr "Información de la categoría no disponible."
 
-msgid "Errore durante l'esecuzione di 'git ls-files': {}\n"
-msgstr "Error al ejecutar 'git ls-files': {}\n"
+#: assistente-git.py:4047
+msgid "Informazioni sul comando non disponibili."
+msgstr "Información del comando no disponible."
 
-msgid "Errore durante l'esecuzione di {}: {}\n"
-msgstr "Error al ejecutar {}: {}\n"
+#: assistente-git.py:4053
+msgid "Attivazione item...\n"
+msgstr "Activando elemento...\n"
 
-msgid "Errore durante l'operazione '{}': {}\n"
-msgstr "Error durante la operación '{}': {}\n"
+#: assistente-git.py:4056
+msgid "Nessun item valido selezionato per l'attivazione.\n"
+msgstr "Ningún elemento válido seleccionado para la activación.\n"
 
-msgid "Errore durante la scrittura nel file .gitignore: {}\n"
-msgstr "Error al escribir en el archivo .gitignore: {}\n"
+#: assistente-git.py:4065
+msgid "Categoria '{}' espansa/collassata.\n"
+msgstr "Categoría '{}' expandida/contraída.\n"
 
-msgid "Errore imprevisto durante la ricerca dei file: {}\n"
-msgstr "Error inesperado durante la búsqueda de archivos: {}\n"
+#: assistente-git.py:4066
+msgid "'{}' non è un comando eseguibile.\n"
+msgstr "'{}' no es un comando ejecutable.\n"
 
+#: assistente-git.py:4073
+msgid "Dettagli del comando non trovati per: {}\n"
+msgstr "Detalles del comando no encontrados para: {}\n"
+
+#: assistente-git.py:4085
+msgid "Cosa vuoi aggiungere a .gitignore?"
+msgstr "¿Qué quieres añadir a .gitignore?"
+
+#: assistente-git.py:4085
+msgid "Selezione Tipo Elemento"
+msgstr "Selección de Tipo de Elemento"
+
+#: assistente-git.py:4085 assistente-git.py:4089
+msgid "File"
+msgstr "Archivo"
+
+#: assistente-git.py:4085 assistente-git.py:4093
+msgid "Cartella"
+msgstr "Carpeta"
+
+#: assistente-git.py:4090
+msgid "Seleziona il file da aggiungere a .gitignore"
+msgstr "Selecciona el archivo a añadir a .gitignore"
+
+#: assistente-git.py:4094
+msgid "Seleziona la cartella da aggiungere a .gitignore"
+msgstr "Selecciona la carpeta a añadir a .gitignore"
+
+#: assistente-git.py:4101
+msgid "Pattern .gitignore da aggiungere: {}\n"
+msgstr "Patrón .gitignore a añadir: {}\n"
+
+#: assistente-git.py:4102 assistente-git.py:4114
 msgid ""
 "Errore nel calcolare il percorso relativo per: {}.\n"
 "Assicurati che sia all'interno della cartella del repository.\n"
@@ -457,511 +2530,1728 @@ msgstr ""
 "Error al calcular la ruta relativa para: {}.\n"
 "Asegúrate de que esté dentro de la carpeta del repositorio.\n"
 
-msgid "Errore: '{}' non è un numero valido.\n"
-msgstr "Error: '{}' no es un número válido.\n"
+#: assistente-git.py:4103 assistente-git.py:5392
+msgid "Selezione annullata.\n"
+msgstr "Selección cancelada.\n"
 
-msgid "Errore: Git non sembra essere installato o accessibile nel PATH di sistema.\n"
-msgstr "Error: Git no parece estar instalado o accesible en el PATH del sistema.\n"
+#: assistente-git.py:4104
+msgid "Operazione .gitignore annullata.\n"
+msgstr "Operación .gitignore cancelada.\n"
 
-msgid "Errore: Il numero di commit deve essere un intero positivo.\n"
-msgstr "Error: El número de commits debe ser un entero positivo.\n"
+#: assistente-git.py:4108
+msgid "Seleziona il file da ripristinare allo stato dell'ultimo commit"
+msgstr "Selecciona el archivo a restaurar al estado del último commit"
 
-msgid "Errore: Input per il tag non valido. Fornire almeno il nome del tag.\n"
-msgstr "Error: Entrada para la etiqueta no válida. Proporciona al menos el nombre de la etiqueta.\n"
-
-msgid "Errore: La cartella '{}' non sembra essere un repository Git valido (manca la sottocartella .git).\n"
-msgstr "Error: La carpeta '{}' no parece ser un repositorio Git válido (falta la subcarpeta .git).\n"
-
-msgid "Errore: La cartella '{}' non è un repository Git valido o non sei nella directory principale del progetto.\n"
-msgstr "Error: La carpeta '{}' no es un repositorio Git válido o no estás en el directorio principal del proyecto.\n"
-
-msgid "Errore: La cartella specificata '{}' non è una directory valida.\n"
-msgstr "Error: La carpeta especificada '{}' no es un directorio válido.\n"
-
-msgid "Errore: Nessun pattern fornito per .gitignore.\n"
-msgstr "Error: No se proporcionó ningún patrón para .gitignore.\n"
-
-msgid "Errore: Questo comando richiede un input.\n"
-msgstr "Error: Este comando requiere una entrada.\n"
-
-msgid "File"
-msgstr "Archivo"
-
-msgid ""
-"File con conflitti (marcati come UU in 'git status'):\n"
-"{}\n"
-"\n"
-msgstr ""
-"Archivos con conflictos (marcados como UU en 'git status'):\n"
-"{}\n"
-"\n"
-
-msgid ""
-"File con conflitti (rilevati da diff --diff-filter=U):\n"
-"{}\n"
-"\n"
-msgstr ""
-"Archivos con conflictos (detectados por diff --diff-filter=U):\n"
-"{}\n"
-"\n"
-
+#: assistente-git.py:4113
 msgid "File da ripristinare: {}\n"
 msgstr "Archivo a restaurar: {}\n"
 
+#: assistente-git.py:4115
+msgid "Selezione del file per il ripristino annullata.\n"
+msgstr "Selección del archivo para la restauración cancelada.\n"
+
+#: assistente-git.py:4122 assistente-git.py:4154
 msgid ""
-"File modificati aggiunti all'area di stage.\n"
-"Ora puoi usare il comando '{}' per finalizzare il merge. Lascia il messaggio di commit vuoto se Git ne propone uno.\n"
+"Errore: Nessun branch locale trovato o impossibile recuperare la lista dei "
+"branch.\n"
 msgstr ""
-"Archivos modificados añadidos al área de preparación.\n"
-"Ahora puedes usar el comando '{}' para finalizar la fusión. Deja el mensaje de commit vacío si Git propone uno.\n"
+"Error: No se encontraron ramas locales o no se pudo obtener la lista de "
+"ramas.\n"
 
-msgid "Forza eliminazione branch locale {}"
-msgstr "Forzar eliminación de rama local {}"
+#: assistente-git.py:4130
+msgid "Errore: Sei già sull'unico branch disponibile '{}'.\n"
+msgstr "Error: Ya estás en la única rama disponible '{}'.\n"
 
-msgid "Forzare Eliminazione Branch Locale?"
-msgstr "¿Forzar Eliminación de Rama Local?"
+#: assistente-git.py:4135
+msgid "Seleziona il branch a cui passare:"
+msgstr "Selecciona la rama a la que cambiar:"
 
-msgid "Gestione Conflitti di Merge"
-msgstr "Gestión de Conflictos de Fusión"
+#: assistente-git.py:4136
+msgid "Passa a Branch Esistente"
+msgstr "Cambiar a Rama Existente"
 
+#: assistente-git.py:4143
+msgid "Branch selezionato: {}\n"
+msgstr "Rama seleccionada: {}\n"
+
+#: assistente-git.py:4145
+msgid "Selezione branch annullata.\n"
+msgstr "Selección de rama cancelada.\n"
+
+#: assistente-git.py:4162
+msgid ""
+"Errore: Non ci sono altri branch da eliminare oltre a quello corrente '{}'.\n"
+"Per eliminare il branch corrente, passa prima a un altro branch.\n"
+msgstr ""
+"Error: No hay otras ramas para eliminar además de la actual '{}'.\n"
+"Para eliminar la rama actual, cambia primero a otra rama.\n"
+
+#: assistente-git.py:4167
+msgid "Elimina Branch Locale (Sicuro)"
+msgstr "Eliminar Rama Local (Seguro)"
+
+#: assistente-git.py:4168
+msgid "Seleziona il branch da eliminare (eliminazione sicura -d):"
+msgstr "Selecciona la rama a eliminar (eliminación segura -d):"
+
+#: assistente-git.py:4170
+msgid "Elimina Branch Locale (FORZATO)"
+msgstr "Eliminar Rama Local (FORZADO)"
+
+#: assistente-git.py:4171
+msgid "Seleziona il branch da eliminare (eliminazione FORZATA -D):"
+msgstr "Selecciona la rama a eliminar (eliminación FORZADA -D):"
+
+#: assistente-git.py:4183
+msgid "Branch selezionato per eliminazione: {}\n"
+msgstr "Rama seleccionada para eliminación: {}\n"
+
+#: assistente-git.py:4185
+msgid "Selezione branch per eliminazione annullata.\n"
+msgstr "Selección de rama para eliminación cancelada.\n"
+
+#: assistente-git.py:4190
+msgid "Valore:"
+msgstr "Valor:"
+
+#: assistente-git.py:4192
+msgid "Input per: {}"
+msgstr "Entrada para: {}"
+
+#: assistente-git.py:4200
+msgid "Errore: Il numero di commit deve essere un intero positivo.\n"
+msgstr "Error: El número de commits debe ser un entero positivo.\n"
+
+#: assistente-git.py:4202
+msgid "Errore: '{}' non è un numero valido.\n"
+msgstr "Error: '{}' no es un número válido.\n"
+
+#: assistente-git.py:4204
+msgid "Errore: Questo comando richiede un input.\n"
+msgstr "Error: Este comando requiere una entrada.\n"
+
+#: assistente-git.py:4208
+msgid "Il messaggio di commit è vuoto. Vuoi procedere comunque?"
+msgstr "El mensaje de commit está vacío. ¿Quieres proceder de todos modos?"
+
+#: assistente-git.py:4208
+msgid "Conferma Commit Vuoto"
+msgstr "Confirmar Commit Vacío"
+
+#: assistente-git.py:4209
+msgid "Creazione del commit annullata.\n"
+msgstr "Creación del commit cancelada.\n"
+
+#: assistente-git.py:4212
+msgid "Input richiesto per questo comando.\n"
+msgstr "Se requiere entrada para este comando.\n"
+
+#: assistente-git.py:4214
+msgid "Azione annullata dall'utente.\n"
+msgstr "Acción cancelada por el usuario.\n"
+
+#: assistente-git.py:4218
+msgid "Tipo di comando non riconosciuto: {}\n"
+msgstr "Tipo de comando no reconocido: {}\n"
+
+#: assistente-git.py:4221
+msgid "Esecuzione comando Git: {}...\n"
+msgstr "Ejecutando comando Git: {}...\n"
+
+#: assistente-git.py:4224
+msgid "Input fornito: {}\n"
+msgstr "Entrada proporcionada: {}\n"
+
+#: assistente-git.py:4226
+msgid ""
+"Cartella Repository: {}\n"
+"\n"
+msgstr "Carpeta del Repositorio: {}\n\n"
+
+#: assistente-git.py:4228
+msgid "Errore: Git non sembra essere installato o accessibile nel PATH di sistema.\n"
+msgstr "Error: Git no parece estar instalado o accesible en el PATH del sistema.\n"
+
+#: assistente-git.py:4228
 msgid "Git non disponibile."
 msgstr "Git no disponible."
 
-msgid "Git non sembra essere installato o non è nel PATH di sistema. L'applicazione potrebbe non funzionare correttamente."
-msgstr "Git no parece estar instalado o no está en el PATH del sistema. La aplicación podría no funcionar correctamente."
+#: assistente-git.py:4228
+msgid "Errore Git"
+msgstr "Error de Git"
 
-msgid "Hash, tag o riferimento del commit (es. HEAD~2):"
-msgstr "Hash, etiqueta o referencia del commit (ej. HEAD~2):"
+#: assistente-git.py:4229
+msgid "Errore: La cartella specificata '{}' non è una directory valida.\n"
+msgstr "Error: La carpeta especificada '{}' no es un directorio válido.\n"
 
-msgid "Hash/riferimento del commit a cui resettare:"
-msgstr "Hash/referencia del commit al que restablecer:"
-
-msgid "Hash/riferimento del commit da cui ripristinare i file:"
-msgstr "Hash/referencia del commit desde el que restaurar archivos:"
-
-msgid "Hash/riferimento del commit da ispezionare:"
-msgstr "Hash/referencia del commit a inspeccionar:"
-
+#: assistente-git.py:4237
 msgid ""
-"Il branch '{}' non è completamente unito (not fully merged).\n"
-"Se elimini questo branch forzatamente (usando l'opzione -D), i commit unici su di esso andranno persi.\n"
-"\n"
-"Vuoi forzare l'eliminazione del branch locale (git branch -D {})?"
+"Errore: La cartella '{}' non sembra essere un repository Git valido (manca "
+"la sottocartella .git).\n"
 msgstr ""
-"La rama '{}' no está completamente fusionada (not fully merged).\n"
-"Si eliminas esta rama forzosamente (usando la opción -D), los commits únicos en ella se perderán.\n"
-"\n"
-"¿Quieres forzar la eliminación de la rama local (git branch -D {})?"
+"Error: La carpeta '{}' no parece ser un repositorio Git válido (falta la "
+"subcarpeta .git).\n"
 
+#: assistente-git.py:4240
 msgid ""
-"Il branch locale '{}' non sembra essere collegato a un branch remoto (upstream) su 'origin'.\n"
+"Avviso: La cartella '{}' non sembra essere un repository Git. Il "
+"file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo "
+"fino all'inizializzazione del repository ('{}').\n"
+msgstr ""
+"Aviso: La carpeta '{}' no parece ser un repositorio Git. El archivo "
+".gitignore se creará/modificará, pero Git podría no utilizarlo hasta la "
+"inicialización del repositorio ('{}').\n"
+
+#: assistente-git.py:4243
+msgid "VALORE_NON_SPECIFICATO"
+msgstr "VALOR_NO_ESPECIFICADO"
+
+#: assistente-git.py:4244
+msgid "Conferma Azione"
+msgstr "Confirmar Acción"
+
+#: assistente-git.py:4246
+msgid "Conferma Azione PERICOLOSA!"
+msgstr "¡Confirmar Acción PELIGROSA!"
+
+#: assistente-git.py:4248
+msgid "Operazione annullata dall'utente.\n"
+msgstr "Operación cancelada por el usuario.\n"
+
+#: assistente-git.py:4255
+msgid "Errore: Nessun pattern fornito per .gitignore.\n"
+msgstr "Error: No se proporcionó ningún patrón para .gitignore.\n"
+
+#: assistente-git.py:4263
+msgid "L'elemento '{}' è già presente in .gitignore.\n"
+msgstr "El elemento '{}' ya está presente en .gitignore.\n"
+
+#: assistente-git.py:4272
+msgid "'{}' aggiunto correttamente a .gitignore.\n"
+msgstr "'{}' añadido correctamente a .gitignore.\n"
+
+#: assistente-git.py:4274
+msgid "Errore durante la scrittura nel file .gitignore: {}\n"
+msgstr "Error al escribir en el archivo .gitignore: {}\n"
+
+#: assistente-git.py:4279
+msgid ""
+"Errore: La cartella '{}' non è un repository Git valido o non sei nella "
+"directory principale del progetto.\n"
+msgstr ""
+"Error: La carpeta '{}' no es un repositorio Git válido o no estás en el "
+"directorio principal del proyecto.\n"
+
+#: assistente-git.py:4287
+msgid "--- Risultati per il pattern '{}' ---\n"
+msgstr "--- Resultados para el patrón '{}' ---\n"
+
+#: assistente-git.py:4287
+msgid "Nessun file trovato corrispondente al pattern.\n"
+msgstr "No se encontraron archivos que coincidan con el patrón.\n"
+
+#: assistente-git.py:4288
+msgid ""
+"--- Tutti i file tracciati da Git nel repository ---\n"
+"{}"
+msgstr ""
+"--- Todos los archivos seguidos por Git en el repositorio ---\n"
+"{}"
+
+#: assistente-git.py:4289
+msgid ""
+"--- Messaggi/Errori da 'git ls-files' ---\n"
+"{}\n"
+msgstr "--- Mensajes/Errores de 'git ls-files' ---\n{}\n"
+
+#: assistente-git.py:4292
+msgid "Errore durante l'esecuzione di 'git ls-files': {}\n"
+msgstr "Error durante la ejecución de 'git ls-files': {}\n"
+
+#: assistente-git.py:4294
+msgid "La cartella '{}' non sembra essere un repository Git valido.\n"
+msgstr "La carpeta '{}' no parece ser un repositorio Git válido.\n"
+
+#: assistente-git.py:4296
+msgid "Errore imprevisto durante la ricerca dei file: {}\n"
+msgstr "Error inesperado durante la búsqueda de archivos: {}\n"
+
+#: assistente-git.py:4302
+msgid "Errore: Input per il tag non valido. Fornire almeno il nome del tag.\n"
+msgstr "Error: Entrada para la etiqueta no válida. Proporciona al menos el nombre de la etiqueta.\n"
+
+#: assistente-git.py:4308
+msgid "Nessun comando specifico da eseguire per questa azione.\n"
+msgstr "Ningún comando específico para ejecutar para esta acción.\n"
+
+#: assistente-git.py:4314
+msgid ""
+"--- Output ({}) ---\n"
+"{}\n"
+msgstr "--- Salida ({}) ---\n{}\n"
+
+#: assistente-git.py:4315
+msgid ""
+"--- Messaggi/Errori ({}) ---\n"
+"{}\n"
+msgstr "--- Mensajes/Errores ({}) ---\n{}\n"
+
+#: assistente-git.py:4318
+msgid ""
 "\n"
-"Vuoi eseguire il seguente comando per impostare il tracciamento e inviare le modifiche?\n"
+"!!! Comando {} fallito con codice di uscita: {} !!!\n"
+msgstr "\n!!! El comando {} falló con el código de salida: {} !!!\n"
+
+#: assistente-git.py:4342
+msgid "Errore durante l'esecuzione di {}: {}\n"
+msgstr "Error durante la ejecución de {}: {}\n"
+
+#: assistente-git.py:4348
+msgid ""
+"\n"
+"Operazione .gitignore completata con successo.\n"
+msgstr "\nOperación .gitignore completada con éxito.\n"
+
+#: assistente-git.py:4350
+msgid ""
+"\n"
+"Ricerca file completata.\n"
+msgstr "\nBúsqueda de archivos completada.\n"
+
+#: assistente-git.py:4352
+msgid ""
+"\n"
+"Comando/i completato/i con successo.\n"
+msgstr "\nComando(s) completado(s) con éxito.\n"
+
+#: assistente-git.py:4355
+msgid ""
+"\n"
+"Errore durante l'aggiornamento del file .gitignore.\n"
+msgstr "\nError al actualizar el archivo .gitignore.\n"
+
+#: assistente-git.py:4357
+msgid ""
+"\n"
+"Errore durante la ricerca dei file.\n"
+msgstr "\nError durante la búsqueda de archivos.\n"
+
+#: assistente-git.py:4359
+msgid ""
+"\n"
+"Esecuzione (o parte di essa) fallita o con errori. Controllare l'output per "
+"i dettagli.\n"
+msgstr ""
+"\n"
+"Ejecución (o parte de ella) fallida o con errores. Revisa la salida para "
+"ver los detalles.\n"
+
+#: assistente-git.py:4362
+msgid ""
+"Commit modificato con successo.\n"
+"\n"
+"ATTENZIONE: Se questo commit era già stato inviato (push) a un repository "
+"condiviso, forzare il push (push --force) sovrascriverà la cronologia sul "
+"server. Questo può creare problemi per altri collaboratori.\n"
+"\n"
+"Vuoi tentare un push forzato a 'origin' ora?"
+msgstr ""
+"Commit modificado con éxito.\n"
+"\n"
+"ATENCIÓN: Si este commit ya se había enviado (push) a un repositorio "
+"compartido, forzar el push (push --force) sobrescribirá el historial en el "
+"servidor. Esto puede crear problemas para otros colaboradores.\n"
+"\n"
+"¿Quieres intentar un push forzado a 'origin' ahora?"
+
+#: assistente-git.py:4367
+msgid "Push Forzato Dopo Amend?"
+msgstr "¿Push Forzado Después de Amend?"
+
+#: assistente-git.py:4369
+msgid ""
+"\n"
+"Tentativo di push forzato a 'origin' in corso...\n"
+msgstr "\nIntentando push forzado a 'origin'...\n"
+
+#: assistente-git.py:4370
+msgid "Push Forzato dopo Amend"
+msgstr "Push Forzado después de Amend"
+
+#: assistente-git.py:4371
+msgid ""
+"\n"
+"Push forzato non eseguito.\n"
+msgstr "\nPush forzado no ejecutado.\n"
+
+#: assistente-git.py:4382
+msgid ""
+"\n"
+"Percorso della cartella repository aggiornato a: {}\n"
+msgstr "\nRuta de la carpeta del repositorio actualizada a: {}\n"
+
+#: assistente-git.py:4384
+msgid ""
+"\n"
+"Avviso: impossibile aggiornare automaticamente il percorso dopo il clone: "
+"{}.\n"
+"Si prega di selezionare manualmente la nuova cartella del repository se "
+"necessario.\n"
+msgstr ""
+"\n"
+"Aviso: no se pudo actualizar automáticamente la ruta después del clon: {}.\n"
+"Por favor, selecciona manualmente la nueva carpeta del repositorio si es "
+"necesario.\n"
+
+#: assistente-git.py:4427
+msgid ""
+"AVVISO: Il percorso del repository '{}' non è una directory valida.\n"
+"Le operazioni GitHub potrebbero riferirsi al contesto precedente ({} "
+"hefty{}).\n"
+"La selezione precedente di un'esecuzione workflow è stata resettata.\n"
+msgstr ""
+"AVISO: La ruta del repositorio '{}' no es un directorio válido.\n"
+"Las operaciones de GitHub podrían referirse al contexto anterior ({} "
+"hefty{}).\n"
+"La selección anterior de una ejecución de workflow ha sido reseteada.\n"
+
+#: assistente-git.py:4445
+msgid ""
+"Contesto GitHub Actions/Release aggiornato automaticamente dal percorso "
+"'{}':\n"
+"  Nuovo Proprietario: {}\n"
+"  Nuovo Repository: {}\n"
+"Il token PAT (se caricato) rimane invariato.\n"
+msgstr ""
+"Contexto de GitHub Actions/Release actualizado automáticamente desde la ruta "
+"'{}':\n"
+"  Nuevo Propietario: {}\n"
+"  Nuevo Repositorio: {}\n"
+"El token PAT (si está cargado) permanece sin cambios.\n"
+
+#: assistente-git.py:4458
+msgid ""
+"AVVISO: Impossibile derivare automaticamente il proprietario/repository "
+"GitHub dal percorso '{}'.\n"
+"Le operazioni GitHub continueranno ad usare il contesto precedentemente "
+"configurato/derivato: {}/{}.\n"
+"Se questo non è corretto, usa il comando '{}' per aggiornare manualmente la "
+"configurazione.\n"
+msgstr ""
+"AVISO: No se pudo derivar automáticamente el propietario/repositorio de "
+"GitHub desde la ruta '{}'.\n"
+"Las operaciones de GitHub continuarán usando el contexto previamente "
+"configurado/derivado: {}/{}.\n"
+"Si esto no es correcto, usa el comando '{}' para actualizar manualmente la "
+"configuración.\n"
+
+#: assistente-git.py:4468
+msgid ""
+"La selezione precedente di un'esecuzione workflow è stata resettata a causa "
+"del cambio di contesto del repository.\n"
+msgstr ""
+"La selección anterior de una ejecución de workflow ha sido reseteada debido "
+"al cambio de contexto del repositorio.\n"
+
+#: assistente-git.py:4526
+msgid "(Nome Workflow Sconosciuto)"
+msgstr "(Nombre de Workflow Desconocido)"
+
+#: assistente-git.py:4530
+msgid "🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n"
+msgstr "🎯 Ejecución reciente encontrada: '{}' (ID: {}, Estado: {})\n"
+
+#: assistente-git.py:4539
+msgid "🔄 Monitoraggio automatico avviato!\n"
+msgstr "🔄 ¡Monitoreo automático iniciado!\n"
+
+#: assistente-git.py:4542
+msgid "ℹ️ Il workflow è già terminato ({})\n"
+msgstr "ℹ️ El workflow ya ha terminado ({})\n"
+
+#: assistente-git.py:4545
+msgid "❌ Nessuna esecuzione recente trovata\n"
+msgstr "❌ No se encontraron ejecuciones recientes\n"
+
+#: assistente-git.py:4548
+msgid "❌ Errore di rete/API nel recupero automatico: {}\n"
+msgstr "❌ Error de red/API en la recuperación automática: {}\n"
+
+#: assistente-git.py:4551
+msgid "❌ Errore imprevisto nel recupero automatico: {}\n"
+msgstr "❌ Error inesperado en la recuperación automática: {}\n"
+
+#: assistente-git.py:4568
+msgid "🔍 Verifica stato workflow '{}': Status={}, Conclusion={}\n"
+msgstr "🔍 Verificando estado del workflow '{}': Estado={}, Conclusión={}\n"
+
+#: assistente-git.py:4574
+msgid "✅ Workflow effettivamente cancellato!\n"
+msgstr "✅ ¡Workflow cancelado efectivamente!\n"
+
+#: assistente-git.py:4576
+msgid "⏳ Workflow ancora in esecuzione, cancellazione in corso...\n"
+msgstr "⏳ Workflow todavía en ejecución, cancelación en curso...\n"
+
+#: assistente-git.py:4578
+msgid "ℹ️ Stato workflow: {}\n"
+msgstr "ℹ️ Estado del workflow: {}\n"
+
+#: assistente-git.py:4581
+msgid "❌ Errore verifica stato: {}\n"
+msgstr "❌ Error al verificar el estado: {}\n"
+
+#: assistente-git.py:4584
+msgid "Esecuzione comando GitHub: {}...\n"
+msgstr "Ejecutando comando de GitHub: {}...\n"
+
+#: assistente-git.py:4587
+msgid "Configurazione GitHub Actions"
+msgstr "Configuración de GitHub Actions"
+
+#: assistente-git.py:4606
+msgid "Proprietario e Nome Repository sono obbligatori.\n"
+msgstr "El Propietario y el Nombre del Repositorio son obligatorios.\n"
+
+#: assistente-git.py:4607
+msgid "Proprietario e Nome Repository non possono essere vuoti."
+msgstr "El Propietario y el Nombre del Repositorio no pueden estar vacíos."
+
+#: assistente-git.py:4607
+msgid "Errore Configurazione"
+msgstr "Error de Configuración"
+
+#: assistente-git.py:4620
+msgid "Token aggiornato"
+msgstr "Token actualizado"
+
+#: assistente-git.py:4624
+msgid "Token esistente mantenuto"
+msgstr "Token existente mantenido"
+
+#: assistente-git.py:4628
+msgid "Nessun token configurato"
+msgstr "Ningún token configurado"
+
+#: assistente-git.py:4630
+msgid "Azione token: {}\n"
+msgstr "Acción del token: {}\n"
+
+#: assistente-git.py:4634
+msgid "Configurazione GitHub salvata/aggiornata su file.\n"
+msgstr "Configuración de GitHub guardada/actualizada en archivo.\n"
+
+#: assistente-git.py:4637 assistente-git.py:4655
+msgid "Selezione esecuzione workflow resettata.\n"
+msgstr "Selección de ejecución de workflow reseteada.\n"
+
+#: assistente-git.py:4640
+msgid "Salvataggio configurazione GitHub su file fallito o non eseguito.\n"
+msgstr ""
+"Guardado de la configuración de GitHub en archivo fallido o no ejecutado.\n"
+
+#: assistente-git.py:4652
+msgid ""
+"I dettagli GitHub sono stati aggiornati in memoria per la sessione "
+"corrente.\n"
+msgstr ""
+"Los detalles de GitHub han sido actualizados en memoria para la sesión "
+"actual.\n"
+
+#: assistente-git.py:4658
+msgid ""
+"Configurazione GitHub attuale (in memoria):\n"
+"Proprietario: {}\n"
+"Repository: {}\n"
+"Token PAT: {}\n"
+"Richiedi pass all'avvio: {}\n"
+"Rimuovi Timestamp Log: {}\n"
+msgstr ""
+"Configuración actual de GitHub (en memoria):\n"
+"Propietario: {}\n"
+"Repositorio: {}\n"
+"Token PAT: {}\n"
+"Solicitar contraseña al inicio: {}\n"
+"Eliminar Marcas de Tiempo de Log: {}\n"
+
+#: assistente-git.py:4659 assistente-git.py:4660
+msgid "Non impostato"
+msgstr "No establecido"
+
+#: assistente-git.py:4661
+msgid "Presente"
+msgstr "Presente"
+
+#: assistente-git.py:4661
+msgid "Non presente/Non caricato"
+msgstr "No presente/No cargado"
+
+#: assistente-git.py:4666
+msgid "Configurazione GitHub annullata.\n"
+msgstr "Configuración de GitHub cancelada.\n"
+
+#: assistente-git.py:4672
+msgid ""
+"ERRORE: Proprietario e/o nome del Repository GitHub non sono attualmente "
+"impostati.\n"
+"Assicurati che il percorso corrente punti a un repository GitHub con un "
+"remoto 'origin' valido e riconoscibile, oppure imposta manualmente i "
+"dettagli usando il comando '{}'.\n"
+msgstr ""
+"ERROR: El propietario y/o el nombre del Repositorio de GitHub no están "
+"actualmente establecidos.\n"
+"Asegúrate de que la ruta actual apunte a un repositorio de GitHub con un "
+"remoto 'origin' válido y reconocible, o establece manualmente los detalles "
+"usando el comando '{}'.\n"
+
+#: assistente-git.py:4686
+msgid ""
+"ERRORE: Token di Accesso Personale GitHub non configurato o non caricato. È "
+"necessario per questa operazione.\n"
+"Usa '{}' per configurarlo.\n"
+msgstr ""
+"ERROR: Token de Acceso Personal de GitHub no configurado o no cargado. Es "
+"necesario para esta operación.\n"
+"Usa '{}' para configurarlo.\n"
+
+#: assistente-git.py:4688
+msgid ""
+"ATTENZIONE: Token GitHub non disponibile. L'operazione potrebbe fallire o "
+"avere funzionalità limitate, specialmente per repository privati o per "
+"creare/modificare risorse.\n"
+msgstr ""
+"ATENCIÓN: Token de GitHub no disponible. La operación podría fallar o tener "
+"funcionalidad limitada, especialmente para repositorios privados o para "
+"crear/modificar recursos.\n"
+
+#: assistente-git.py:4691
+msgid "Crea Nuova Release GitHub"
+msgstr "Crear Nueva Release de GitHub"
+
+#: assistente-git.py:4700
+msgid "Tag o Titolo della release non validi. Operazione annullata.\n"
+msgstr "Etiqueta o Título de la release no válidos. Operación cancelada.\n"
+
+#: assistente-git.py:4718
+msgid "Release creata con successo: {}\n"
+msgstr "Release creada con éxito: {}\n"
+
+#: assistente-git.py:4726
+msgid "Upload asset: '{}'...\n"
+msgstr "Subiendo activo: '{}'...\n"
+
+#: assistente-git.py:4736
+msgid "Asset '{}' caricato: {}\n"
+msgstr "Activo '{}' subido: {}\n"
+
+#: assistente-git.py:4738
+msgid "ERRORE upload asset '{}': {}\n"
+msgstr "ERROR al subir el activo '{}': {}\n"
+
+#: assistente-git.py:4740
+msgid "Dettagli errore API asset: {}\n"
+msgstr "Detalles del error de la API del activo: {}\n"
+
+#: assistente-git.py:4742
+msgid "ERRORE lettura file asset '{}': {}\n"
+msgstr "ERROR al leer el archivo del activo '{}': {}\n"
+
+#: assistente-git.py:4744
+msgid "ERRORE API GitHub (creazione release): {}\n"
+msgstr "ERROR de la API de GitHub (creación de release): {}\n"
+
+#: assistente-git.py:4748 assistente-git.py:5284 assistente-git.py:5292
+msgid "Dettagli errore API: {}\n"
+msgstr "Detalles del error de la API: {}\n"
+
+#: assistente-git.py:4750
+msgid "Dettagli errore API (testo): {}\n"
+msgstr "Detalles del error de la API (texto): {}\n"
+
+#: assistente-git.py:4752
+msgid "ERRORE imprevisto durante creazione release: {}\n"
+msgstr "ERROR inesperado durante la creación de la release: {}\n"
+
+#: assistente-git.py:4754
+msgid "Creazione Release annullata dall'utente.\n"
+msgstr "Creación de la Release cancelada por el usuario.\n"
+
+#: assistente-git.py:4759 assistente-git.py:5171
+msgid "Recupero elenco release da GitHub per {}/{}\n"
+msgstr "Obteniendo lista de releases de GitHub para {}/{}\n"
+
+#: assistente-git.py:4769 assistente-git.py:5180
+msgid "Nessuna release trovata per il repository {}/{}.\n"
+msgstr "No se encontraron releases para el repositorio {}/{}.\n"
+
+#: assistente-git.py:4776 assistente-git.py:5186
+msgid "Senza nome"
+msgstr "Sin nombre"
+
+#: assistente-git.py:4787
+msgid "Nessuna release valida trovata da modificare.\n"
+msgstr "No se encontraron releases válidas para modificar.\n"
+
+#: assistente-git.py:4793
+msgid "Seleziona la release da modificare:"
+msgstr "Selecciona la release a modificar:"
+
+#: assistente-git.py:4794 assistente-git.py:4813
+msgid "Modifica Release GitHub"
+msgstr "Modificar Release de GitHub"
+
+#: assistente-git.py:4800
+msgid "Modifica release annullata (selezione non effettuata).\n"
+msgstr "Modificación de release cancelada (selección no realizada).\n"
+
+#: assistente-git.py:4809 assistente-git.py:5222
+msgid "Errore: selezione della release non valida.\n"
+msgstr "Error: selección de la release no válida.\n"
+
+#: assistente-git.py:4827
+msgid "Aggiornamento release '{}' (ID: {})...\n"
+msgstr "Actualizando release '{}' (ID: {})...\n"
+
+#: assistente-git.py:4834
+msgid "✅ Release aggiornata con successo!\n"
+msgstr "✅ ¡Release actualizada con éxito!\n"
+
+#: assistente-git.py:4840
+msgid "🗑️ Eliminazione di {} asset...\n"
+msgstr "🗑️ Eliminando {} activos...\n"
+
+#: assistente-git.py:4848
+msgid "⚠️ ID asset mancante per '{}', salto eliminazione.\n"
+msgstr "⚠️ ID de activo faltante para '{}', saltando eliminación.\n"
+
+#: assistente-git.py:4852
+msgid "🗑️ Eliminazione asset: '{}'...\n"
+msgstr "🗑️ Eliminando activo: '{}'...\n"
+
+#: assistente-git.py:4859
+msgid "✅ Asset '{}' eliminato con successo!\n"
+msgstr "✅ ¡Activo '{}' eliminado con éxito!\n"
+
+#: assistente-git.py:4864
+msgid "⚠️ Asset '{}' non trovato (già eliminato?)\n"
+msgstr "⚠️ Activo '{}' no encontrado (¿ya eliminado?)\n"
+
+#: assistente-git.py:4866
+msgid "❌ Errore HTTP eliminazione asset '{}': {}\n"
+msgstr "❌ Error HTTP al eliminar el activo '{}': {}\n"
+
+#: assistente-git.py:4868
+msgid "❌ Errore rete eliminazione asset '{}': {}\n"
+msgstr "❌ Error de red al eliminar el activo '{}': {}\n"
+
+#: assistente-git.py:4870
+msgid "❌ Errore imprevisto eliminazione asset '{}': {}\n"
+msgstr "❌ Error inesperado al eliminar el activo '{}': {}\n"
+
+#: assistente-git.py:4872
+msgid "📊 Asset eliminati con successo: {}/{}\n"
+msgstr "📊 Activos eliminados con éxito: {}/{}\n"
+
+#: assistente-git.py:4881
+msgid "Upload di {} nuovi asset...\n"
+msgstr "Subiendo {} nuevos activos...\n"
+
+#: assistente-git.py:4887
+msgid "📤 Upload: '{}'...\n"
+msgstr "📤 Subiendo: '{}'...\n"
+
+#: assistente-git.py:4907
+msgid "✅ Asset '{}' caricato: {}\n"
+msgstr "✅ Activo '{}' subido: {}\n"
+
+#: assistente-git.py:4913
+msgid "❌ Errore upload asset '{}': {}\n"
+msgstr "❌ Error al subir el activo '{}': {}\n"
+
+#: assistente-git.py:4915
+msgid "❌ Errore lettura file '{}': {}\n"
+msgstr "❌ Error al leer el archivo '{}': {}\n"
+
+#: assistente-git.py:4917
+msgid "📊 Asset caricati con successo: {}/{}\n"
+msgstr "📊 Activos subidos con éxito: {}/{}\n"
+
+#: assistente-git.py:4919
+msgid "⚠️ Impossibile caricare nuovi asset: URL di upload non disponibile.\n"
+msgstr "⚠️ No se pueden subir nuevos activos: URL de subida no disponible.\n"
+
+#: assistente-git.py:4922
+msgid "❌ Errore API GitHub (aggiornamento release): {}\n"
+msgstr "❌ ERROR de la API de GitHub (actualización de release): {}\n"
+
+#: assistente-git.py:4926
+msgid "❌ Errore imprevisto durante aggiornamento release: {}\n"
+msgstr "❌ ERROR inesperado durante la actualización de la release: {}\n"
+
+#: assistente-git.py:4928
+msgid "Modifica release annullata dall'utente.\n"
+msgstr "Modificación de la release cancelada por el usuario.\n"
+
+#: assistente-git.py:4933
+msgid "❌ Errore API GitHub (elenco release): {}\n"
+msgstr "❌ ERROR de la API de GitHub (listado de releases): {}\n"
+
+#: assistente-git.py:4937
+msgid "❌ Errore imprevisto durante elenco release: {}\n"
+msgstr "❌ ERROR inesperado durante el listado de releases: {}\n"
+
+#: assistente-git.py:4970
+msgid "Recupero lista workflow disponibili...\n"
+msgstr "Obteniendo lista de workflows disponibles...\n"
+
+#: assistente-git.py:4975
+msgid "Nessun workflow attivo trovato nel repository {}/{}.\n"
+msgstr "No se encontraron workflows activos en el repositorio {}/{}.\n"
+
+#: assistente-git.py:4986
+msgid "Seleziona il workflow da avviare:"
+msgstr "Selecciona el workflow a iniciar:"
+
+#: assistente-git.py:4987
+msgid "Trigger Workflow per {}/{}"
+msgstr "Disparar Workflow para {}/{}"
+
+#: assistente-git.py:4992
+msgid "Selezione workflow annullata.\n"
+msgstr "Selección de workflow cancelada.\n"
+
+#: assistente-git.py:5001 assistente-git.py:5118
+msgid "Errore nella selezione del workflow.\n"
+msgstr "Error en la selección del workflow.\n"
+
+#: assistente-git.py:5004
+msgid "Trigger Workflow"
+msgstr "Disparar Workflow"
+
+#: assistente-git.py:5007
+msgid "Trigger workflow annullato.\n"
+msgstr "Disparo de workflow cancelado.\n"
+
+#: assistente-git.py:5023
+msgid "🚀 Avvio workflow '{}' sul branch '{}' con {} input...\n"
+msgstr "🚀 Iniciando workflow '{}' en la rama '{}' con {} entradas...\n"
+
+#: assistente-git.py:5034
+msgid "✅ Workflow '{}' avviato con successo!\n"
+msgstr "✅ ¡Workflow '{}' iniciado con éxito!\n"
+
+#: assistente-git.py:5037
+msgid "🔍 Usa '{}' per vedere le nuove esecuzioni.\n"
+msgstr "🔍 Usa '{}' para ver las nuevas ejecuciones.\n"
+
+#: assistente-git.py:5040
+msgid ""
+"Vuoi monitorare automaticamente la nuova esecuzione quando sarà disponibile?"
+msgstr ""
+"¿Quieres monitorear automáticamente la nueva ejecución cuando esté "
+"disponible?"
+
+#: assistente-git.py:5041
+msgid "Monitoraggio Automatico"
+msgstr "Monitoreo Automático"
+
+#: assistente-git.py:5047
+msgid "⏳ Attesa 5 secondi per la nuova esecuzione...\n"
+msgstr "⏳ Esperando 5 segundos para la nueva ejecución...\n"
+
+#: assistente-git.py:5052
+msgid ""
+"❌ Errore 422: Il workflow potrebbe non supportare il dispatch manuale o i "
+"parametri sono incorretti.\n"
+msgstr ""
+"❌ Error 422: El workflow podría no soportar el disparo manual o los "
+"parámetros son incorrectos.\n"
+
+#: assistente-git.py:5054 assistente-git.py:5164
+msgid "❌ Errore HTTP {}: {}\n"
+msgstr "❌ Error HTTP {}: {}\n"
+
+#: assistente-git.py:5056 assistente-git.py:5166
+msgid "❌ Errore di rete: {}\n"
+msgstr "❌ Error de red: {}\n"
+
+#: assistente-git.py:5058 assistente-git.py:5168
+msgid "❌ Errore imprevisto: {}\n"
+msgstr "❌ Error inesperado: {}\n"
+
+#: assistente-git.py:5064
+msgid "🔍 Ricerca workflow in esecuzione...\n"
+msgstr "🔍 Buscando workflows en ejecución...\n"
+
+#: assistente-git.py:5074
+msgid "ℹ️ Nessun workflow attualmente in esecuzione nel repository {}/{}.\n"
+msgstr "ℹ️ Ningún workflow actualmente en ejecución en el repositorio {}/{}.\n"
+
+#: assistente-git.py:5103
+msgid "Seleziona il workflow da cancellare:"
+msgstr "Selecciona el workflow a cancelar:"
+
+#: assistente-git.py:5104
+msgid "Cancella Workflow in Esecuzione"
+msgstr "Cancelar Workflow en Ejecución"
+
+#: assistente-git.py:5109
+msgid "Cancellazione workflow annullata.\n"
+msgstr "Cancelación de workflow cancelada.\n"
+
+#: assistente-git.py:5124
+msgid ""
+"⚠️ Sei sicuro di voler cancellare il workflow in esecuzione?\n"
+"\n"
+"Nome: {}\n"
+"ID: {}\n"
+"Status: {}\n"
+"\n"
+"Questa azione non può essere annullata."
+msgstr ""
+"⚠️ ¿Estás seguro de que quieres cancelar el workflow en ejecución?\n"
+"\n"
+"Nombre: {}\n"
+"ID: {}\n"
+"Estado: {}\n"
+"\n"
+"Esta acción no se puede deshacer."
+
+#: assistente-git.py:5138
+msgid "Cancellazione workflow annullata dall'utente.\n"
+msgstr "Cancelación de workflow cancelada por el usuario.\n"
+
+#: assistente-git.py:5143
+msgid "🛑 Cancellazione workflow '{}' (ID: {})...\n"
+msgstr "🛑 Cancelando workflow '{}' (ID: {})...\n"
+
+#: assistente-git.py:5149
+msgid "✅ Workflow '{}' cancellato con successo!\n"
+msgstr "✅ ¡Workflow '{}' cancelado con éxito!\n"
+
+#: assistente-git.py:5150
+msgid ""
+"ℹ️ Potrebbe essere necessario qualche secondo perché la cancellazione sia "
+"effettiva.\n"
+msgstr "ℹ️ Pueden pasar algunos segundos para que la cancelación sea efectiva.\n"
+
+#: assistente-git.py:5152
+msgid "Vuoi verificare lo stato del workflow tra qualche secondo?"
+msgstr "¿Quieres verificar el estado del workflow en unos segundos?"
+
+#: assistente-git.py:5153
+msgid "Verifica Stato"
+msgstr "Verificar Estado"
+
+#: assistente-git.py:5162
+msgid ""
+"❌ Errore 409: Il workflow non può essere cancellato (potrebbe essere già "
+"terminato).\n"
+msgstr ""
+"❌ Error 409: El workflow no se puede cancelar (podría haber terminado ya).\n"
+
+#: assistente-git.py:5195
+msgid "Nessuna release valida trovata da elencare per l'eliminazione.\n"
+msgstr "No se encontraron releases válidas para listar para su eliminación.\n"
+
+#: assistente-git.py:5199
+msgid "Seleziona la release da eliminare:"
+msgstr "Selecciona la release a eliminar:"
+
+#: assistente-git.py:5200
+msgid "Elimina Release GitHub"
+msgstr "Eliminar Release de GitHub"
+
+#: assistente-git.py:5226
+msgid "Eliminazione release annullata (selezione non effettuata).\n"
+msgstr "Eliminación de release cancelada (selección no realizada).\n"
+
+#: assistente-git.py:5232
+msgid "Errore interno: oggetto release selezionato non trovato.\n"
+msgstr "Error interno: objeto de release seleccionado no encontrado.\n"
+
+#: assistente-git.py:5238
+#, python-brace-format
+msgid "Sei sicuro di voler eliminare la release '{release_display_name}'?"
+msgstr "¿Estás seguro de que quieres eliminar la release '{release_display_name}'?"
+
+#: assistente-git.py:5241
+msgid "Conferma Eliminazione Release"
+msgstr "Confirmar Eliminación de Release"
+
+#: assistente-git.py:5247
+msgid "Eliminazione della release '{}' annullata dall'utente.\n"
+msgstr "Eliminación de la release '{}' cancelada por el usuario.\n"
+
+#: assistente-git.py:5250
+msgid "Tentativo di eliminare la release: '{}' (ID: {}) dal repository {}/{}\n"
+msgstr "Intentando eliminar la release: '{}' (ID: {}) del repositorio {}/{}\n"
+
+#: assistente-git.py:5254
+msgid "Invio richiesta DELETE a: {}\n"
+msgstr "Enviando solicitud DELETE a: {}\n"
+
+#: assistente-git.py:5259
+msgid "Release '{}' (ID: {}) eliminata con successo da GitHub.\n"
+msgstr "Release '{}' (ID: {}) eliminada con éxito de GitHub.\n"
+
+#: assistente-git.py:5262
+#, python-brace-format
+msgid ""
+"La release è stata eliminata da GitHub.\n"
+"Vuoi tentare di eliminare anche il tag Git '{tag}' dal repository remoto "
+"'origin'?\n"
+"(Comando: git push origin --delete {tag})"
+msgstr ""
+"La release ha sido eliminada de GitHub.\n"
+"¿Quieres intentar eliminar también la etiqueta Git '{tag}' del repositorio "
+"remoto 'origin'?\n"
+"(Comando: git push origin --delete {tag})"
+
+#: assistente-git.py:5263
+msgid "Elimina Tag Git Remoto?"
+msgstr "¿Eliminar Etiqueta Git Remota?"
+
+#: assistente-git.py:5269
+msgid ""
+"\n"
+"Tentativo di eliminare il tag Git remoto '{}'...\n"
+msgstr "\nIntentando eliminar la etiqueta Git remota '{}'...\n"
+
+#: assistente-git.py:5272
+msgid "Elimina tag remoto {}"
+msgstr "Eliminar etiqueta remota {}"
+
+#: assistente-git.py:5273
+msgid ""
+"Comando per eliminare il tag remoto '{}' eseguito. Controlla l'output per il "
+"successo effettivo.\n"
+msgstr ""
+"Comando para eliminar la etiqueta remota '{}' ejecutado. Revisa la salida "
+"para ver el éxito real.\n"
+
+#: assistente-git.py:5275
+msgid ""
+"Comando per eliminare il tag remoto '{}' fallito o con errori. Controlla "
+"l'output sopra.\n"
+msgstr ""
+"Comando para eliminar la etiqueta remota '{}' fallido o con errores. Revisa "
+"la salida de arriba.\n"
+
+#: assistente-git.py:5277
+msgid ""
+"\n"
+"Il tag Git remoto '{}' non è stato eliminato.\n"
+msgstr "\nLa etiqueta Git remota '{}' no ha sido eliminada.\n"
+
+#: assistente-git.py:5280
+msgid "ERRORE: Release ID {} (selezionata: '{}') non trovata.\n"
+msgstr "ERROR: ID de Release {} (seleccionada: '{}') no encontrada.\n"
+
+#: assistente-git.py:5282 assistente-git.py:5286
+msgid "ERRORE API GitHub (eliminazione release ID {}): {}\n"
+msgstr "ERROR de la API de GitHub (eliminación de release ID {}): {}\n"
+
+#: assistente-git.py:5288
+msgid "ERRORE imprevisto durante l'eliminazione della release: {}\n"
+msgstr "ERROR inesperado durante la eliminación de la release: {}\n"
+
+#: assistente-git.py:5290
+msgid "ERRORE API GitHub (elenco release): {}\n"
+msgstr "ERROR de la API de GitHub (listado de releases): {}\n"
+
+#: assistente-git.py:5294
+msgid "ERRORE imprevisto durante l'elenco delle release: {}\n"
+msgstr "ERROR inesperado durante el listado de releases: {}\n"
+
+#: assistente-git.py:5304
+msgid "Recupero esecuzioni workflow per repo '{}/{}' sul branch '{}'...\n"
+msgstr "Obteniendo ejecuciones de workflow para el repo '{}/{}' en la rama '{}'...\n"
+
+#: assistente-git.py:5314
+msgid "Errore API GitHub (elenco esecuzioni branch {}): {}\n"
+msgstr "ERROR de la API de GitHub (listado de ejecuciones de la rama {}): {}\n"
+
+#: assistente-git.py:5316
+msgid "Risposta API: {}\n"
+msgstr "Respuesta de la API: {}\n"
+
+#: assistente-git.py:5318
+msgid "Errore imprevisto (elenco esecuzioni branch {}): {}\n"
+msgstr "Error inesperado (listado de ejecuciones de la rama {}): {}\n"
+
+#: assistente-git.py:5321
+msgid ""
+"Nessuna esecuzione workflow trovata per i branch '{}' nel repository '{}/"
+"{}'.\n"
+msgstr ""
+"No se encontraron ejecuciones de workflow para las ramas '{}' en el "
+"repositorio '{}/{}'.\n"
+
+#: assistente-git.py:5328
+msgid "Nessuna esecuzione di workflow unica trovata.\n"
+msgstr "No se encontraron ejecuciones de workflow únicas.\n"
+
+#: assistente-git.py:5335
+msgid "sconosciuto"
+msgstr "desconocido"
+
+#: assistente-git.py:5336 assistente-git.py:5367
+msgid "in corso"
+msgstr "en curso"
+
+#: assistente-git.py:5336 assistente-git.py:5367 assistente-git.py:5588
+#: assistente-git.py:5590
+msgid "N/D"
+msgstr "N/D"
+
+#: assistente-git.py:5351
+msgid "Workflow Sconosciuto"
+msgstr "Workflow Desconocido"
+
+#: assistente-git.py:5356
+msgid "Nessuna esecuzione di workflow trovata da elencare.\n"
+msgstr "No se encontraron ejecuciones de workflow para listar.\n"
+
+#: assistente-git.py:5360
+msgid "Seleziona un'esecuzione del workflow:"
+msgstr "Selecciona una ejecución del workflow:"
+
+#: assistente-git.py:5360
+msgid "Esecuzioni Workflow Recenti per {}/{}"
+msgstr "Ejecuciones de Workflow Recientes para {}/{}"
+
+#: assistente-git.py:5368
+msgid "Sconosciuto"
+msgstr "Desconocido"
+
+#: assistente-git.py:5384
+msgid ""
+"Esecuzione Selezionata per {}/{}:\n"
+"  Nome: {}\n"
+"  ID: {}\n"
+"  Stato: {}\n"
+"  Conclusione: {}\n"
+"  Avviata il: {}\n"
+"  URL: {}\n"
+msgstr ""
+"Ejecución Seleccionada para {}/{}:\n"
+"  Nombre: {}\n"
+"  ID: {}\n"
+"  Estado: {}\n"
+"  Conclusión: {}\n"
+"  Iniciada el: {}\n"
+"  URL: {}\n"
+
+#: assistente-git.py:5386
+msgid ""
+"Questa esecuzione è attualmente '{}'. Puoi rieseguire '{}' per aggiornare lo "
+"stato e la conclusione finale.\n"
+msgstr ""
+"Esta ejecución está actualmente '{}'. Puedes volver a ejecutar '{}' para "
+"actualizar el estado y la conclusión final.\n"
+
+#: assistente-git.py:5387
+msgid "Usa i comandi successivi per log o artefatti.\n"
+msgstr "Usa los siguientes comandos para logs o artefactos.\n"
+
+#: assistente-git.py:5389
+msgid "Errore nella selezione dell'esecuzione.\n"
+msgstr "Error en la selección de la ejecución.\n"
+
+#: assistente-git.py:5399
+msgid "Errore: Nessuna esecuzione workflow selezionata. Esegui prima '{}'.\n"
+msgstr "Error: Ninguna ejecución de workflow seleccionada. Ejecuta primero '{}'.\n"
+
+#: assistente-git.py:5403
+msgid "Verifica stato attuale esecuzione ID {}...\n"
+msgstr "Verificando estado actual de la ejecución ID {}...\n"
+
+#: assistente-git.py:5415
+msgid "(Nome Run Sconosciuto)"
+msgstr "(Nombre de Ejecución Desconocido)"
+
+#: assistente-git.py:5417
+msgid "Stato attuale API: {}, Conclusione API: {}\n"
+msgstr "Estado actual de la API: {}, Conclusión de la API: {}\n"
+
+#: assistente-git.py:5418 assistente-git.py:5553
+msgid "Non ancora disponibile/definitiva"
+msgstr "Aún no disponible/definitiva"
+
+#: assistente-git.py:5424
+msgid ""
+"L'esecuzione del workflow ID {} è ancora '{}'.\n"
+"I log potrebbero essere incompleti o non disponibili finché non sarà "
+"completata.\n"
+"\n"
+"Vuoi essere avvisato quando l'esecuzione termina?"
+msgstr ""
+"La ejecución del workflow ID {} todavía está '{}'.\n"
+"Los logs podrían estar incompletos o no disponibles hasta que se complete.\n"
+"\n"
+"¿Quieres ser notificado cuando la ejecución termine?"
+
+#: assistente-git.py:5427
+msgid "Esecuzione in Corso"
+msgstr "Ejecución en Curso"
+
+#: assistente-git.py:5434
+msgid "Avvio monitoraggio per run ID {}.\n"
+msgstr "Iniciando monitoreo para el ID de ejecución {}.\n"
+
+#: assistente-git.py:5439
+msgid ""
+"Monitoraggio non avviato (risposta: {}). Si tenterà il download dei log.\n"
+msgstr ""
+"Monitoreo no iniciado (respuesta: {}). Se intentará la descarga de los "
+"logs.\n"
+
+#: assistente-git.py:5445
+msgid ""
+"AVVISO: L'esecuzione è completata ma la conclusione API non è definita. I "
+"log potrebbero essere disponibili.\n"
+msgstr ""
+"AVISO: La ejecución está completa pero la conclusión de la API no está "
+"definida. Los logs podrían estar disponibles.\n"
+
+#: assistente-git.py:5448
+msgid ""
+"AVVISO: Stato esecuzione '{}'. Il download dei log potrebbe non riuscire o i "
+"log potrebbero riflettere questo stato.\n"
+msgstr ""
+"AVISO: Estado de la ejecución '{}'. La descarga de los logs podría fallar o "
+"los logs podrían reflejar este estado.\n"
+
+#: assistente-git.py:5452
+msgid ""
+"Errore durante la verifica dello stato aggiornato dell'esecuzione: {}. "
+"Procedo comunque al tentativo di download log.\n"
+msgstr ""
+"Error al verificar el estado actualizado de la ejecución: {}. Procediendo de "
+"todos modos con el intento de descarga de logs.\n"
+
+#: assistente-git.py:5456
+msgid ""
+"Download dei log non tentato a causa dello stato dell'esecuzione o della "
+"scelta dell'utente.\n"
+msgstr ""
+"Descarga de logs no intentada debido al estado de la ejecución o a la "
+"elección del usuario.\n"
+
+#: assistente-git.py:5460
+msgid "Download dei log per l'esecuzione ID {} (repo {}/{})...\n"
+msgstr "Descargando logs para la ejecución ID {} (repo {}/{})...\n"
+
+#: assistente-git.py:5466
+msgid "Errore: La risposta non è un file ZIP. Content-Type: {}\n"
+msgstr "Error: La respuesta no es un archivo ZIP. Content-Type: {}\n"
+
+#: assistente-git.py:5470
+msgid "Messaggio API: {}\n"
+msgstr "Mensaje de la API: {}\n"
+
+#: assistente-git.py:5472
+msgid "Risposta API non JSON: {}\n"
+msgstr "Respuesta de la API no es JSON: {}\n"
+
+#: assistente-git.py:5475
+msgid "Archivio ZIP dei log scaricato. Estrazione in corso...\n"
+msgstr "Archivo ZIP de logs descargado. Extrayendo...\n"
+
+#: assistente-git.py:5480
+msgid "File nell'archivio ZIP:\n"
+msgstr "Archivos en el archivo ZIP:\n"
+
+#: assistente-git.py:5500
+msgid "--- Contenuto di: {} ---\n"
+msgstr "--- Contenido de: {} ---\n"
+
+#: assistente-git.py:5515
+msgid "Errore nella decodifica o elaborazione del file di log {}: {}\n"
+msgstr "Error en la decodificación o procesamiento del archivo de log {}: {}\n"
+
+#: assistente-git.py:5517
+msgid ""
+"Nessun file di log testuale trovato nell'archivio ZIP o archivio vuoto.\n"
+msgstr "No se encontraron archivos de log de texto en el archivo ZIP o el archivo está vacío.\n"
+
+#: assistente-git.py:5520
+msgid ""
+"\n"
+"--- Fine dei log ---\n"
+msgstr "\n--- Fin de los logs ---\n"
+
+#: assistente-git.py:5522
+msgid ""
+"\n"
+"Nessun contenuto di log visualizzato.\n"
+msgstr "\nNo se mostró ningún contenido de log.\n"
+
+#: assistente-git.py:5525 assistente-git.py:5631
+msgid "Errore HTTP API GitHub: {} - {}\n"
+msgstr "Error HTTP de la API de GitHub: {} - {}\n"
+
+#: assistente-git.py:5527
+msgid ""
+"Possibile causa: L'esecuzione workflow o i log potrebbero essere scaduti o "
+"l'ID non è valido.\n"
+msgstr ""
+"Causa posible: La ejecución del workflow o los logs podrían haber caducado o "
+"el ID no es válido.\n"
+
+#: assistente-git.py:5529
+msgid "Errore 410: I log per questa esecuzione sono scaduti e non più disponibili.\n"
+msgstr "Error 410: Los logs para esta ejecución han caducado y ya no están disponibles.\n"
+
+#: assistente-git.py:5531 assistente-git.py:5637
+msgid "Errore API GitHub: {}\n"
+msgstr "Error de la API de GitHub: {}\n"
+
+#: assistente-git.py:5533
+msgid "Errore: Il file scaricato non è un archivio ZIP valido.\n"
+msgstr "Error: El archivo descargado no es un archivo ZIP válido.\n"
+
+#: assistente-git.py:5535
+msgid "Errore imprevisto durante il recupero dei log: {}\n"
+msgstr "Error inesperado durante la recuperación de los logs: {}\n"
+
+#: assistente-git.py:5539
+msgid "Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n"
+msgstr "Error: ID de ejecución no seleccionado. Ejecuta primero '{}'.\n"
+
+#: assistente-git.py:5543
+msgid "Verifica stato attuale esecuzione ID {} (per artefatti)...\n"
+msgstr "Verificando estado actual de la ejecución ID {} (para artefactos)...\n"
+
+#: assistente-git.py:5553
+msgid "Stato attuale API (artefatti): {}, Conclusione API: {}\n"
+msgstr "Estado actual de la API (artefactos): {}, Conclusión de la API: {}\n"
+
+#: assistente-git.py:5557
+msgid "AVVISO: Esecuzione completata ma conclusione API non definita.\n"
+msgstr "AVISO: Ejecución completada pero la conclusión de la API no está definida.\n"
+
+#: assistente-git.py:5559
+msgid ""
+"AVVISO: Esecuzione '{}'. Artefatti potrebbero non essere ancora disponibili "
+"o completi.\n"
+msgstr ""
+"AVISO: Ejecución '{}'. Los artefactos podrían no estar disponibles o "
+"completos todavía.\n"
+
+#: assistente-git.py:5562
+msgid "AVVISO: Stato esecuzione '{}'.\n"
+msgstr "AVISO: Estado de la ejecución '{}'.\n"
+
+#: assistente-git.py:5565
+msgid "Errore verifica stato esecuzione (artefatti): {}. Procedo.\n"
+msgstr "Error al verificar el estado de la ejecución (artefactos): {}. Procediendo.\n"
+
+#: assistente-git.py:5569
+msgid "Recupero artefatti interrotto.\n"
+msgstr "Recuperación de artefactos interrumpida.\n"
+
+#: assistente-git.py:5573
+msgid "Recupero lista artefatti per esecuzione ID {}...\n"
+msgstr "Obteniendo lista de artefactos para la ejecución ID {}...\n"
+
+#: assistente-git.py:5580
+msgid "Nessun artefatto trovato.\n"
+msgstr "No se encontraron artefactos.\n"
+
+#: assistente-git.py:5597
+msgid "Nessun artefatto valido da elencare.\n"
+msgstr "No hay artefactos válidos para listar.\n"
+
+#: assistente-git.py:5600
+msgid "Seleziona un artefatto da scaricare:"
+msgstr "Selecciona un artefacto para descargar:"
+
+#: assistente-git.py:5600
+msgid "Download Artefatto per {}/{}"
+msgstr "Descargar Artefacto para {}/{}"
+
+#: assistente-git.py:5608
+msgid "Salva Artefatto Come..."
+msgstr "Guardar Artefacto Como..."
+
+#: assistente-git.py:5608
+msgid "File ZIP (*.zip)|*.zip|Tutti i file (*.*)|*.*"
+msgstr "Archivos ZIP (*.zip)|*.zip|Todos los archivos (*.*)|*.*"
+
+#: assistente-git.py:5611
+msgid ""
+"Download di '{}' in corso...\n"
+"A: {}\n"
+msgstr "Descargando '{}'...\nA: {}\n"
+
+#: assistente-git.py:5619
+msgid "Artefatto '{}' scaricato: {}\n"
+msgstr "Artefacto '{}' descargado: {}\n"
+
+#: assistente-git.py:5621
+msgid "Errore download artefatto: {}\n"
+msgstr "Error al descargar el artefacto: {}\n"
+
+#: assistente-git.py:5623
+msgid "Errore salvataggio artefatto: {}\n"
+msgstr "Error al guardar el artefacto: {}\n"
+
+#: assistente-git.py:5625
+msgid "Salvataggio artefatto annullato.\n"
+msgstr "Guardado de artefacto cancelado.\n"
+
+#: assistente-git.py:5628
+msgid "Selezione artefatto annullata.\n"
+msgstr "Selección de artefacto cancelada.\n"
+
+#: assistente-git.py:5633
+msgid "Causa: Esecuzione/artefatti scaduti o ID non valido.\n"
+msgstr "Causa: Ejecución/artefactos caducados o ID no válido.\n"
+
+#: assistente-git.py:5635
+msgid "Errore 410: Artefatti scaduti.\n"
+msgstr "Error 410: Artefactos caducados.\n"
+
+#: assistente-git.py:5639
+msgid "Errore imprevisto recupero artefatti: {}\n"
+msgstr "Error inesperado al recuperar los artefactos: {}\n"
+
+#: assistente-git.py:5647
+msgid ""
+"--- Output ({}): ---\n"
+"{}\n"
+msgstr "--- Salida ({}): ---\n{}\n"
+
+#: assistente-git.py:5648
+msgid ""
+"--- Messaggi/Errori ({}): ---\n"
+"{}\n"
+msgstr "--- Mensajes/Errores ({}): ---\n{}\n"
+
+#: assistente-git.py:5652
+msgid ""
+"\n"
+"!!! Operazione '{}' fallita con codice di uscita: {} !!!\n"
+msgstr "\n!!! ¡¡¡ La operación '{}' falló con el código de salida: {} !!!\n"
+
+#: assistente-git.py:5654
+msgid "Errore durante l'operazione '{}': {}\n"
+msgstr "Error durante la operación '{}': {}\n"
+
+#: assistente-git.py:5670
+msgid ""
+"\n"
+"*** PROBLEMA PUSH: Il branch corrente non ha un upstream remoto configurato. "
+"***\n"
+"Questo di solito accade la prima volta che si tenta di inviare (push) un "
+"nuovo branch locale al server remoto.\n"
+msgstr ""
+"\n"
+"*** PROBLEMA DE PUSH: La rama actual no tiene un upstream remoto "
+"configurado. ***\n"
+"Esto suele ocurrir la primera vez que se intenta enviar (push) una nueva "
+"rama local al servidor remoto.\n"
+
+#: assistente-git.py:5683
+msgid "Branch corrente rilevato dall'errore Git: '{}'\n"
+msgstr "Rama actual detectada por el error de Git: '{}'\n"
+
+#: assistente-git.py:5686
+msgid ""
+"Impossibile determinare automaticamente il nome del branch corrente.\n"
+"Dovrai eseguire manualmente il comando: git push --set-upstream origin <nome-"
+"del-tuo-branch>\n"
+msgstr ""
+"No se pudo determinar automáticamente el nombre de la rama actual.\n"
+"Deberás ejecutar manualmente el comando: git push --set-upstream origin "
+"<nombre-de-tu-rama>\n"
+
+#: assistente-git.py:5690
+msgid ""
+"Il branch locale '{}' non sembra essere collegato a un branch remoto "
+"(upstream) su 'origin'.\n"
+"\n"
+"Vuoi eseguire il seguente comando per impostare il tracciamento e inviare le "
+"modifiche?\n"
 "\n"
 "    {}\n"
 "\n"
 "Questo collegherà il branch locale '{}' al branch remoto 'origin/{}'."
 msgstr ""
-"La rama local '{}' no parece estar vinculada a una rama remota (upstream) en 'origin'.\n"
+"La rama local '{}' no parece estar conectada a una rama remota (upstream) en "
+"'origin'.\n"
 "\n"
-"¿Quieres ejecutar el siguiente comando para configurar el seguimiento y enviar los cambios?\n"
+"¿Quieres ejecutar el siguiente comando para establecer el seguimiento y "
+"enviar las modificaciones?\n"
 "\n"
 "    {}\n"
 "\n"
-"Esto vinculará la rama local '{}' con la rama remota 'origin/{}'."
+"Esto conectará la rama local '{}' con la rama remota 'origin/{}'."
 
+#: assistente-git.py:5694
+msgid "Impostare Upstream e Fare Push?"
+msgstr "¿Establecer Upstream y Hacer Push?"
+
+#: assistente-git.py:5698
+msgid ""
+"\n"
+"Esecuzione di: {}...\n"
+msgstr "\nEjecutando: {}...\n"
+
+#: assistente-git.py:5700
+msgid "Push con impostazione upstream per '{}'"
+msgstr "Push con establecimiento de upstream para '{}'"
+
+#: assistente-git.py:5701
+msgid ""
+"\n"
+"Push con --set-upstream per '{}' completato con successo.\n"
+msgstr "\nPush con --set-upstream para '{}' completado con éxito.\n"
+
+#: assistente-git.py:5703
+msgid ""
+"\n"
+"Tentativo di push con --set-upstream per '{}' fallito. Controlla l'output "
+"sopra per i dettagli.\n"
+msgstr ""
+"\n"
+"Intento de push con --set-upstream para '{}' fallido. Revisa la salida de "
+"arriba para ver los detalles.\n"
+
+#: assistente-git.py:5705
+msgid ""
+"\n"
+"Operazione annullata dall'utente. Il branch non è stato inviato né collegato "
+"al remoto.\n"
+"Se necessario, puoi eseguire manualmente il comando: {}\n"
+msgstr ""
+"\n"
+"Operación cancelada por el usuario. La rama no ha sido enviada ni conectada "
+"al remoto.\n"
+"Si es necesario, puedes ejecutar manualmente el comando: {}\n"
+
+#: assistente-git.py:5709
+msgid ""
+"Il branch '{}' non è completamente unito (not fully merged).\n"
+"Se elimini questo branch forzatamente (usando l'opzione -D), i commit unici "
+"su di esso andranno persi.\n"
+"\n"
+"Vuoi forzare l'eliminazione del branch locale (git branch -D {})?"
+msgstr ""
+"La rama '{}' no está completamente fusionada (not fully merged).\n"
+"Si eliminas esta rama forzadamente (usando la opción -D), los commits "
+"únicos en ella se perderán.\n"
+"\n"
+"¿Quieres forzar la eliminación de la rama local (git branch -D {})?"
+
+#: assistente-git.py:5712
+msgid "Forzare Eliminazione Branch Locale?"
+msgstr "¿Forzar Eliminación de Rama Local?"
+
+#: assistente-git.py:5716
+msgid ""
+"\n"
+"Tentativo di forzare l'eliminazione del branch locale '{}'...\n"
+msgstr "\nIntentando forzar la eliminación de la rama local '{}'...\n"
+
+#: assistente-git.py:5717
+msgid "Forza eliminazione branch locale {}"
+msgstr "Forzar eliminación de rama local {}"
+
+#: assistente-git.py:5718
+msgid "Branch locale '{}' eliminato forzatamente.\n"
+msgstr "Rama local '{}' eliminada forzadamente.\n"
+
+#: assistente-git.py:5719
+msgid ""
+"Eliminazione forzata del branch locale '{}' fallita. Controlla l'output.\n"
+msgstr ""
+"Eliminación forzada de la rama local '{}' fallida. Revisa la salida.\n"
+
+#: assistente-git.py:5720
+msgid ""
+"\n"
+"Eliminazione forzata del branch locale non eseguita.\n"
+msgstr "\nEliminación forzada de la rama local no ejecutada.\n"
+
+#: assistente-git.py:5723
+msgid ""
+"\n"
+"*** CONFLITTI DI MERGE RILEVATI! ***\n"
+msgstr "\n*** ¡CONFLICTOS DE FUSIÓN DETECTADOS! ***\n"
+
+#: assistente-git.py:5731
+msgid ""
+"File con conflitti (marcati come UU in 'git status'):\n"
+"{}\n"
+"\n"
+msgstr "Archivos con conflictos (marcados como UU en 'git status'):\n{}\n\n"
+
+#: assistente-git.py:5735
+msgid ""
+"File con conflitti (rilevati da diff --diff-filter=U):\n"
+"{}\n"
+"\n"
+msgstr "Archivos con conflictos (detectados por diff --diff-filter=U):\n{}\n\n"
+
+#: assistente-git.py:5736
+msgid ""
+"Merge fallito, ma nessun file in conflitto specifico rilevato "
+"automaticamente dai comandi standard. Controlla 'git status' manualmente.\n"
+msgstr ""
+"Fusión fallida, pero ningún archivo en conflicto específico detectado "
+"automáticamente por los comandos estándar. Revisa 'git status' manualmente.\n"
+
+#: assistente-git.py:5738
 msgid ""
 "Il merge è fallito a causa di conflitti.\n"
 "\n"
 "Spiegazione delle opzioni di risoluzione automatica:\n"
-" - 'Usa versione del BRANCH CORRENTE (--ours)': Per ogni file in conflitto, mantiene la versione del branch su cui ti trovi (HEAD).\n"
-" - 'Usa versione del BRANCH DA UNIRE (--theirs)': Per ogni file in conflitto, usa la versione del branch che stai cercando di unire.\n"
+" - 'Usa versione del BRANCH CORRENTE (--ours)': Per ogni file in conflitto, "
+"mantiene la versione del branch su cui ti trovi (HEAD).\n"
+" - 'Usa versione del BRANCH DA UNIRE (--theirs)': Per ogni file in "
+"conflitto, usa la versione del branch che stai cercando di unire.\n"
 "\n"
 "Come vuoi procedere?"
 msgstr ""
-"La fusión falló debido a conflictos.\n"
+"La fusión ha fallado debido a conflictos.\n"
 "\n"
 "Explicación de las opciones de resolución automática:\n"
-" - 'Usar versión de la RAMA ACTUAL (--ours)': Para cada archivo en conflicto, mantiene la versión de la rama en la que te encuentras (HEAD).\n"
-" - 'Usar versión de la RAMA A FUSIONAR (--theirs)': Para cada archivo en conflicto, usa la versión de la rama que estás intentando fusionar.\n"
+" - 'Usar versión de la RAMA ACTUAL (--ours)': Para cada archivo en "
+"conflicto, mantiene la versión de la rama en la que te encuentras (HEAD).\n"
+" - 'Usar versión de la RAMA A FUSIONAR (--theirs)': Para cada archivo en "
+"conflicto, usa la versión de la rama que estás tratando de fusionar.\n"
 "\n"
 "¿Cómo quieres proceder?"
 
-msgid "Il messaggio di commit è vuoto. Vuoi procedere comunque?"
-msgstr "El mensaje de commit está vacío. ¿Quieres proceder de todos modos?"
+#: assistente-git.py:5744
+msgid "1. Risolvi manualmente i conflitti (poi fai 'add' e 'commit')"
+msgstr "1. Resolver manualmente los conflictos (luego hacer 'add' y 'commit')"
 
-msgid ""
-"Impossibile determinare automaticamente il nome del branch corrente.\n"
-"Dovrai eseguire manualmente il comando: git push --set-upstream origin <nome-del-tuo-branch>\n"
+#: assistente-git.py:5745
+msgid "2. Usa versione del BRANCH CORRENTE per tutti i conflitti (--ours)"
+msgstr "2. Usar versión de la RAMA ACTUAL para todos los conflictos (--ours)"
+
+#: assistente-git.py:5746
+msgid "3. Usa versione del BRANCH DA UNIRE per tutti i conflitti (--theirs)"
 msgstr ""
-"No se pudo determinar automáticamente el nombre de la rama actual.\n"
-"Deberás ejecutar manualmente el comando: git push --set-upstream origin <nombre-de-tu-rama>\n"
+"3. Usar versión de la RAMA A FUSIONAR para todos los conflictos (--theirs)"
 
-msgid "Impostare Upstream e Fare Push?"
-msgstr "¿Configurar Upstream y Hacer Push?"
+#: assistente-git.py:5747
+msgid "4. Annulla il merge (git merge --abort)"
+msgstr "4. Cancelar la fusión (git merge --abort)"
 
-msgid "Info"
-msgstr "Info"
+#: assistente-git.py:5749
+msgid "Gestione Conflitti di Merge"
+msgstr "Gestión de Conflictos de Fusión"
 
-msgid "Informazioni sul comando non disponibili."
-msgstr "Información del comando no disponible."
-
-msgid "Informazioni sulla categoria non disponibili."
-msgstr "Información de la categoría no disponible."
-
-msgid "Inizializza un nuovo repository qui"
-msgstr "Inicializar un nuevo repositorio aquí"
-
-msgid "Input fornito: {}\n"
-msgstr "Entrada proporcionada: {}\n"
-
-msgid "Input per: {}"
-msgstr "Entrada para: {}"
-
-msgid "Input richiesto per questo comando.\n"
-msgstr "Se requiere entrada para este comando.\n"
-
-msgid "Integra le modifiche da un altro branch nel tuo branch corrente. Se ci sono conflitti, verranno segnalati e potrai scegliere una strategia di risoluzione."
-msgstr "Integra los cambios de otra rama en tu rama actual. Si hay conflictos, se informarán y podrás elegir una estrategia de resolución."
-
-msgid "Invia i commit del tuo branch locale al repository remoto corrispondente."
-msgstr "Envía los commits de tu rama local al repositorio remoto correspondiente."
-
-msgid "Invia le modifiche al server (push)"
-msgstr "Enviar cambios al servidor (push)"
-
-msgid "Ispeziona commit specifico (checkout - detached HEAD)"
-msgstr "Inspeccionar commit específico (checkout - detached HEAD)"
-
-msgid "L'elemento '{}' è già presente in .gitignore.\n"
-msgstr "El elemento '{}' ya está presente en .gitignore.\n"
-
-msgid "La cartella '{}' non sembra essere un repository Git valido.\n"
-msgstr "La carpeta '{}' no parece ser un repositorio Git válido.\n"
-
-msgid "Merge fallito, ma nessun file in conflitto specifico rilevato automaticamente dai comandi standard. Controlla 'git status' manualmente.\n"
-msgstr "Fusión fallida, pero no se detectaron automáticamente archivos específicos en conflicto mediante comandos estándar. Comprueba 'git status' manualmente.\n"
-
-msgid "Messaggio corretto del commit"
-msgstr "Mensaje de commit corregido"
-
-msgid "Messaggio di Commit:"
-msgstr "Mensaje de Commit:"
-
-msgid "Mette da parte le modifiche non committate per pulire la directory di lavoro."
-msgstr "Guarda los cambios no confirmados para limpiar el directorio de trabajo."
-
-msgid "Modifica URL del repository remoto 'origin'"
-msgstr "Modificar URL del repositorio remoto 'origin'"
-
-msgid "Modifica il messaggio e/o i file dell'ultimo commit. ATTENZIONE: Non usare se il commit è già stato inviato (push) a un repository condiviso, a meno che tu non sappia esattamente cosa stai facendo (richiede un push forzato e può creare problemi ai collaboratori)."
-msgstr "Modifica el mensaje y/o los archivos del último commit. ATENCIÓN: No usar si el commit ya ha sido enviado (push) a un repositorio compartido, a menos que sepas exactamente lo que estás haciendo (requiere un push forzado y puede crear problemas a los colaboradores)."
-
-msgid "Modifica l'URL di un repository remoto esistente."
-msgstr "Modifica la URL de un repositorio remoto existente."
-
-msgid "Modifiche Locali e Commit"
-msgstr "Cambios Locales y Commits"
-
-msgid "Mostra dettagli di un commit specifico"
-msgstr "Mostrar detalles de un commit específico"
-
-msgid "Mostra il nome del branch Git su cui stai attualmente lavorando."
-msgstr "Muestra el nombre de la rama Git en la que estás trabajando actualmente."
-
-msgid "Mostra informazioni dettagliate su un commit specifico, inclusi l'autore, la data, il messaggio di commit e le modifiche introdotte."
-msgstr "Muestra información detallada sobre un commit específico, incluyendo autor, fecha, mensaje de commit y cambios introducidos."
-
-msgid "Mostra l'elenco dei repository remoti configurati."
-msgstr "Muestra la lista de repositorios remotos configurados."
-
-msgid "Mostra la cronologia dei commit. Puoi specificare quanti commit visualizzare. Il formato è compatto e mostra la struttura dei branch."
-msgstr "Muestra el historial de commits. Puedes especificar cuántos commits visualizar. El formato es compacto y muestra la estructura de las ramas."
-
-msgid "Mostra le modifiche apportate ai file tracciati che non sono ancora state aggiunte all'area di stage (cioè, prima di 'git add'). Utile per rivedere le modifiche prima di prepararle per un commit."
-msgstr "Muestra los cambios realizados en los archivos rastreados que aún no se han añadido al área de preparación (stage) (es decir, antes de 'git add'). Útil para revisar los cambios antes de prepararlos para un commit."
-
-msgid "Mostra le modifiche che sono state aggiunte all'area di stage e sono pronte per essere incluse nel prossimo commit. Utile per una revisione finale prima di committare."
-msgstr "Muestra los cambios que se han añadido al área de preparación (stage) y están listos para ser incluidos en el próximo commit. Útil para una revisión final antes de confirmar (commit)."
-
-msgid "Mostra lo stato attuale della directory di lavoro e dell'area di stage. Indica quali file sono stati modificati, quali sono in stage (pronti per il commit) e quali non sono tracciati da Git."
-msgstr "Muestra el estado actual del directorio de trabajo y del área de preparación (stage). Indica qué archivos han sido modificados, cuáles están en preparación (listos para el commit) y cuáles no son rastreados por Git."
-
-msgid "Nessun comando specifico da eseguire per questa azione.\n"
-msgstr "Ningún comando específico para ejecutar para esta acción.\n"
-
-msgid "Nessun dato associato all'elemento '{}'."
-msgstr "No hay datos asociados al elemento '{}'."
-
-msgid "Nessun elemento selezionato."
-msgstr "Ningún elemento seleccionado."
-
-msgid "Nessun file in conflitto specifico identificato per applicare la strategia automaticamente. Prova a risolvere manualmente o ad annullare.\n"
-msgstr "No se identificaron archivos específicos en conflicto para aplicar la estrategia automáticamente. Intenta resolver manualmente o abortar.\n"
-
-msgid "Nessun file specifico rilevato automaticamente."
-msgstr "Ningún archivo específico detectado automáticamente."
-
-msgid "Nessun file trovato corrispondente al pattern.\n"
-msgstr "No se encontraron archivos que coincidan con el patrón.\n"
-
-msgid "Nessun item valido selezionato per l'attivazione.\n"
-msgstr "Ningún ítem válido seleccionado para la activación.\n"
-
-msgid "Nessuna informazione dettagliata trovata per '{}'."
-msgstr "No se encontró información detallada para '{}'."
-
-msgid "Nessuna informazione disponibile per questa categoria."
-msgstr "No hay información disponible para esta categoría."
-
-msgid "Nessuna informazione disponibile per questo comando."
-msgstr "No hay información disponible para este comando."
-
-msgid "Nome Tag [opz: HashCommit/Rif] (es: v1.0 o v1.0 a1b2c3d):"
-msgstr "Nombre de Etiqueta [opc: HashCommit/Ref] (ej: v1.0 o v1.0 a1b2c3d):"
-
-msgid "Nome del branch a cui passare:"
-msgstr "Nombre de la rama a la que cambiar:"
-
-msgid "Nome del branch da unire in quello corrente:"
-msgstr "Nombre de la rama a fusionar en la actual:"
-
-msgid "Nome del branch locale da eliminare (FORZATO):"
-msgstr "Nombre de la rama local a eliminar (FORZADO):"
-
-msgid "Nome del branch locale da eliminare (sicuro):"
-msgstr "Nombre de la rama local a eliminar (seguro):"
-
-msgid "Nome del branch remoto (es. main) a cui resettare:"
-msgstr "Nombre de la rama remota (ej. main) a la que restablecer:"
-
-msgid "Nome del branch su 'origin' da eliminare:"
-msgstr "Nombre de la rama en 'origin' a eliminar:"
-
-msgid "Nome del nuovo branch da creare e a cui passare:"
-msgstr "Nombre de la nueva rama a crear y a la que cambiar:"
-
-msgid "Nome del nuovo branch da creare:"
-msgstr "Nombre de la nueva rama a crear:"
-
-msgid "Nuovo URL del repository remoto (origin):"
-msgstr "Nueva URL del repositorio remoto (origin):"
-
-msgid "Nuovo messaggio per l'ultimo commit:"
-msgstr "Nuevo mensaje para el último commit:"
-
-msgid "Operazione .gitignore annullata.\n"
-msgstr "Operación .gitignore cancelada.\n"
-
-msgid "Operazione annullata dall'utente.\n"
-msgstr "Operación cancelada por el usuario.\n"
-
-msgid "Operazioni con Repository Remoti"
-msgstr "Operaciones con Repositorios Remotos"
-
-msgid "Operazioni di Base sul Repository"
-msgstr "Operaciones Básicas del Repositorio"
-
-msgid "Output del Comando"
-msgstr "Salida del Comando"
-
-msgid "Passa a un branch esistente"
-msgstr "Cambiar a una rama existente"
-
-msgid "Pattern .gitignore da aggiungere: {}\n"
-msgstr "Patrón .gitignore a añadir: {}\n"
-
-msgid "Pattern nome file (opzionale, es: *.py o parte del nome):"
-msgstr "Patrón de nombre de archivo (opcional, ej: *.py o parte del nombre):"
-
-msgid "Percorso:"
-msgstr "Ruta:"
-
-msgid "Permette di selezionare una cartella o un file da aggiungere al file .gitignore. I file e le cartelle elencati in .gitignore vengono ignorati da Git e non verranno tracciati o committati."
-msgstr "Permite seleccionar una carpeta o archivo para añadir al archivo .gitignore. Los archivos y carpetas listados en .gitignore son ignorados por Git y no serán rastreados ni confirmados (commit)."
-
-msgid "Pronto."
-msgstr "Listo."
-
-msgid "Push Forzato Dopo Amend?"
-msgstr "¿Forzar Push Después de Amend?"
-
-msgid "Push Forzato dopo Amend"
-msgstr "Push Forzado después de Amend"
-
-msgid "Push con impostazione upstream per '{}'"
-msgstr "Push con configuración upstream para '{}'"
-
-msgid "Quanti commit vuoi visualizzare? (numero):"
-msgstr "¿Cuántos commits quieres visualizar? (número):"
-
-msgid "Resetta branch corrente a commit specifico (reset --hard)"
-msgstr "Restablecer rama actual a commit específico (reset --hard)"
-
-msgid "Resetta branch locale a versione remota (origin/nome-branch)"
-msgstr "Restablecer rama local a versión remota (origin/nombre-rama)"
-
-msgid "Resetta il branch corrente all'ultimo commit, scartando tutte le modifiche locali."
-msgstr "Restablece la rama actual al último commit, descartando todos los cambios locales."
-
-msgid "Ricerca e Utilità"
-msgstr "Búsqueda y Utilidades"
-
-msgid "Rinomina ultimo commit (amend)"
-msgstr "Renombrar último commit (amend)"
-
-msgid "Ripristina file modificati e pulisci file non tracciati"
-msgstr "Restaurar archivos modificados y limpiar archivos no rastreados"
-
-msgid "Ripristino e Reset (Usare con Cautela!)"
-msgstr "Restauración y Restablecimiento (¡Usar con Precaución!)"
-
-msgid "Salva istantanea delle modifiche presenti nell'area di stage nel repository locale. Ogni commit ha un messaggio descrittivo. Per completare un merge, lascia il messaggio vuoto se Git ne propone uno."
-msgstr "Guarda una instantánea de los cambios presentes en el área de preparación (stage) en el repositorio local. Cada commit tiene un mensaje descriptivo. Para completar una fusión, deja el mensaje vacío si Git propone uno."
-
-msgid "Salva modifiche temporaneamente (stash)"
-msgstr "Guardar cambios temporalmente (stash)"
-
-msgid "Salvataggio Temporaneo (Stash)"
-msgstr "Guardado Temporal (Stash)"
-
-msgid "Scarica da remoto 'origin' (fetch)"
-msgstr "Descargar de remoto 'origin' (fetch)"
-
-msgid "Scarica le modifiche dal server e unisci (pull)"
-msgstr "Descargar cambios del servidor y fusionar (pull)"
-
-msgid "Scarica tutte le novità (commit, branch, tag) dal repository remoto specificato (solitamente 'origin') ma non unisce automaticamente queste modifiche al tuo lavoro locale."
-msgstr "Descarga todas las novedades (commits, ramas, etiquetas) del repositorio remoto especificado (generalmente 'origin') pero no fusiona automáticamente estos cambios en tu trabajo local."
-
-msgid "Scegli la cartella del repository Git"
-msgstr "Elige la carpeta del repositorio Git"
-
-msgid "Sei sicuro di voler annullare il merge corrente e scartare le modifiche del tentativo di merge?"
-msgstr "¿Estás seguro de que quieres abortar la fusión actual y descartar los cambios del intento de fusión?"
-
-msgid "Sei sicuro di voler eliminare il branch '{input_val}' dal remoto 'origin'?"
-msgstr "¿Estás seguro de que quieres eliminar la rama '{input_val}' del remoto 'origin'?"
-
-msgid "Sei sicuro di voler sovrascrivere i file con le versioni del commit '{input_val}' E RIMUOVERE tutti i file/directory non tracciati?"
-msgstr "¿Estás seguro de que quieres sobrescribir los archivos con las versiones del commit '{input_val}' Y ELIMINAR todos los archivos/directorios no rastreados?"
-
-msgid "Sei sicuro di voler tentare di eliminare il branch locale '{input_val}'?"
-msgstr "¿Estás seguro de que quieres intentar eliminar la rama local '{input_val}'?"
-
-msgid "Seleziona Comando"
-msgstr "Seleccionar Comando"
-
-msgid "Seleziona il file da aggiungere a .gitignore"
-msgstr "Selecciona el archivo para añadir a .gitignore"
-
-msgid "Seleziona il file da ripristinare allo stato dell'ultimo commit"
-msgstr "Selecciona el archivo para restaurar al estado del último commit"
-
-msgid "Seleziona la cartella da aggiungere a .gitignore"
-msgstr "Selecciona la carpeta para añadir a .gitignore"
-
-msgid "Seleziona un comando o una categoria per maggiori dettagli."
-msgstr "Selecciona un comando o categoría para más detalles."
-
-msgid "Selezione Tipo Elemento"
-msgstr "Seleccionar Tipo de Elemento"
-
-msgid "Selezione annullata.\n"
-msgstr "Selección cancelada.\n"
-
-msgid "Selezione del file per il ripristino annullata.\n"
-msgstr "Selección de archivo para restaurar cancelada.\n"
-
-msgid "Sfoglia..."
-msgstr "Examinar..."
-
-msgid "Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)"
-msgstr "Sobrescribir archivos con commit y limpiar (checkout <commit> . && clean -fd)"
-
-msgid "Stai per entrare in uno stato 'detached HEAD'. Nuove modifiche non apparterranno a nessun branch a meno che non ne crei uno. Continuare?"
-msgstr "Estás a punto de entrar en un estado 'detached HEAD'. Los nuevos cambios no pertenecerán a ninguna rama a menos que crees una. ¿Continuar?"
-
-msgid "Strategia '{}' applicata (o tentata) ai file in conflitto. Ora è necessario aggiungere i file modificati all'area di stage.\n"
-msgstr "Estrategia '{}' aplicada (o intentada) a los archivos en conflicto. Ahora es necesario añadir los archivos modificados al área de preparación.\n"
-
+#: assistente-git.py:5752
 msgid "Strategia scelta: {}\n"
 msgstr "Estrategia elegida: {}\n"
 
-msgid "Testo da cercare nei file del repository:"
-msgstr "Texto a buscar en los archivos del repositorio:"
+#: assistente-git.py:5754
+msgid ""
+"Azione richiesta:\n"
+"1. Apri i file in conflitto (elencati sopra) nel tuo editor di testo "
+"preferito.\n"
+"2. Cerca e risolvi i marcatori di conflitto Git (es. <<<<<<<, =======, "
+">>>>>>>).\n"
+"3. Dopo aver risolto tutti i conflitti in un file, usa il comando '{}' per "
+"marcare il file come risolto.\n"
+"4. Una volta che tutti i file in conflitto sono stati aggiunti, usa il "
+"comando '{}' per completare il merge. Puoi lasciare il messaggio di commit "
+"vuoto se Git ne propone uno di default.\n"
+msgstr ""
+"Acción requerida:\n"
+"1. Abre los archivos en conflicto (listados arriba) en tu editor de texto "
+"preferido.\n"
+"2. Busca y resuelve los marcadores de conflicto de Git (ej. <<<<<<<, "
+"=======, >>>>>>>).\n"
+"3. Después de resolver todos los conflictos en un archivo, usa el comando "
+"'{}' para marcar el archivo como resuelto.\n"
+"4. Una vez que todos los archivos en conflicto hayan sido añadidos, usa el "
+"comando '{}' para completar la fusión. Puedes dejar el mensaje de commit "
+"vacío si Git propone uno por defecto.\n"
 
-msgid "Ti sposta su un altro branch locale esistente."
-msgstr "Te cambia a otra rama local existente."
+#: assistente-git.py:5760
+msgid ""
+"Nessun file in conflitto specifico identificato per applicare la strategia "
+"automaticamente. Prova a risolvere manualmente o ad annullare.\n"
+msgstr ""
+"Ningún archivo en conflicto específico identificado para aplicar la "
+"estrategia automáticamente. Intenta resolver manualmente o cancelar.\n"
 
-msgid "Ti sposta su un commit specifico in uno stato 'detached HEAD'."
-msgstr "Te cambia a un commit específico en un estado 'detached HEAD'."
+#: assistente-git.py:5761
+msgid "Applicazione della strategia '{}' per i file in conflitto...\n"
+msgstr "Aplicando la estrategia '{}' para los archivos en conflicto...\n"
 
-msgid "URL del Repository da clonare:"
-msgstr "URL del Repositorio a clonar:"
+#: assistente-git.py:5764
+msgid "Applica {} a {}"
+msgstr "Aplica {} a {}"
 
-msgid "URL del repository remoto (origin):"
-msgstr "URL del repositorio remoto (origin):"
+#: assistente-git.py:5766
+msgid ""
+"Attenzione: fallimento nell'applicare la strategia a {}. Controlla "
+"l'output.\n"
+msgstr "Atención: fallo al aplicar la estrategia a {}. Revisa la salida.\n"
 
-msgid "Unisci branch specificato nel corrente (merge)"
-msgstr "Fusionar rama especificada en la actual (merge)"
+#: assistente-git.py:5768
+msgid ""
+"Strategia '{}' applicata (o tentata) ai file in conflitto. Ora è necessario "
+"aggiungere i file modificati all'area di stage.\n"
+msgstr ""
+"Estrategia '{}' aplicada (o intentada) a los archivos en conflicto. Ahora es "
+"necesario añadir los archivos modificados al área de preparación (stage).\n"
 
-msgid "VALORE_NON_SPECIFICATO"
-msgstr "VALOR_NO_ESPECIFICADO"
-
-msgid "Valore:"
-msgstr "Valor:"
-
-msgid "Visualizza cronologia commit (numero personalizzato)"
-msgstr "Ver historial de commits (número personalizado)"
-
-msgid "Visualizza modifiche in stage (diff --staged)"
-msgstr "Ver cambios en preparación (diff --staged)"
-
-msgid "Visualizza modifiche non in stage (diff)"
-msgstr "Ver cambios no preparados (diff)"
-
-msgid "Visualizza tutti i branch (locali e remoti)"
-msgstr "Ver todas las ramas (locales y remotas)"
-
-msgid "es. a1b2c3d"
-msgstr "ej. a1b2c3d"
-
-msgid "es. a1b2c3d o HEAD"
-msgstr "ej. a1b2c3d o HEAD"
-
-msgid "es. a1b2c3d o HEAD~1"
-msgstr "ej. a1b2c3d o HEAD~1"
-
-msgid "es. a1b2c3d o HEAD~3"
-msgstr "ej. a1b2c3d o HEAD~3"
-
-msgid "feature/branch-da-forzare"
-msgstr "feature/rama-a-forzar"
-
-msgid "feature/branch-da-unire"
-msgstr "feature/rama-a-fusionar"
-
-msgid "feature/branch-remoto-obsoleto"
-msgstr "feature/rama-remota-obsoleta"
-
-msgid "feature/nome-branch"
-msgstr "feature/nombre-rama"
-
-msgid "feature/vecchio-branch"
-msgstr "feature/rama-antigua"
-
+#: assistente-git.py:5770
 msgid "git add . (post-strategia di merge)"
-msgstr "git add . (post-estrategia-de-fusion)"
+msgstr "git add . (post-estrategia de fusión)"
 
-msgid "la mia stringa di ricerca"
-msgstr "mi cadena de búsqueda"
+#: assistente-git.py:5771
+msgid ""
+"File modificati aggiunti all'area di stage.\n"
+"Ora puoi usare il comando '{}' per finalizzare il merge. Lascia il messaggio "
+"di commit vuoto se Git ne propone uno.\n"
+msgstr ""
+"Archivos modificados añadidos al área de preparación.\n"
+"Ahora puedes usar el comando '{}' para finalizar la fusión. Deja el mensaje "
+"de commit vacío si Git propone uno.\n"
 
-msgid "main"
-msgstr "main"
+#: assistente-git.py:5772
+msgid ""
+"ERRORE durante 'git add .' dopo l'applicazione della strategia. Controlla "
+"l'output e lo stato del repository. Potrebbe essere necessario un intervento "
+"manuale.\n"
+msgstr ""
+"ERROR durante 'git add .' después de aplicar la estrategia. Revisa la salida "
+"y el estado del repositorio. Podría ser necesaria una intervención manual.\n"
 
-msgid "nuovo-branch-locale"
-msgstr "nueva-rama-local"
+#: assistente-git.py:5773
+msgid ""
+"Alcuni o tutti i file non sono stati processati con successo con la "
+"strategia '{}'.\n"
+"Controlla l'output. Potrebbe essere necessario risolvere manualmente, "
+"aggiungere i file e committare, oppure annullare il merge.\n"
+msgstr ""
+"Algunos o todos los archivos no se procesaron con éxito con la estrategia "
+"'{}'.\n"
+"Revisa la salida. Podría ser necesario resolver manualmente, añadir los "
+"archivos y hacer commit, o cancelar la fusión.\n"
 
-msgid "v1.0 (per HEAD) oppure v1.0 a1b2c3d"
-msgstr "v1.0 (para HEAD) o v1.0 a1b2c3d"
+#: assistente-git.py:5776
+msgid ""
+"Errore durante il tentativo di gestione dei conflitti di merge: {}\n"
+"Controlla 'git status' per maggiori dettagli.\n"
+msgstr ""
+"Error durante el intento de gestión de conflictos de fusión: {}\n"
+"Revisa 'git status' para más detalles.\n"
+
+#: assistente-git.py:5779
+msgid "Scegli la cartella del repository Git"
+msgstr "Elige la carpeta del repositorio Git"
+
+#: assistente-git.py:5791
+msgid "Cartella repository impostata a: {}"
+msgstr "Carpeta del repositorio establecida en: {}"

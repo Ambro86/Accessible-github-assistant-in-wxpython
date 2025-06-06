@@ -150,15 +150,14 @@ CMD_RESET_HARD_COMMIT = _("Resetta branch corrente a commit specifico (reset --h
 CMD_RESET_HARD_HEAD = _("Annulla modifiche locali (reset --hard HEAD)")
 
 CMD_GITHUB_CONFIGURE = _("Configura Repository GitHub & Opzioni")
-CMD_GITHUB_LIST_WORKFLOW_RUNS = _("Visualizza/Seleziona Esecuzione Workflow Recente")
-CMD_GITHUB_SELECTED_RUN_LOGS = _("Log Esecuzione Workflow Selezionata")
+CMD_GITHUB_SELECTED_RUN_LOGS = _("Visualizza log Workflow")
 CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT = _("Elenca e Scarica Artefatti Esecuzione Selezionata")
 # --- NUOVO COMANDO PER CREAZIONE RELEASE ---
 CMD_GITHUB_CREATE_RELEASE = _("Crea Nuova Release GitHub con Asset")
 CMD_GITHUB_DELETE_RELEASE = _("Elimina Release GitHub (per ID o Tag)")
 CMD_GITHUB_EDIT_RELEASE = _("Modifica Release GitHub Esistente")
-CMD_GITHUB_TRIGGER_WORKFLOW = "Trigger Workflow Manuale"
-CMD_GITHUB_CANCEL_WORKFLOW = "Cancella Workflow in Esecuzione"
+CMD_GITHUB_TRIGGER_WORKFLOW = _("Trigger Workflow Manuale")
+CMD_GITHUB_CANCEL_WORKFLOW = _("Cancella Workflow in Esecuzione")
 CMD_GITHUB_CREATE_ISSUE = _("Crea Nuova Issue")
 CMD_GITHUB_CREATE_PR = _("Crea Nuova Pull Request")
 CMD_GITHUB_LIST_ISSUES = _("Visualizza Issue del Repository")
@@ -729,7 +728,6 @@ ORIGINAL_COMMANDS = {
     CMD_RESET_HARD_HEAD: {"type": "git", "cmds": [["git", "reset", "--hard", "HEAD"]], "input_needed": False, "confirm": _("ATTENZIONE: Annulla TUTTE le modifiche locali non committate e resetta all'ultimo commit?"), "info": _("Resetta il branch corrente all'ultimo commit...") },
 
     CMD_GITHUB_CONFIGURE: {"type": "github", "input_needed": False, "info": _("Imposta il repository GitHub (proprietario/repo), il Personal Access Token e le opzioni di caricamento/log.")},
-    CMD_GITHUB_LIST_WORKFLOW_RUNS: {"type": "github", "input_needed": False, "info": _("Elenca le esecuzioni recenti del workflow per il branch principale e permette di selezionarne una.")},
     CMD_GITHUB_SELECTED_RUN_LOGS: {"type": "github", "input_needed": False, "info": _("Scarica e visualizza i log dell'esecuzione del workflow precedentemente selezionata.")},
     CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT: {"type": "github", "input_needed": False, "info": _("Elenca gli artefatti dell'esecuzione del workflow selezionata e permette di scaricarli.")},
     CMD_GITHUB_CREATE_RELEASE: {"type": "github", "input_needed": False, "info": _("Crea una nuova release su GitHub, con opzione per caricare asset.")},
@@ -810,17 +808,15 @@ CAT_GITHUB_ACTIONS: {
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_EDIT_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comand aggiunto qui
-            CMD_GITHUB_LIST_WORKFLOW_RUNS,
+            CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_TRIGGER_WORKFLOW,      # ← AGGIUNGI QUI
             CMD_GITHUB_CANCEL_WORKFLOW,       # ← AGGIUNGI QUI  
-            CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
         ],
         "commands": {k: ORIGINAL_COMMANDS[k] for k in [
             CMD_GITHUB_CONFIGURE,
             CMD_GITHUB_CREATE_RELEASE,
             CMD_GITHUB_DELETE_RELEASE, # Comando aggiunto qui
-            CMD_GITHUB_LIST_WORKFLOW_RUNS,
             CMD_GITHUB_SELECTED_RUN_LOGS,
             CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT
         ]}
@@ -4581,6 +4577,12 @@ class GitFrame(wx.Frame):
             self.output_text_ctrl.AppendText(_("❌ Errore verifica stato: {}\n").format(e))
             
     def ExecuteGithubCommand(self, command_name_key, command_details):
+        self.output_text_ctrl.AppendText(f"DEBUG: ExecuteGithubCommand chiamato!\n")
+        self.output_text_ctrl.AppendText(f"DEBUG: command_name_key ricevuto = '{command_name_key}'\n")
+        self.output_text_ctrl.AppendText(f"DEBUG: type(command_name_key) = {type(command_name_key)}\n")
+        self.output_text_ctrl.AppendText(f"DEBUG: command_details = {command_details}\n")
+        wx.Yield()
+    
         self.output_text_ctrl.AppendText(_("Esecuzione comando GitHub: {}...\n").format(command_name_key))
 
         if command_name_key == CMD_GITHUB_CONFIGURE:
@@ -5294,15 +5296,22 @@ class GitFrame(wx.Frame):
                 self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante l'elenco delle release: {}\n").format(e_generic_list))
             return
 
-        if command_name_key == CMD_GITHUB_LIST_WORKFLOW_RUNS:
+        if command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
+            self.output_text_ctrl.AppendText(f"DEBUG: Comando ricevuto = '{command_name_key}'\n")
+
+            # MODIFICA: Permettere all'utente di scegliere quale run visualizzare
+            
+            # Prima otteniamo la lista delle run disponibili
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
-            params = {'per_page': 20}
+            params = {'per_page': 30}  # Aumentiamo il numero per più opzioni
             branches_to_try = ['main', 'master']
             all_runs_from_branches = []
+            
+            self.output_text_ctrl.AppendText(_("Recupero lista esecuzioni workflow per selezionare quale visualizzare...\n"))
+            wx.Yield()
+            
             for branch_name in branches_to_try:
                 params['branch'] = branch_name
-                self.output_text_ctrl.AppendText(_("Recupero esecuzioni workflow per repo '{}/{}' sul branch '{}'...\n").format(self.github_owner, self.github_repo, branch_name))
-                wx.Yield()
                 try:
                     response = requests.get(api_url, headers=headers, params=params, timeout=15)
                     response.raise_for_status()
@@ -5311,30 +5320,26 @@ class GitFrame(wx.Frame):
                     if branch_runs:
                         all_runs_from_branches.extend(branch_runs)
                 except requests.exceptions.RequestException as e:
-                    self.output_text_ctrl.AppendText(_("Errore API GitHub (elenco esecuzioni branch {}): {}\n").format(branch_name, e))
-                    if hasattr(e, 'response') and e.response is not None:
-                        self.output_text_ctrl.AppendText(_("Risposta API: {}\n").format(e.response.text[:500]))
-                except Exception as e_generic:
-                    self.output_text_ctrl.AppendText(_("Errore imprevisto (elenco esecuzioni branch {}): {}\n").format(branch_name, e_generic))
+                    self.output_text_ctrl.AppendText(_("Errore nel recuperare esecuzioni per branch {}: {}\n").format(branch_name, e))
             
             if not all_runs_from_branches:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione workflow trovata per i branch '{}' nel repository '{}/{}'.\n").format(", ".join(branches_to_try), self.github_owner, self.github_repo))
-                self.selected_run_id = None
+                self.output_text_ctrl.AppendText(_("Nessuna esecuzione workflow trovata per visualizzare i log.\n"))
                 return
             
+            # Rimuovi duplicati e ordina per data
             unique_runs_dict = {run['id']: run for run in all_runs_from_branches}
             unique_runs_list = sorted(list(unique_runs_dict.values()), key=lambda r: r.get('created_at', ''), reverse=True)
-            if not unique_runs_list:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow unica trovata.\n"))
-                self.selected_run_id = None
-                return
             
+            # Prepara le opzioni per la selezione
             run_choices = []
-            self.workflow_runs_map = {}
-            for run in unique_runs_list[:20]:
+            runs_map_for_logs = {}
+            
+            for run in unique_runs_list[:50]:  # Limita a 50 per performance
                 status_val = run.get('status', _('sconosciuto'))
                 conclusion_val = run.get('conclusion', _('in corso')) if status_val != 'completed' else run.get('conclusion', _('N/D'))
                 created_at_raw = run.get('created_at', 'N/D')
+                
+                # Formatta la data
                 try:
                     if created_at_raw != 'N/D':
                         if created_at_raw.endswith('Z'):
@@ -5342,65 +5347,54 @@ class GitFrame(wx.Frame):
                         else:
                             utc_dt = datetime.fromisoformat(created_at_raw).replace(tzinfo=timezone.utc)
                         local_dt = utc_dt.astimezone()
-                        created_at_display = local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)')
+                        created_at_display = local_dt.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         created_at_display = 'N/D'
                 except:
                     created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
                 
-                choice_str = f"ID: {run['id']} - {run.get('name', _('Workflow Sconosciuto'))} ({conclusion_val}, {status_val}) - {created_at_display}"
+                # Aggiungi indicatore se è la run attualmente selezionata
+                current_indicator = " ⭐ [ATTUALMENTE SELEZIONATA]" if run['id'] == self.selected_run_id else ""
+                
+                choice_str = f"ID: {run['id']} - {run.get('name', _('Workflow Sconosciuto'))} ({conclusion_val}, {status_val}) - {created_at_display}{current_indicator}"
                 run_choices.append(choice_str)
-                self.workflow_runs_map[choice_str] = run
+                runs_map_for_logs[choice_str] = run
             
             if not run_choices:
-                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow trovata da elencare.\n"))
-                self.selected_run_id = None
+                self.output_text_ctrl.AppendText(_("Nessuna esecuzione di workflow trovata da cui recuperare i log.\n"))
                 return
             
-            dlg = wx.SingleChoiceDialog(self, _("Seleziona un'esecuzione del workflow:"), _("Esecuzioni Workflow Recenti per {}/{}").format(self.github_owner, self.github_repo), run_choices, wx.CHOICEDLG_STYLE | wx.OK | wx.CANCEL)
-            if dlg.ShowModal() == wx.ID_OK:
-                selected_choice_str = dlg.GetStringSelection()
-                selected_run_details = self.workflow_runs_map.get(selected_choice_str)
-                if selected_run_details:
-                    self.selected_run_id = selected_run_details['id']
-                    status = selected_run_details['status']
-                    conclusion = selected_run_details.get('conclusion', _('in corso')) if status != 'completed' else selected_run_details.get('conclusion', _('N/D'))
-                    name = selected_run_details.get('name', _('Sconosciuto'))
-                    html_url = selected_run_details['html_url']
-                    created_at_raw_sel = selected_run_details.get('created_at', 'N/D')
-                    try:
-                        if created_at_raw_sel != 'N/D':
-                            if created_at_raw_sel.endswith('Z'):
-                                utc_dt_sel = datetime.fromisoformat(created_at_raw_sel[:-1] + '+00:00')
-                            else:
-                                utc_dt_sel = datetime.fromisoformat(created_at_raw_sel).replace(tzinfo=timezone.utc)
-                            local_dt_sel = utc_dt_sel.astimezone()
-                            created_at_display_sel = local_dt_sel.strftime('%Y-%m-%d %H:%M:%S (Locale)')
-                        else:
-                            created_at_display_sel = 'N/D'
-                    except:
-                        created_at_display_sel = created_at_raw_sel.replace('T', ' ').replace('Z', '') if created_at_raw_sel != 'N/D' else 'N/D'
-                    
-                    self.output_text_ctrl.AppendText(_("Esecuzione Selezionata per {}/{}:\n  Nome: {}\n  ID: {}\n  Stato: {}\n  Conclusione: {}\n  Avviata il: {}\n  URL: {}\n").format(self.github_owner, self.github_repo, name, self.selected_run_id, status, conclusion, created_at_display_sel, html_url))
-                    if status.lower() in ['queued', 'in_progress', 'requested', 'waiting', 'pending']:
-                        self.output_text_ctrl.AppendText(_("Questa esecuzione è attualmente '{}'. Puoi rieseguire '{}' per aggiornare lo stato e la conclusione finale.\n").format(status, CMD_GITHUB_LIST_WORKFLOW_RUNS))
-                    self.output_text_ctrl.AppendText(_("Usa i comandi successivi per log o artefatti.\n"))
-                else:
-                    self.output_text_ctrl.AppendText(_("Errore nella selezione dell'esecuzione.\n"))
-                    self.selected_run_id = None
-            else:
-                self.output_text_ctrl.AppendText(_("Selezione annullata.\n"))
-                self.selected_run_id = None
-            dlg.Destroy()
-            return
-
-        if command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
-            if not self.selected_run_id:
-                self.output_text_ctrl.AppendText(_("Errore: Nessuna esecuzione workflow selezionata. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS))
+            # Dialog per selezione della run di cui visualizzare i log
+            dlg = wx.SingleChoiceDialog(
+                self, 
+                _("Seleziona l'esecuzione di cui vuoi visualizzare i log:"),
+                _("Visualizza Log Workflow per {}/{}").format(self.github_owner, self.github_repo),
+                run_choices, 
+                wx.CHOICEDLG_STYLE | wx.OK | wx.CANCEL
+            )
+            
+            if dlg.ShowModal() != wx.ID_OK:
+                self.output_text_ctrl.AppendText(_("Visualizzazione log annullata.\n"))
+                dlg.Destroy()
                 return
-
-            run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
-            self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {}...\n").format(self.selected_run_id))
+            
+            selected_choice_str = dlg.GetStringSelection()
+            selected_run_for_logs = runs_map_for_logs.get(selected_choice_str)
+            dlg.Destroy()
+            
+            if not selected_run_for_logs:
+                self.output_text_ctrl.AppendText(_("Errore nella selezione dell'esecuzione per i log.\n"))
+                return
+            
+            # Usa la run selezionata per i log (non necessariamente quella salvata in self.selected_run_id)
+            run_id_for_logs = selected_run_for_logs['id']
+            workflow_name_for_logs = selected_run_for_logs.get('name', _('Workflow Sconosciuto'))
+            
+            self.output_text_ctrl.AppendText(_("Recupero log per: '{}' (ID: {})\n").format(workflow_name_for_logs, run_id_for_logs))
+            
+            # Verifica stato della run selezionata
+            run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{run_id_for_logs}"
+            self.output_text_ctrl.AppendText(_("Verifica stato esecuzione ID {}...\n").format(run_id_for_logs))
             wx.Yield()
             
             current_status_from_api = "unknown"
@@ -5423,21 +5417,19 @@ class GitFrame(wx.Frame):
                 if current_status_from_api in non_completed_states:
                     dlg_msg = _("L'esecuzione del workflow ID {} è ancora '{}'.\n"
                                 "I log potrebbero essere incompleti o non disponibili finché non sarà completata.\n\n"
-                                "Vuoi essere avvisato quando l'esecuzione termina?").format(self.selected_run_id, current_status_from_api)
-                    confirm_dialog = wx.MessageDialog(self, dlg_msg, _("Esecuzione in Corso"),
+                                "Vuoi procedere comunque con il download dei log disponibili?").format(run_id_for_logs, current_status_from_api)
+                    
+                    proceed_dialog = wx.MessageDialog(self, dlg_msg, _("Esecuzione in Corso"),
                                                       wx.YES_NO | wx.ICON_QUESTION)
-                    response = confirm_dialog.ShowModal()
-                    print(f"DEBUG_MONITOR_DIALOG: Dialogo monitoraggio ha restituito: {response}, wx.ID_YES è {wx.ID_YES}")
-                    confirm_dialog.Destroy()
+                    response = proceed_dialog.ShowModal()
+                    proceed_dialog.Destroy()
 
                     if response == wx.ID_YES or response == 2:
-                        self.output_text_ctrl.AppendText(_("Avvio monitoraggio per run ID {}.\n").format(self.selected_run_id))
-                        self.monitoring_workflow_name = workflow_run_display_name
-                        self.start_monitoring_run(self.selected_run_id, self.github_owner, self.github_repo)
-                        return
-                    else: 
-                        self.output_text_ctrl.AppendText(_("Monitoraggio non avviato (risposta: {}). Si tenterà il download dei log.\n").format(response))
+                        self.output_text_ctrl.AppendText(_("Procedendo con il download dei log parziali per run ID {}.\n").format(run_id_for_logs))
                         allow_log_download_attempt = True
+                    else: 
+                        self.output_text_ctrl.AppendText(_("Download log annullato per run in corso.\n"))
+                        return
                 
                 elif current_status_from_api == 'completed':
                     allow_log_download_attempt = True
@@ -5456,9 +5448,11 @@ class GitFrame(wx.Frame):
                  self.output_text_ctrl.AppendText(_("Download dei log non tentato a causa dello stato dell'esecuzione o della scelta dell'utente.\n"))
                  return
             
-            logs_zip_url_api = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}/logs"
-            self.output_text_ctrl.AppendText(_("Download dei log per l'esecuzione ID {} (repo {}/{})...\n").format(self.selected_run_id, self.github_owner, self.github_repo))
+            # Download dei log per la run selezionata
+            logs_zip_url_api = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{run_id_for_logs}/logs"
+            self.output_text_ctrl.AppendText(_("Download dei log per l'esecuzione ID {} (repo {}/{})...\n").format(run_id_for_logs, self.github_owner, self.github_repo))
             wx.Yield()
+            
             try:
                 response = requests.get(logs_zip_url_api, headers=headers, stream=True, allow_redirects=True, timeout=30)
                 response.raise_for_status()
@@ -5479,22 +5473,46 @@ class GitFrame(wx.Frame):
                     file_list = zip_ref.namelist()
                     self.output_text_ctrl.AppendText(_("File nell'archivio ZIP:\n") + "\n".join(f"  - {f}" for f in file_list) + "\n\n")
                     
-                    log_file_to_display = None
-                    preferred_log_candidates = []
-                    other_txt_logs = []
-                    for f_name in file_list:
-                        if f_name.endswith(".txt"):
-                            if not re.match(r"^\d+_[^/]+\.txt$", os.path.basename(f_name)):
-                                preferred_log_candidates.append(f_name)
-                            else:
-                                other_txt_logs.append(f_name)
+                    # Logica per selezionare quale file di log visualizzare
+                    log_files = [f for f in file_list if f.endswith('.txt')]
                     
-                    if preferred_log_candidates:
-                        log_file_to_display = preferred_log_candidates[0]
-                    elif other_txt_logs:
-                        log_file_to_display = other_txt_logs[0]
-                    elif file_list:
-                        log_file_to_display = file_list[0]
+                    if not log_files:
+                        self.output_text_ctrl.AppendText(_("Nessun file di log (.txt) trovato nell'archivio.\n"))
+                        return
+                    
+                    log_file_to_display = None
+                    
+                    # Se ci sono più file di log, permetti all'utente di scegliere
+                    if len(log_files) > 1:
+                        log_choices = []
+                        for log_file in log_files:
+                            try:
+                                # Prova a ottenere info sul file per aiutare nella scelta
+                                file_info = zip_ref.getinfo(log_file)
+                                size_kb = file_info.file_size // 1024
+                                choice_str = f"{log_file} ({size_kb} KB)"
+                            except:
+                                choice_str = log_file
+                            log_choices.append(choice_str)
+                        
+                        log_dlg = wx.SingleChoiceDialog(
+                            self,
+                            _("Trovati {} file di log. Seleziona quale visualizzare:").format(len(log_files)),
+                            _("Selezione File di Log"),
+                            log_choices,
+                            wx.CHOICEDLG_STYLE
+                        )
+                        
+                        if log_dlg.ShowModal() == wx.ID_OK:
+                            selected_log_index = log_dlg.GetSelection()
+                            log_file_to_display = log_files[selected_log_index]
+                        else:
+                            self.output_text_ctrl.AppendText(_("Selezione file di log annullata.\n"))
+                            log_dlg.Destroy()
+                            return
+                        log_dlg.Destroy()
+                    else:
+                        log_file_to_display = log_files[0]
                     
                     if log_file_to_display:
                         self.output_text_ctrl.AppendText(_("--- Contenuto di: {} ---\n").format(log_file_to_display))
@@ -5502,6 +5520,7 @@ class GitFrame(wx.Frame):
                             log_data_bytes = zip_ref.read(log_file_to_display)
                             log_data = log_data_bytes.decode('utf-8', errors='replace')
 
+                            # Applica le preferenze di visualizzazione timestamp
                             if not self.github_strip_log_timestamps:
                                 log_data = re.sub(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})?)',
                                                   self.convert_utc_to_local_timestamp_match, log_data, flags=re.MULTILINE)
@@ -5514,10 +5533,18 @@ class GitFrame(wx.Frame):
                         except Exception as e_decode:
                             self.output_text_ctrl.AppendText(_("Errore nella decodifica o elaborazione del file di log {}: {}\n").format(log_file_to_display, e_decode))
                     else:
-                        self.output_text_ctrl.AppendText(_("Nessun file di log testuale trovato nell'archivio ZIP o archivio vuoto.\n"))
+                        self.output_text_ctrl.AppendText(_("Nessun file di log selezionato per la visualizzazione.\n"))
                 
                 if log_content_found:
                     self.output_text_ctrl.AppendText(_("\n--- Fine dei log ---\n"))
+                    # Opzione per aggiornare la run selezionata
+                    if run_id_for_logs != self.selected_run_id:
+                        update_msg = _("Vuoi impostare questa esecuzione (ID: {}) come quella attualmente selezionata per future operazioni?").format(run_id_for_logs)
+                        update_dlg = wx.MessageDialog(self, update_msg, _("Aggiorna Run Selezionata"), wx.YES_NO | wx.ICON_QUESTION)
+                        if update_dlg.ShowModal() == wx.ID_YES:
+                            self.selected_run_id = run_id_for_logs
+                            self.output_text_ctrl.AppendText(_("✅ Run selezionata aggiornata a ID: {}\n").format(run_id_for_logs))
+                        update_dlg.Destroy()
                 else:
                     self.output_text_ctrl.AppendText(_("\nNessun contenuto di log visualizzato.\n"))
             
@@ -5533,7 +5560,8 @@ class GitFrame(wx.Frame):
                 self.output_text_ctrl.AppendText(_("Errore: Il file scaricato non è un archivio ZIP valido.\n"))
             except Exception as e_generic:
                 self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero dei log: {}\n").format(e_generic))
-
+            
+            return
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
                 self.output_text_ctrl.AppendText(_("Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS))
