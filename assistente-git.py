@@ -3236,12 +3236,56 @@ class GitFrame(wx.Frame):
                 wx.TheClipboard.SetData(wx.TextDataObject(text))
                 wx.TheClipboard.Close()
                 
-                # Usa sempre il frame principale (self) come parent per evitare problemi
-                wx.CallAfter(self.ShowCopyMessage, True)
+                # Prova prima con MessageBox semplice
+                wx.CallLater(50, self.ShowCopyMessageDirect, True)
                 
         except Exception as e:
-            # Usa sempre il frame principale anche per gli errori
-            wx.CallAfter(self.ShowCopyMessage, False)
+            wx.CallLater(50, self.ShowCopyMessageDirect, False)
+
+    def ShowCopyMessageDirect(self, success):
+        """Mostra messaggio direttamente senza complicazioni."""
+        try:
+            if success:
+                # Prova MessageBox standard
+                dlg = wx.MessageDialog(
+                    self,
+                    _("📋 Dettagli copiati negli appunti!"),
+                    _("Copiato"),
+                    wx.OK | wx.ICON_INFORMATION
+                )
+                dlg.ShowModal()
+                dlg.Destroy()
+            else:
+                dlg = wx.MessageDialog(
+                    self,
+                    _("❌ Errore nel copiare negli appunti."),
+                    _("Errore"),
+                    wx.OK | wx.ICON_ERROR
+                )
+                dlg.ShowModal()
+                dlg.Destroy()
+        except:
+            # Se MessageDialog fallisce, usa il dialogo personalizzato
+            try:
+                if success:
+                    custom_dlg = SimpleNotificationDialog(
+                        self, 
+                        _("Dettagli copiati negli appunti!"), 
+                        _("Copiato"), 
+                        True
+                    )
+                else:
+                    custom_dlg = SimpleNotificationDialog(
+                        self, 
+                        _("Errore nel copiare negli appunti."), 
+                        _("Errore"), 
+                        False
+                    )
+                custom_dlg.ShowModal()
+                custom_dlg.Destroy()
+            except:
+                # Ultimo fallback: beep
+                wx.Bell()
 
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
         """Metodo unificato per mostrare risultato di qualsiasi operazione."""
