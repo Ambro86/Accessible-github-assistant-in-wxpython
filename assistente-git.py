@@ -3236,12 +3236,12 @@ class GitFrame(wx.Frame):
                 wx.TheClipboard.SetData(wx.TextDataObject(text))
                 wx.TheClipboard.Close()
                 
-                # Usa CallAfter per evitare conflitti modali
-                wx.CallAfter(self.ShowCopyMessage, True, parent_dialog)
+                # Usa sempre il frame principale (self) come parent per evitare problemi
+                wx.CallAfter(self.ShowCopyMessage, True)
                 
         except Exception as e:
-            # Usa CallAfter anche per gli errori
-            wx.CallAfter(self.ShowCopyMessage, False, parent_dialog)
+            # Usa sempre il frame principale anche per gli errori
+            wx.CallAfter(self.ShowCopyMessage, False)
 
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
         """Metodo unificato per mostrare risultato di qualsiasi operazione."""
