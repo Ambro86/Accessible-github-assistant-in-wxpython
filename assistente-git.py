@@ -148,7 +148,6 @@ CMD_CHECKOUT_DETACHED = _("Ispeziona commit specifico (checkout - detached HEAD)
 CMD_RESET_TO_REMOTE = _("Resetta branch locale a versione remota (origin/nome-branch)")
 CMD_RESET_HARD_COMMIT = _("Resetta branch corrente a commit specifico (reset --hard)")
 CMD_RESET_HARD_HEAD = _("Annulla modifiche locali (reset --hard HEAD)")
-
 CMD_GITHUB_CONFIGURE = _("Configura Repository GitHub & Opzioni")
 CMD_GITHUB_SELECTED_RUN_LOGS = _("Visualizza log Workflow")
 CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT = _("Elenca e Scarica Artefatti Esecuzione Selezionata")
@@ -166,6 +165,13 @@ CMD_GITHUB_DELETE_ISSUE = _("Chiudi/Elimina Issue")
 CMD_GITHUB_LIST_PRS = _("Visualizza Pull Request del Repository")
 CMD_GITHUB_EDIT_PR = _("Modifica Pull Request Esistente")
 CMD_GITHUB_DELETE_PR = _("Chiudi/Elimina Pull Request")
+CAT_DASHBOARD = _("Dashboard Repository")
+CMD_REPO_STATUS_OVERVIEW = _("Panoramica Stato Repository")
+CMD_REPO_STATISTICS = _("Statistiche Repository")
+CMD_RECENT_ACTIVITY = _("Attività Recente")
+CMD_BRANCH_STATUS = _("Stato Branch e Remote")
+CMD_FILE_CHANGES_SUMMARY = _("Riepilogo Modifiche File")
+
 # --- FINE NUOVO COMANDO ---
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
@@ -246,7 +252,7 @@ class GitHubConfigDialog(wx.Dialog):
         btn_panel = wx.Panel(panel)
         btn_sizer_h = wx.BoxSizer(wx.HORIZONTAL)
         self.delete_config_button = wx.Button(btn_panel, label=_("Elimina Configurazione Salvata"))
-        self.create_token_button = wx.Button(btn_panel, label=_("🌐 Crea Token GitHub"))
+        self.create_token_button = wx.Button(btn_panel, label=_("Crea Token GitHub"))
         btn_sizer_h.Add(self.delete_config_button, 0, wx.RIGHT, 10)
         btn_sizer_h.Add(self.create_token_button, 0, wx.RIGHT, 20)
         std_button_sizer = wx.StdDialogButtonSizer()
@@ -794,9 +800,50 @@ CMD_GITHUB_CREATE_PR: {
         "input_needed": False, 
         "info": _("Chiude una Pull Request esistente. Le PR possono essere chiuse senza merge o forzatamente chiuse anche se non mergeabili.")
     },
-
+    CMD_REPO_STATUS_OVERVIEW: {
+        "type": "dashboard", 
+        "input_needed": False, 
+        "info": _("Mostra una panoramica completa dello stato del repository: branch corrente, modifiche pending, stato sync con remote, e statistiche generali.")
+    },
+    CMD_REPO_STATISTICS: {
+        "type": "dashboard", 
+        "input_needed": False, 
+        "info": _("Visualizza statistiche dettagliate: numero di commit, contributori, dimensione repository, file più modificati, e trend temporali.")
+    },
+    CMD_RECENT_ACTIVITY: {
+        "type": "dashboard", 
+        "input_needed": False, 
+        "info": _("Mostra gli ultimi 20 commit con informazioni dettagliate: autore, data, messaggi, e file modificati.")
+    },
+    CMD_BRANCH_STATUS: {
+        "type": "dashboard", 
+        "input_needed": False, 
+        "info": _("Analisi dettagliata di tutti i branch: stato sync con remote, commit ahead/behind, ultimo commit, e suggerimenti per cleanup.")
+    },
+    CMD_FILE_CHANGES_SUMMARY: {
+        "type": "dashboard", 
+        "input_needed": False, 
+        "info": _("Riepilogo delle modifiche correnti: file modificati, aggiunti, eliminati, con preview delle differenze e statistiche.")
+    },
 }
 CATEGORIZED_COMMANDS = {
+CAT_DASHBOARD: {
+    "info": _("Dashboard completo per monitorare stato e statistiche del repository"), 
+    "order": [
+        CMD_REPO_STATUS_OVERVIEW,
+        CMD_REPO_STATISTICS, 
+        CMD_RECENT_ACTIVITY,
+        CMD_BRANCH_STATUS,
+        CMD_FILE_CHANGES_SUMMARY
+    ], 
+    "commands": {k: ORIGINAL_COMMANDS[k] for k in [
+        CMD_REPO_STATUS_OVERVIEW,
+        CMD_REPO_STATISTICS,
+        CMD_RECENT_ACTIVITY, 
+        CMD_BRANCH_STATUS,
+        CMD_FILE_CHANGES_SUMMARY
+    ]}
+},
     CAT_REPO_OPS: {"info": _("Comandi fondamentali..."), "order": [ CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_STATUS]}},
     CAT_LOCAL_CHANGES: {"info": _("Comandi per modifiche locali..."), "order": [ CMD_DIFF, CMD_DIFF_STAGED, CMD_ADD_ALL, CMD_COMMIT, CMD_AMEND_COMMIT, CMD_SHOW_COMMIT, CMD_LOG_CUSTOM ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_DIFF, CMD_DIFF_STAGED, CMD_ADD_ALL, CMD_COMMIT, CMD_AMEND_COMMIT, CMD_SHOW_COMMIT, CMD_LOG_CUSTOM]}},
     CAT_BRANCH_TAG: {"info": _("Gestione branch e tag..."), "order": [ CMD_BRANCH_A, CMD_BRANCH_SHOW_CURRENT, CMD_BRANCH_NEW_NO_SWITCH, CMD_CHECKOUT_B, CMD_CHECKOUT_EXISTING, CMD_MERGE, CMD_BRANCH_D, CMD_BRANCH_FORCE_D, CMD_TAG_LIGHTWEIGHT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_BRANCH_A, CMD_BRANCH_SHOW_CURRENT, CMD_BRANCH_NEW_NO_SWITCH, CMD_CHECKOUT_B, CMD_CHECKOUT_EXISTING, CMD_MERGE, CMD_BRANCH_D, CMD_BRANCH_FORCE_D, CMD_TAG_LIGHTWEIGHT]}},
@@ -848,12 +895,19 @@ CAT_GITHUB_ACTIONS: {
     CAT_SEARCH_UTIL: {"info": _("Ricerca e utilità..."), "order": [ CMD_GREP, CMD_LS_FILES ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_GREP, CMD_LS_FILES]}},
     CAT_RESTORE_RESET: {"info": _("Ripristino e reset (cautela!)..."), "order": [ CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT]}},
 }
-
 CATEGORY_DISPLAY_ORDER = [
-    CAT_REPO_OPS, CAT_LOCAL_CHANGES, CAT_BRANCH_TAG,
-    CAT_REMOTE_OPS, CAT_GITHUB_ACTIONS, CAT_GITHUB_PR_ISSUES, CAT_STASH,
-    CAT_SEARCH_UTIL, CAT_RESTORE_RESET
+    CAT_DASHBOARD,
+    CAT_REPO_OPS, 
+    CAT_LOCAL_CHANGES, 
+    CAT_BRANCH_TAG,
+    CAT_REMOTE_OPS, 
+    CAT_GITHUB_ACTIONS, 
+    CAT_GITHUB_PR_ISSUES, 
+    CAT_STASH,
+    CAT_SEARCH_UTIL, 
+    CAT_RESTORE_RESET
 ]
+
 
 class CreateIssueDialog(wx.Dialog):
     def __init__(self, parent, title, labels_list=None, assignees_list=None):
@@ -2174,6 +2228,238 @@ class PullRequestManagementDialog(wx.Dialog):
             dlg.Destroy()
         
         self.EndModal(wx.ID_CLOSE)
+class CommitSelectionDialog(wx.Dialog):
+    def __init__(self, parent, title, repo_path, max_commits=50):
+        super(CommitSelectionDialog, self).__init__(parent, title=title, size=(800, 600))
+        self.repo_path = repo_path
+        self.max_commits = max_commits
+        self.selected_commit_hash = None
+        
+        self.create_ui()
+        self.load_commits()
+        self.Center()
+    
+    def create_ui(self):
+        panel = wx.Panel(self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header
+        header_label = wx.StaticText(panel, label=_("Seleziona il commit da utilizzare:"))
+        header_font = header_label.GetFont()
+        header_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        header_font.SetPointSize(12)
+        header_label.SetFont(header_font)
+        main_sizer.Add(header_label, 0, wx.ALL | wx.CENTER, 10)
+        
+        # Lista commit con dettagli
+        self.commits_list = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        
+        # Colonne per la lista
+        self.commits_list.AppendColumn(_("Hash"), width=100)
+        self.commits_list.AppendColumn(_("Messaggio"), width=350)
+        self.commits_list.AppendColumn(_("Autore"), width=150)
+        self.commits_list.AppendColumn(_("Data"), width=120)
+        self.commits_list.AppendColumn(_("Ref"), width=80)
+        
+        main_sizer.Add(self.commits_list, 1, wx.ALL | wx.EXPAND, 10)
+        
+        # Info aggiuntive sul commit selezionato
+        info_box = wx.StaticBox(panel, label=_("Dettagli Commit Selezionato"))
+        info_sizer = wx.StaticBoxSizer(info_box, wx.VERTICAL)
+        
+        self.commit_details = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 120))
+        self.commit_details.SetBackgroundColour(wx.Colour(250, 250, 250))
+        mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            self.commit_details.SetFont(mono_font)
+        
+        info_sizer.Add(self.commit_details, 1, wx.ALL | wx.EXPAND, 5)
+        main_sizer.Add(info_sizer, 0, wx.ALL | wx.EXPAND, 10)
+        
+        # Status bar per mostrare il numero di commit
+        self.status_label = wx.StaticText(panel, label=_("Caricamento commit..."))
+        main_sizer.Add(self.status_label, 0, wx.ALL | wx.CENTER, 5)
+        
+        # Bottoni
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.refresh_btn = wx.Button(panel, label=_("🔄 Aggiorna Lista"))
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.OnRefresh)
+        
+        self.ok_btn = wx.Button(panel, wx.ID_OK, label=_("✅ Seleziona Commit"))
+        self.ok_btn.SetDefault()
+        self.ok_btn.Enable(False)  # Disabilitato finché non si seleziona un commit
+        
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, label=_("❌ Annulla"))
+        
+        button_sizer.Add(self.refresh_btn, 0, wx.ALL, 5)
+        button_sizer.AddStretchSpacer()
+        button_sizer.Add(self.ok_btn, 0, wx.ALL, 5)
+        button_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(button_sizer, 0, wx.ALL | wx.EXPAND, 10)
+        
+        # Bind events
+        self.commits_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnCommitSelected)
+        self.commits_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnCommitActivated)
+        
+        panel.SetSizer(main_sizer)
+    
+    def load_commits(self):
+        """Carica la lista dei commit dal repository."""
+        self.status_label.SetLabel(_("Caricamento commit in corso..."))
+        wx.SafeYield()
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Comando per ottenere i commit con formato personalizzato
+            # Formato: hash|messaggio|autore|data|refs
+            cmd = [
+                "git", "log", f"-{self.max_commits}",
+                "--pretty=format:%h|%s|%an|%ad|%D",
+                "--date=short",
+                "--all"
+            ]
+            
+            result = subprocess.run(cmd, cwd=self.repo_path, capture_output=True, 
+                                  text=True, encoding='utf-8', errors='replace',
+                                  creationflags=process_flags)
+            
+            if result.returncode != 0:
+                self.status_label.SetLabel(_("❌ Errore nel recuperare i commit"))
+                wx.MessageBox(_("Errore nel recuperare la lista dei commit:\n{}").format(result.stderr), 
+                             _("Errore Git"), wx.OK | wx.ICON_ERROR, self)
+                return
+            
+            # Pulisci la lista esistente
+            self.commits_list.DeleteAllItems()
+            
+            # Processa i commit
+            commits = []
+            for line in result.stdout.strip().split('\n'):
+                if line.strip():
+                    parts = line.split('|')
+                    if len(parts) >= 4:
+                        hash_short = parts[0]
+                        message = parts[1]
+                        author = parts[2]
+                        date = parts[3]
+                        refs = parts[4] if len(parts) > 4 else ""
+                        
+                        commits.append({
+                            'hash': hash_short,
+                            'message': message,
+                            'author': author,
+                            'date': date,
+                            'refs': refs
+                        })
+            
+            # Aggiungi i commit alla lista
+            for i, commit in enumerate(commits):
+                index = self.commits_list.InsertItem(i, commit['hash'])
+                self.commits_list.SetItem(index, 1, commit['message'][:80] + ('...' if len(commit['message']) > 80 else ''))
+                self.commits_list.SetItem(index, 2, commit['author'])
+                self.commits_list.SetItem(index, 3, commit['date'])
+                
+                # Mostra refs (branch/tag) se presenti
+                ref_display = ""
+                if commit['refs']:
+                    refs_list = [ref.strip() for ref in commit['refs'].split(',') if ref.strip()]
+                    if refs_list:
+                        ref_display = refs_list[0]  # Mostra solo il primo ref per spazio
+                        if len(refs_list) > 1:
+                            ref_display += f" (+{len(refs_list)-1})"
+                
+                self.commits_list.SetItem(index, 4, ref_display)
+                
+                # Salva i dati completi del commit
+                self.commits_list.SetItemData(index, i)
+            
+            # Salva la lista per riferimento futuro
+            self.commits_data = commits
+            
+            # Aggiorna status
+            self.status_label.SetLabel(_("📊 {} commit caricati").format(len(commits)))
+            
+            # Seleziona automaticamente il primo commit (HEAD)
+            if commits:
+                self.commits_list.Select(0)
+                self.commits_list.Focus(0)
+                self.OnCommitSelected(None)
+            
+        except Exception as e:
+            self.status_label.SetLabel(_("❌ Errore nel caricamento"))
+            wx.MessageBox(_("Errore imprevisto nel recuperare i commit:\n{}").format(e), 
+                         _("Errore"), wx.OK | wx.ICON_ERROR, self)
+    
+    def OnCommitSelected(self, event):
+        """Gestisce la selezione di un commit."""
+        selected = self.commits_list.GetFirstSelected()
+        if selected == -1:
+            self.ok_btn.Enable(False)
+            self.commit_details.SetValue("")
+            return
+        
+        # Abilita il pulsante OK
+        self.ok_btn.Enable(True)
+        
+        # Ottieni i dati del commit selezionato
+        commit_index = self.commits_list.GetItemData(selected)
+        if commit_index < len(self.commits_data):
+            commit = self.commits_data[commit_index]
+            self.selected_commit_hash = commit['hash']
+            
+            # Mostra dettagli estesi del commit
+            self.show_commit_details(commit['hash'])
+    
+    def show_commit_details(self, commit_hash):
+        """Mostra i dettagli completi del commit selezionato."""
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Ottieni dettagli completi del commit
+            result = subprocess.run([
+                "git", "show", "--no-patch", "--pretty=format:%H%n%s%n%b%n----%nAutore: %an <%ae>%nData: %ad%nCommitter: %cn <%ce>%nData Commit: %cd",
+                "--date=local", commit_hash
+            ], cwd=self.repo_path, capture_output=True, text=True,
+               encoding='utf-8', errors='replace', creationflags=process_flags)
+            
+            if result.returncode == 0:
+                details = result.stdout
+                
+                # Aggiungi info sui file modificati
+                files_result = subprocess.run([
+                    "git", "show", "--name-status", "--pretty=format:", commit_hash
+                ], cwd=self.repo_path, capture_output=True, text=True,
+                   encoding='utf-8', errors='replace', creationflags=process_flags)
+                
+                if files_result.returncode == 0 and files_result.stdout.strip():
+                    details += "\n\n" + _("File modificati:") + "\n"
+                    for line in files_result.stdout.strip().split('\n'):
+                        if line.strip():
+                            details += f"  {line}\n"
+                
+                self.commit_details.SetValue(details)
+            else:
+                self.commit_details.SetValue(_("Errore nel recuperare i dettagli del commit."))
+                
+        except Exception as e:
+            self.commit_details.SetValue(_("Errore imprevisto: {}").format(e))
+    
+    def OnCommitActivated(self, event):
+        """Gestisce il doppio click su un commit (equivale a OK)."""
+        if self.selected_commit_hash:
+            self.EndModal(wx.ID_OK)
+    
+    def OnRefresh(self, event):
+        """Ricarica la lista dei commit."""
+        self.load_commits()
+    
+    def GetSelectedCommitHash(self):
+        """Restituisce l'hash del commit selezionato."""
+        return self.selected_commit_hash
+
 
 class GitFrame(wx.Frame):
     def __init__(self, *args, **kw):
@@ -4073,6 +4359,8 @@ class GitFrame(wx.Frame):
         if command_type == "github":
             # Per i comandi GitHub, la logica di input (se necessaria) è gestita all'interno di ExecuteGithubCommand
             self.ExecuteGithubCommand(cmd_name_key, cmd_details)
+        elif command_type == "dashboard":
+            self.ExecuteDashboardCommand(cmd_name_key, cmd_details)
         elif command_type == "git":
             user_input = ""
             repo_path = self.repo_path_ctrl.GetValue() # Assicurati sia definito
@@ -4182,6 +4470,50 @@ class GitFrame(wx.Frame):
                     branch_dlg.Destroy()
                     return
                 branch_dlg.Destroy()
+            elif cmd_name_key == CMD_CHECKOUT_DETACHED:
+                # Mostra dialogo di selezione commit invece di input manuale
+                commit_dlg = CommitSelectionDialog(
+                    self, 
+                    _("Seleziona Commit per Checkout (Detached HEAD)"), 
+                    repo_path
+                )
+                
+                if commit_dlg.ShowModal() == wx.ID_OK:
+                    selected_hash = commit_dlg.GetSelectedCommitHash()
+                    if selected_hash:
+                        user_input = selected_hash
+                        self.output_text_ctrl.AppendText(_("Commit selezionato: {}\n").format(selected_hash))
+                    else:
+                        self.output_text_ctrl.AppendText(_("Errore: nessun commit selezionato.\n"))
+                        commit_dlg.Destroy()
+                        return
+                else:
+                    self.output_text_ctrl.AppendText(_("Selezione commit annullata.\n"))
+                    commit_dlg.Destroy()
+                    return
+                    commit_dlg.Destroy()
+            elif cmd_name_key == CMD_RESET_HARD_COMMIT:
+                # Mostra dialogo di selezione commit invece di input manuale
+                commit_dlg = CommitSelectionDialog(
+                    self, 
+                    _("Seleziona Commit per Reset --hard (ATTENZIONE!)"), 
+                    repo_path
+                )
+                
+                if commit_dlg.ShowModal() == wx.ID_OK:
+                    selected_hash = commit_dlg.GetSelectedCommitHash()
+                    if selected_hash:
+                        user_input = selected_hash
+                        self.output_text_ctrl.AppendText(_("Commit selezionato per reset: {}\n").format(selected_hash))
+                    else:
+                        self.output_text_ctrl.AppendText(_("Errore: nessun commit selezionato.\n"))
+                        commit_dlg.Destroy()
+                        return
+                else:
+                    self.output_text_ctrl.AppendText(_("Selezione commit annullata.\n"))
+                    commit_dlg.Destroy()
+                    return
+                commit_dlg.Destroy()
             elif cmd_details.get("input_needed", False):
                 prompt = cmd_details.get("input_label", _("Valore:"))
                 placeholder = cmd_details.get("placeholder", "")
@@ -5817,7 +6149,333 @@ class GitFrame(wx.Frame):
         dlg.Destroy()
         if hasattr(self, 'statusBar'):
             self.statusBar.SetStatusText(_("Cartella repository impostata a: {}").format(self.repo_path_ctrl.GetValue()))
-    
+    def ExecuteDashboardCommand(self, command_name_key, command_details):
+        """Gestisce i comandi della dashboard repository."""
+        self.output_text_ctrl.AppendText(_("📊 Esecuzione comando Dashboard: {}...\n").format(command_name_key))
+        
+        repo_path = self.repo_path_ctrl.GetValue()
+        if not os.path.isdir(repo_path):
+            self.output_text_ctrl.AppendText(_("❌ Errore: Directory repository non valida.\n"))
+            return
+        
+        if not os.path.isdir(os.path.join(repo_path, ".git")):
+            self.output_text_ctrl.AppendText(_("❌ Errore: Directory non è un repository Git valido.\n"))
+            return
+        
+        try:
+            if command_name_key == CMD_REPO_STATUS_OVERVIEW:
+                self._show_repository_overview(repo_path)
+            elif command_name_key == CMD_REPO_STATISTICS:
+                self._show_repository_statistics(repo_path)
+            elif command_name_key == CMD_RECENT_ACTIVITY:
+                self._show_recent_activity(repo_path)
+            elif command_name_key == CMD_BRANCH_STATUS:
+                self._show_branch_status(repo_path)
+            elif command_name_key == CMD_FILE_CHANGES_SUMMARY:
+                self._show_file_changes_summary(repo_path)
+            else:
+                self.output_text_ctrl.AppendText(_("❌ Comando dashboard non riconosciuto: {}\n").format(command_name_key))
+                
+        except Exception as e:
+            self.output_text_ctrl.AppendText(_("❌ Errore durante l'esecuzione del comando dashboard: {}\n").format(e))
+
+    # 7. IMPLEMENTA I METODI SPECIFICI DELLA DASHBOARD
+
+    def _show_repository_overview(self, repo_path):
+        """Mostra panoramica generale del repository."""
+        self.output_text_ctrl.AppendText(_("\n🏠 === PANORAMICA REPOSITORY ===\n"))
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Nome repository
+            repo_name = os.path.basename(repo_path)
+            self.output_text_ctrl.AppendText(f"📁 Repository: {repo_name}\n")
+            self.output_text_ctrl.AppendText(f"📍 Percorso: {repo_path}\n\n")
+            
+            # Branch corrente
+            result = subprocess.run(["git", "branch", "--show-current"], 
+                                  cwd=repo_path, capture_output=True, text=True, 
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                current_branch = result.stdout.strip()
+                self.output_text_ctrl.AppendText(f"🌿 Branch corrente: {current_branch}\n")
+            
+            # Stato working directory
+            result = subprocess.run(["git", "status", "--porcelain"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                status_lines = result.stdout.strip().split('\n') if result.stdout.strip() else []
+                if status_lines and status_lines[0]:
+                    self.output_text_ctrl.AppendText(f"📝 File modificati: {len(status_lines)}\n")
+                    # Mostra primi 5 file modificati
+                    for i, line in enumerate(status_lines[:5]):
+                        if line.strip():
+                            status_char = line[:2]
+                            filename = line[2:]
+                            self.output_text_ctrl.AppendText(f"   {status_char} {filename}\n")
+                    if len(status_lines) > 5:
+                        self.output_text_ctrl.AppendText(f"   ... e altri {len(status_lines) - 5} file\n")
+                else:
+                    self.output_text_ctrl.AppendText("✅ Working directory pulita\n")
+            
+            # Ultimo commit
+            result = subprocess.run(["git", "log", "-1", "--pretty=format:%h - %s (%cr) <%an>"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0 and result.stdout:
+                self.output_text_ctrl.AppendText(f"📅 Ultimo commit: {result.stdout}\n")
+            
+            # Remote status
+            result = subprocess.run(["git", "remote", "-v"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0 and result.stdout:
+                remotes = [line for line in result.stdout.split('\n') if 'fetch' in line]
+                if remotes:
+                    self.output_text_ctrl.AppendText(f"🌐 Remote: {remotes[0].split()[1]}\n")
+            
+            self.output_text_ctrl.AppendText(_("\n✨ Panoramica completata!\n"))
+            
+        except Exception as e:
+            self.output_text_ctrl.AppendText(f"❌ Errore nella panoramica: {e}\n")
+
+    def _show_repository_statistics(self, repo_path):
+        """Mostra statistiche dettagliate del repository."""
+        self.output_text_ctrl.AppendText(_("\n📊 === STATISTICHE REPOSITORY ===\n"))
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Numero totale commit
+            result = subprocess.run(["git", "rev-list", "--count", "HEAD"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                total_commits = result.stdout.strip()
+                self.output_text_ctrl.AppendText(f"📈 Totale commit: {total_commits}\n")
+            
+            # Numero contributori
+            result = subprocess.run(["git", "shortlog", "-sn", "--all"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                contributors = result.stdout.strip().split('\n') if result.stdout.strip() else []
+                self.output_text_ctrl.AppendText(f"👥 Contributori: {len(contributors)}\n")
+                
+                # Top 5 contributori
+                if contributors:
+                    self.output_text_ctrl.AppendText("\n🏆 Top contributori:\n")
+                    for i, contributor in enumerate(contributors[:5]):
+                        if contributor.strip():
+                            parts = contributor.strip().split('\t')
+                            if len(parts) >= 2:
+                                commits = parts[0]
+                                name = parts[1]
+                                self.output_text_ctrl.AppendText(f"   {i+1}. {name}: {commits} commits\n")
+            
+            # Numero branch
+            result = subprocess.run(["git", "branch", "-a"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                branches = [b.strip() for b in result.stdout.split('\n') if b.strip() and not b.strip().startswith('*')]
+                local_branches = [b for b in branches if not b.startswith('remotes/')]
+                remote_branches = [b for b in branches if b.startswith('remotes/')]
+                self.output_text_ctrl.AppendText(f"🌿 Branch locali: {len(local_branches)}\n")
+                self.output_text_ctrl.AppendText(f"🌐 Branch remoti: {len(remote_branches)}\n")
+            
+            # Dimensione repository
+            try:
+                git_dir_size = 0
+                git_dir = os.path.join(repo_path, '.git')
+                for dirpath, dirnames, filenames in os.walk(git_dir):
+                    for filename in filenames:
+                        filepath = os.path.join(dirpath, filename)
+                        git_dir_size += os.path.getsize(filepath)
+                
+                size_mb = git_dir_size / (1024 * 1024)
+                self.output_text_ctrl.AppendText(f"💾 Dimensione .git: {size_mb:.1f} MB\n")
+            except:
+                pass
+            
+            # File tracciati
+            result = subprocess.run(["git", "ls-files"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            if result.returncode == 0:
+                tracked_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+                self.output_text_ctrl.AppendText(f"📄 File tracciati: {len(tracked_files)}\n")
+            
+            self.output_text_ctrl.AppendText(_("\n✨ Statistiche completate!\n"))
+            
+        except Exception as e:
+            self.output_text_ctrl.AppendText(f"❌ Errore nelle statistiche: {e}\n")
+
+    def _show_recent_activity(self, repo_path):
+        """Mostra attività recente nel repository."""
+        self.output_text_ctrl.AppendText(_("\n📅 === ATTIVITÀ RECENTE (Ultimi 10 commit) ===\n"))
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            result = subprocess.run([
+                "git", "log", "--oneline", "--graph", "--decorate", 
+                "--pretty=format:%h|%s|%an|%cr", "-10"
+            ], cwd=repo_path, capture_output=True, text=True, creationflags=process_flags)
+            
+            if result.returncode == 0 and result.stdout:
+                lines = result.stdout.strip().split('\n')
+                for i, line in enumerate(lines):
+                    if '|' in line:
+                        # Rimuovi i caratteri del graph
+                        clean_line = line
+                        for char in ['*', '|', '\\', '/', ' ']:
+                            if clean_line.startswith(char):
+                                clean_line = clean_line[1:]
+                            else:
+                                break
+                        
+                        parts = clean_line.split('|')
+                        if len(parts) >= 4:
+                            hash_val, message, author, time = parts[0], parts[1], parts[2], parts[3]
+                            self.output_text_ctrl.AppendText(f"  {i+1:2d}. [{hash_val}] {message}\n")
+                            self.output_text_ctrl.AppendText(f"      👤 {author} • ⏰ {time}\n")
+                    else:
+                        # Linea del graph senza commit info
+                        self.output_text_ctrl.AppendText(f"      {line}\n")
+                
+                self.output_text_ctrl.AppendText(_("\n✨ Attività recente completata!\n"))
+            else:
+                self.output_text_ctrl.AppendText("❌ Nessun commit trovato o errore nel recupero.\n")
+                
+        except Exception as e:
+            self.output_text_ctrl.AppendText(f"❌ Errore nell'attività recente: {e}\n")
+
+    def _show_branch_status(self, repo_path):
+        """Mostra stato dettagliato dei branch."""
+        self.output_text_ctrl.AppendText(_("\n🌿 === STATO BRANCH ===\n"))
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Branch corrente
+            result = subprocess.run(["git", "branch", "--show-current"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
+            
+            # Lista tutti i branch locali
+            result = subprocess.run(["git", "branch", "-v"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            
+            if result.returncode == 0:
+                self.output_text_ctrl.AppendText(f"📍 Branch corrente: {current_branch}\n\n")
+                self.output_text_ctrl.AppendText("📋 Tutti i branch locali:\n")
+                
+                for line in result.stdout.split('\n'):
+                    if line.strip():
+                        if line.startswith('*'):
+                            self.output_text_ctrl.AppendText(f"  ➤ {line[2:]} ← CORRENTE\n")
+                        else:
+                            self.output_text_ctrl.AppendText(f"    {line.strip()}\n")
+            
+            # Verifica stato sync con remote
+            try:
+                result = subprocess.run(["git", "status", "-b", "--porcelain"], 
+                                      cwd=repo_path, capture_output=True, text=True,
+                                      creationflags=process_flags)
+                if result.returncode == 0:
+                    status_line = result.stdout.split('\n')[0] if result.stdout else ""
+                    if 'ahead' in status_line or 'behind' in status_line:
+                        self.output_text_ctrl.AppendText(f"\n📊 Sync status: {status_line}\n")
+                    else:
+                        self.output_text_ctrl.AppendText(f"\n✅ Branch '{current_branch}' è sincronizzato con remote\n")
+            except:
+                pass
+            
+            self.output_text_ctrl.AppendText(_("\n✨ Stato branch completato!\n"))
+            
+        except Exception as e:
+            self.output_text_ctrl.AppendText(f"❌ Errore nello stato branch: {e}\n")
+
+    def _show_file_changes_summary(self, repo_path):
+        """Mostra riepilogo delle modifiche ai file."""
+        self.output_text_ctrl.AppendText(_("\n📝 === RIEPILOGO MODIFICHE FILE ===\n"))
+        
+        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            # Status dettagliato
+            result = subprocess.run(["git", "status", "--porcelain"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            
+            if result.returncode == 0:
+                if not result.stdout.strip():
+                    self.output_text_ctrl.AppendText("✅ Nessuna modifica pending - working directory pulita!\n")
+                    return
+                
+                # Categorizza le modifiche
+                modified = []
+                added = []
+                deleted = []
+                untracked = []
+                
+                for line in result.stdout.strip().split('\n'):
+                    if len(line) >= 2:
+                        status = line[:2]
+                        filename = line[2:].strip()
+                        if status.startswith('M'):
+                            modified.append(filename)
+                        elif status.startswith('A'):
+                            added.append(filename)
+                        elif status.startswith('D'):
+                            deleted.append(filename)
+                        elif status.startswith('??'):
+                            untracked.append(filename)
+                
+                # Mostra summary
+                total_changes = len(modified) + len(added) + len(deleted) + len(untracked)
+                self.output_text_ctrl.AppendText(f"📊 Totale file modificati: {total_changes}\n\n")
+                
+                if modified:
+                    self.output_text_ctrl.AppendText(f"📝 File modificati ({len(modified)}):\n")
+                    for file in modified[:10]:  # Primi 10
+                        self.output_text_ctrl.AppendText(f"   M  {file}\n")
+                    if len(modified) > 10:
+                        self.output_text_ctrl.AppendText(f"   ... e altri {len(modified) - 10} file\n")
+                    self.output_text_ctrl.AppendText("\n")
+                
+                if added:
+                    self.output_text_ctrl.AppendText(f"➕ File aggiunti ({len(added)}):\n")
+                    for file in added[:10]:
+                        self.output_text_ctrl.AppendText(f"   A  {file}\n")
+                    if len(added) > 10:
+                        self.output_text_ctrl.AppendText(f"   ... e altri {len(added) - 10} file\n")
+                    self.output_text_ctrl.AppendText("\n")
+                
+                if deleted:
+                    self.output_text_ctrl.AppendText(f"❌ File eliminati ({len(deleted)}):\n")
+                    for file in deleted[:10]:
+                        self.output_text_ctrl.AppendText(f"   D  {file}\n")
+                    if len(deleted) > 10:
+                        self.output_text_ctrl.AppendText(f"   ... e altri {len(deleted) - 10} file\n")
+                    self.output_text_ctrl.AppendText("\n")
+                
+                if untracked:
+                    self.output_text_ctrl.AppendText(f"❓ File non tracciati ({len(untracked)}):\n")
+                    for file in untracked[:10]:
+                        self.output_text_ctrl.AppendText(f"   ?? {file}\n")
+                    if len(untracked) > 10:
+                        self.output_text_ctrl.AppendText(f"   ... e altri {len(untracked) - 10} file\n")
+            
+            self.output_text_ctrl.AppendText(_("\n✨ Riepilogo modifiche completato!\n"))
+            
+        except Exception as e:
+            self.output_text_ctrl.AppendText(f"❌ Errore nel riepilogo modifiche: {e}\n")
 if __name__ == '__main__':
     app = wx.App(False)
     frame = GitFrame(None)
