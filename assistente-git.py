@@ -1661,7 +1661,7 @@ class IssueManagementDialog(wx.Dialog):
         close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
         close_btn.Bind(wx.EVT_BUTTON, self.OnClose)
         close_btn.SetDefault()
-        
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
         final_buttons_sizer.Add(url_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         final_buttons_sizer.Add(self.open_browser_btn, 0, wx.ALL, 5)
         final_buttons_sizer.Add(close_btn, 0, wx.ALL, 5)
@@ -2061,7 +2061,7 @@ class PullRequestManagementDialog(wx.Dialog):
         close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
         close_btn.Bind(wx.EVT_BUTTON, self.OnClose)
         close_btn.SetDefault()
-        
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
         final_buttons_sizer.Add(url_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         final_buttons_sizer.Add(self.open_browser_btn, 0, wx.ALL, 5)
         final_buttons_sizer.Add(close_btn, 0, wx.ALL, 5)
@@ -3218,7 +3218,7 @@ class GitFrame(wx.Frame):
         
         close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
         close_btn.SetDefault()
-        
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
         btn_sizer.Add(copy_btn, 0, wx.RIGHT, 10)
         btn_sizer.AddStretchSpacer()
         btn_sizer.Add(close_btn, 0)
@@ -3229,29 +3229,29 @@ class GitFrame(wx.Frame):
         dlg.Center()
         dlg.ShowModal()
         dlg.Destroy()
-
-    def CopyToClipboard(self, text):
-        """Copia testo negli appunti."""
+    def CopyToClipboard(self, text, parent_dialog=None):
+        """Copia testo negli appunti con dialogo di conferma accessibile."""
         try:
             if wx.TheClipboard.Open():
                 wx.TheClipboard.SetData(wx.TextDataObject(text))
                 wx.TheClipboard.Close()
                 
-                # Mini notifica di conferma
+                # Dialogo di conferma usando il dialog padre corretto
                 wx.MessageBox(
                     _("📋 Dettagli copiati negli appunti!"),
                     _("Copiato"),
                     wx.OK | wx.ICON_INFORMATION,
-                    self
+                    parent_dialog if parent_dialog else self
                 )
-        except:
+                
+        except Exception as e:
+            # Dialogo di errore usando il dialog padre corretto
             wx.MessageBox(
                 _("❌ Errore nel copiare negli appunti."),
                 _("Errore"),
                 wx.OK | wx.ICON_ERROR,
-                self
+                parent_dialog if parent_dialog else self
             )
-
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
         """Metodo unificato per mostrare risultato di qualsiasi operazione."""
         
