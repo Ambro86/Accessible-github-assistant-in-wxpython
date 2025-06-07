@@ -3072,6 +3072,249 @@ class GitFrame(wx.Frame):
 
         except requests.exceptions.RequestException as e:
             self.output_text_ctrl.AppendText(_("❌ Errore durante il recupero delle PR: {}\n").format(e))
+    def ShowSuccessNotification(self, title, message, details=None):
+        """Mostra una notifica di successo con opzione per dettagli."""
+        
+        # Icona e colori per successo
+        icon = wx.ICON_INFORMATION
+        
+        # Messaggio base
+        display_message = f"✅ {message}"
+        
+        # Se ci sono dettagli, offri opzione per vederli
+        if details and len(details.strip()) > 0:
+            display_message += _("\n\nVuoi vedere i dettagli dell'operazione?")
+            
+            dlg = wx.MessageDialog(
+                self, 
+                display_message, 
+                f"🎉 {title}", 
+                wx.YES_NO | wx.ICON_INFORMATION
+            )
+            
+            dlg.SetYesNoLabels(_("📋 Vedi Dettagli"), _("👍 OK"))
+            
+            response = dlg.ShowModal()
+            dlg.Destroy()
+            
+            if response == wx.ID_YES:
+                # Mostra dettagli in una finestra separata
+                self.ShowDetailsDialog(title, message, details, is_success=True)
+        else:
+            # Notifica semplice senza dettagli
+            wx.MessageBox(
+                display_message,
+                f"🎉 {title}",
+                wx.OK | icon,
+                self
+            )
+
+    def ShowErrorNotification(self, title, message, details=None, suggestions=None):
+        """Mostra una notifica di errore con dettagli e suggerimenti opzionali."""
+        
+        # Messaggio base
+        display_message = f"❌ {message}"
+        
+        # Aggiungi suggerimenti se presenti
+        if suggestions:
+            display_message += f"\n\n💡 {suggestions}"
+        
+        # Se ci sono dettagli, offri opzione per vederli
+        if details and len(details.strip()) > 0:
+            display_message += _("\n\nVuoi vedere i dettagli dell'errore per diagnosticare il problema?")
+            
+            dlg = wx.MessageDialog(
+                self, 
+                display_message, 
+                f"💥 {title}", 
+                wx.YES_NO | wx.ICON_ERROR
+            )
+            
+            dlg.SetYesNoLabels(_("🔍 Vedi Dettagli"), _("😞 Chiudi"))
+            
+            response = dlg.ShowModal()
+            dlg.Destroy()
+            
+            if response == wx.ID_YES:
+                # Mostra dettagli in una finestra separata
+                self.ShowDetailsDialog(title, message, details, is_success=False, suggestions=suggestions)
+        else:
+            # Notifica semplice senza dettagli
+            wx.MessageBox(
+                display_message,
+                f"💥 {title}",
+                wx.OK | wx.ICON_ERROR,
+                self
+            )
+
+    def ShowDetailsDialog(self, title, message, details, is_success=True, suggestions=None):
+        """Mostra una finestra di dettagli espandibile."""
+        
+        # Crea dialog personalizzato
+        dlg = wx.Dialog(self, title=f"{'🎉' if is_success else '💥'} {title} - Dettagli", size=(600, 450))
+        panel = wx.Panel(dlg)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con messaggio principale
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Icona grande
+        icon_label = wx.StaticText(panel, label="✅" if is_success else "❌")
+        icon_font = icon_label.GetFont()
+        icon_font.SetPointSize(24)
+        icon_label.SetFont(icon_font)
+        
+        # Messaggio principale
+        message_label = wx.StaticText(panel, label=message)
+        message_font = message_label.GetFont()
+        message_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        message_font.SetPointSize(12)
+        message_label.SetFont(message_font)
+        
+        header_sizer.Add(icon_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
+        header_sizer.Add(message_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        
+        main_sizer.Add(header_sizer, 0, wx.ALL | wx.EXPAND, 15)
+        
+        # Separator
+        line = wx.StaticLine(panel)
+        main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        
+        # Area dettagli
+        details_label = wx.StaticText(panel, label=_("📋 Dettagli tecnici:"))
+        details_font = details_label.GetFont()
+        details_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        details_label.SetFont(details_font)
+        main_sizer.Add(details_label, 0, wx.ALL, 15)
+        
+        # Text area per dettagli
+        details_text = wx.TextCtrl(panel, value=details, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        details_text.SetBackgroundColour(wx.Colour(248, 248, 248))
+        
+        # Font monospazio per output tecnico
+        mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            details_text.SetFont(mono_font)
+        
+        main_sizer.Add(details_text, 1, wx.ALL | wx.EXPAND, 15)
+        
+        # Suggerimenti se presenti
+        if suggestions:
+            suggestions_label = wx.StaticText(panel, label=_("💡 Suggerimenti:"))
+            suggestions_font = suggestions_label.GetFont()
+            suggestions_font.SetWeight(wx.FONTWEIGHT_BOLD)
+            suggestions_label.SetFont(suggestions_font)
+            main_sizer.Add(suggestions_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 15)
+            
+            suggestions_text = wx.StaticText(panel, label=suggestions)
+            suggestions_text.Wrap(550)
+            main_sizer.Add(suggestions_text, 0, wx.ALL | wx.EXPAND, 15)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        copy_btn = wx.Button(panel, label=_("📋 Copia Dettagli"))
+        copy_btn.Bind(wx.EVT_BUTTON, lambda e: self.CopyToClipboard(details))
+        
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
+        close_btn.SetDefault()
+        
+        btn_sizer.Add(copy_btn, 0, wx.RIGHT, 10)
+        btn_sizer.AddStretchSpacer()
+        btn_sizer.Add(close_btn, 0)
+        
+        main_sizer.Add(btn_sizer, 0, wx.ALL | wx.EXPAND, 15)
+        
+        panel.SetSizer(main_sizer)
+        dlg.Center()
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def CopyToClipboard(self, text):
+        """Copia testo negli appunti."""
+        try:
+            if wx.TheClipboard.Open():
+                wx.TheClipboard.SetData(wx.TextDataObject(text))
+                wx.TheClipboard.Close()
+                
+                # Mini notifica di conferma
+                wx.MessageBox(
+                    _("📋 Dettagli copiati negli appunti!"),
+                    _("Copiato"),
+                    wx.OK | wx.ICON_INFORMATION,
+                    self
+                )
+        except:
+            wx.MessageBox(
+                _("❌ Errore nel copiare negli appunti."),
+                _("Errore"),
+                wx.OK | wx.ICON_ERROR,
+                self
+            )
+
+    def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
+        """Metodo unificato per mostrare risultato di qualsiasi operazione."""
+        
+        if success:
+            # Estrai info utili dall'output per il messaggio
+            if "commit" in operation_name.lower():
+                if "commit" in output.lower() and len(output.strip()) > 0:
+                    lines = output.strip().split('\n')
+                    commit_line = next((line for line in lines if 'commit' in line.lower()), None)
+                    if commit_line:
+                        message = _("Commit creato con successo!")
+                        details = output
+                    else:
+                        message = _("Operazione completata!")
+                        details = output
+                else:
+                    message = _("Operazione completata!")
+                    details = output
+            elif "push" in operation_name.lower():
+                message = _("Push completato con successo!")
+                details = output
+            elif "pull" in operation_name.lower():
+                message = _("Pull completato con successo!")
+                details = output
+            elif "checkout" in operation_name.lower():
+                message = _("Checkout completato con successo!")
+                details = output
+            elif "merge" in operation_name.lower():
+                message = _("Merge completato con successo!")
+                details = output
+            else:
+                message = _("Operazione completata con successo!")
+                details = output
+            
+            self.ShowSuccessNotification(
+                title=_("Successo - {}").format(operation_name),
+                message=message,
+                details=details if details.strip() else None
+            )
+        else:
+            # Gestione errori con suggerimenti specifici
+            if "push" in operation_name.lower() and "rejected" in error_output.lower():
+                error_message = _("Push rifiutato dal server remoto.")
+                suggestions = _("Prova a fare 'pull' prima per sincronizzare le modifiche remote.")
+            elif "commit" in operation_name.lower() and "nothing to commit" in error_output.lower():
+                error_message = _("Nulla da committare.")
+                suggestions = _("Non ci sono modifiche da salvare. Modifica alcuni file prima di committare.")
+            elif "checkout" in operation_name.lower() and "pathspec" in error_output.lower():
+                error_message = _("Branch o commit non trovato.")
+                suggestions = _("Verifica che il nome del branch/commit sia corretto.")
+            elif "merge" in operation_name.lower() and "conflict" in error_output.lower():
+                error_message = _("Conflitti di merge rilevati.")
+                suggestions = _("Risolvi i conflitti manualmente o usa le opzioni automatiche proposte.")
+            else:
+                error_message = _("Operazione fallita.")
+                suggestions = suggestions  # Usa suggerimenti passati o None
+            
+            self.ShowErrorNotification(
+                title=_("Errore - {}").format(operation_name),
+                message=error_message,
+                details=error_output if error_output.strip() else output,
+                suggestions=suggestions
+            )
 
     def handle_edit_pr(self, command_name_key, command_details):
         """Gestisce la modifica di una Pull Request esistente"""
@@ -4876,15 +5119,37 @@ class GitFrame(wx.Frame):
                 self.output_text_ctrl.AppendText(_("\nOperazione .gitignore completata con successo.\n"))
             elif command_name_original_translated == CMD_LS_FILES:
                 self.output_text_ctrl.AppendText(_("\nRicerca file completata.\n"))
+                # Per LS_FILES non mostriamo popup (è solo una ricerca)
             else:
                 self.output_text_ctrl.AppendText(_("\nComando/i completato/i con successo.\n"))
+                # Mostra popup di successo
+                self.ShowOperationResult(
+                    operation_name=command_name_original_translated,
+                    success=True,
+                    output=full_output
+                )
         else:
             if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
                 self.output_text_ctrl.AppendText(_("\nErrore durante l'aggiornamento del file .gitignore.\n"))
+                self.ShowOperationResult(
+                    operation_name=command_name_original_translated,
+                    success=False,
+                    error_output=full_output
+                )
             elif command_name_original_translated == CMD_LS_FILES:
                 self.output_text_ctrl.AppendText(_("\nErrore durante la ricerca dei file.\n"))
-            elif cmds_to_run : # Solo se c'erano comandi da eseguire
+                self.ShowOperationResult(
+                    operation_name=command_name_original_translated,
+                    success=False,
+                    error_output=full_output
+                )
+            elif cmds_to_run: # Solo se c'erano comandi da eseguire
                 self.output_text_ctrl.AppendText(_("\nEsecuzione (o parte di essa) fallita o con errori. Controllare l'output per i dettagli.\n"))
+                self.ShowOperationResult(
+                    operation_name=command_name_original_translated,
+                    success=False,
+                    error_output=full_output
+                )
 
         if success and command_name_original_translated == CMD_AMEND_COMMIT:
             dlg = wx.MessageDialog(self, _("Commit modificato con successo.\n\n"
