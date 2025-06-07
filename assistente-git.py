@@ -3236,22 +3236,13 @@ class GitFrame(wx.Frame):
                 wx.TheClipboard.SetData(wx.TextDataObject(text))
                 wx.TheClipboard.Close()
                 
-                # Dialogo di conferma usando il dialog padre corretto
-                wx.MessageBox(
-                    _("📋 Dettagli copiati negli appunti!"),
-                    _("Copiato"),
-                    wx.OK | wx.ICON_INFORMATION,
-                    parent_dialog if parent_dialog else self
-                )
+                # Usa CallAfter per evitare conflitti modali
+                wx.CallAfter(self.ShowCopyMessage, True, parent_dialog)
                 
         except Exception as e:
-            # Dialogo di errore usando il dialog padre corretto
-            wx.MessageBox(
-                _("❌ Errore nel copiare negli appunti."),
-                _("Errore"),
-                wx.OK | wx.ICON_ERROR,
-                parent_dialog if parent_dialog else self
-            )
+            # Usa CallAfter anche per gli errori
+            wx.CallAfter(self.ShowCopyMessage, False, parent_dialog)
+
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
         """Metodo unificato per mostrare risultato di qualsiasi operazione."""
         
