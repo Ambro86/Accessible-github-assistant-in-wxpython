@@ -3248,7 +3248,7 @@ class GitFrame(wx.Frame):
             if success:
                 # Prova MessageBox standard
                 dlg = wx.MessageDialog(
-                    self,
+                    None,  # Usa None come parent per evitare blocchi
                     _("📋 Dettagli copiati negli appunti!"),
                     _("Copiato"),
                     wx.OK | wx.ICON_INFORMATION
@@ -3257,32 +3257,40 @@ class GitFrame(wx.Frame):
                 dlg.Destroy()
             else:
                 dlg = wx.MessageDialog(
-                    self,
+                    None,  # Usa None come parent per evitare blocchi
                     _("❌ Errore nel copiare negli appunti."),
                     _("Errore"),
                     wx.OK | wx.ICON_ERROR
                 )
                 dlg.ShowModal()
                 dlg.Destroy()
+                
+            # Importante: Riporta il focus al frame principale dopo il MessageBox
+            wx.CallAfter(self.SetFocus)
+            
         except:
             # Se MessageDialog fallisce, usa il dialogo personalizzato
             try:
                 if success:
                     custom_dlg = SimpleNotificationDialog(
-                        self, 
+                        None,  # Usa None come parent
                         _("Dettagli copiati negli appunti!"), 
                         _("Copiato"), 
                         True
                     )
                 else:
                     custom_dlg = SimpleNotificationDialog(
-                        self, 
+                        None,  # Usa None come parent
                         _("Errore nel copiare negli appunti."), 
                         _("Errore"), 
                         False
                     )
                 custom_dlg.ShowModal()
                 custom_dlg.Destroy()
+                
+                # Riporta il focus
+                wx.CallAfter(self.SetFocus)
+                
             except:
                 # Ultimo fallback: beep
                 wx.Bell()
