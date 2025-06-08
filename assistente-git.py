@@ -7251,9 +7251,13 @@ class GitFrame(wx.Frame):
             return
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
-                self.output_text_ctrl.AppendText(_("Errore: ID esecuzione non selezionato. Esegui prima '{}'.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS))
+                self.ShowErrorNotification(
+                title="❌ Nessuna Esecuzione Selezionata",
+                message="Devi prima selezionare un'esecuzione workflow",
+                details=f"🎯 SELEZIONE RICHIESTA:\n\nPer scaricare gli artifact è necessario:\n\n1️⃣ Selezionare prima un'esecuzione workflow\n2️⃣ Poi utilizzare questo comando per scaricare gli artifact\n\nComandi disponibili per selezionare un'esecuzione:\n• Usa i comandi di GitHub Actions per vedere le esecuzioni\n• Seleziona una specifica esecuzione\n• Torna qui per scaricare i suoi artifact\n\nStato attuale:\n❌ Nessuna esecuzione selezionata\n🏢 Repository: {self.github_owner}/{self.github_repo}",
+                suggestions=f"Utilizza prima un comando per visualizzare le esecuzioni workflow e selezionarne una."
+                )
                 return
-            
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
             self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {} (per artefatti)...\n").format(self.selected_run_id))
             wx.Yield()
@@ -7292,9 +7296,15 @@ class GitFrame(wx.Frame):
                 response.raise_for_status()
                 artifacts_data = response.json()
                 if artifacts_data.get('total_count', 0) == 0 or not artifacts_data.get('artifacts'):
-                    self.output_text_ctrl.AppendText(_("Nessun artefatto trovato.\n"))
+                    # Mostra messaggio "nessun artifact" nella dialog invece che console
+                    self.ShowErrorNotification(
+                        title="📦 Nessun Artifact Disponibile", 
+                        message="Nessun artifact trovato per questa esecuzione",
+                        details=f"🔍 RICERCA ARTIFACT:\n\nRun ID: {self.selected_run_id}\nRepository: {self.github_owner}/{self.github_repo}\nWorkflow: {current_status_from_api}\n\nPossibili cause:\n• Il workflow non genera artifact\n• L'esecuzione non è ancora completata\n• Gli artifact sono scaduti\n• Il workflow è fallito prima di creare artifact",
+                        suggestions="Verifica che il workflow sia progettato per creare artifact e che l'esecuzione sia completata con successo."
+                    )
                     return
-                
+
                 artifact_choices = []
                 artifact_map = {}
                 for art in artifacts_data['artifacts']:
