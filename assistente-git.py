@@ -325,7 +325,8 @@ class GitHubConfigDialog(wx.Dialog):
         print("DEBUG: OnDeleteConfig chiamato") # Questo lo vedi già
         # Tentiamo di scrivere anche nell'output GUI per conferma
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: OnDeleteConfig invocato (GUI)\n")
+            pass
+
         else:
             print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio di debug GUI iniziale.")
 
@@ -344,13 +345,13 @@ class GitHubConfigDialog(wx.Dialog):
         if not (risposta == wx.ID_YES or risposta == 2):
             print(f"DEBUG: La condizione 'risposta ({risposta}) non è né wx.ID_YES ({wx.ID_YES}) né 2' è VERA. L'utente NON ha premuto 'Sì' o il valore restituito è inatteso.")
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-                self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Eliminazione annullata dall'utente o risposta inattesa ({risposta}) da MessageBox.\n")
+                pass
             return # Esce dal metodo se l'utente non ha premuto "Sì"
 
         # Se arriviamo qui, l'utente ha premuto "Sì"
         print(f"DEBUG: La condizione 'risposta ({risposta}) != wx.ID_YES ({wx.ID_YES})' è FALSA. L'utente HA premuto 'Sì'.")
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-            self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha confermato eliminazione, apro PasswordEntryDialog\n")
+            pass
         else:
             print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio GUI 'apro PasswordEntryDialog'.")
 
@@ -364,7 +365,7 @@ class GitHubConfigDialog(wx.Dialog):
 
         if password_dialog.ShowModal() != wx.ID_OK:
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-                self.parent_frame.output_text_ctrl.AppendText("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare\n")
+                pass
             else:
                 print("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare (messaggio GUI non disponibile).")
             password_dialog.Destroy()
@@ -372,7 +373,7 @@ class GitHubConfigDialog(wx.Dialog):
 
         pw = password_dialog.GetValue()
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-            self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Password inserita: '{pw}'\n")
+            pass
         print(f"DEBUG: Password inserita nel dialogo di eliminazione: '{pw}'") # Aggiunto anche a console per sicurezza
         password_dialog.Destroy()
 
@@ -385,7 +386,7 @@ class GitHubConfigDialog(wx.Dialog):
                 self
             )
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-                self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito True\n")
+                pass
             # Resetta i campi del dialogo
             self.owner_ctrl.SetValue("")
             self.repo_ctrl.SetValue("")
@@ -398,11 +399,11 @@ class GitHubConfigDialog(wx.Dialog):
             self.strip_timestamps_cb.SetValue(False)
 
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-                self.parent_frame.output_text_ctrl.AppendText("DEBUG: Campi dialogo resettati ai default dopo eliminazione.\n")
+                pass
         else:
             # _remove_github_config dovrebbe mostrare il suo messaggio di errore se la password è errata etc.
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
-                self.parent_frame.output_text_ctrl.AppendText("DEBUG: _remove_github_config ha restituito False\n")
+                pass
             print("DEBUG: _remove_github_config ha restituito False (la funzione stessa dovrebbe aver mostrato un errore all'utente se necessario).")
     def GetValues(self):
         return {
@@ -5016,7 +5017,6 @@ class GitFrame(wx.Frame):
 
     def _remove_github_config(self, password: str):
         print("DEBUG: _remove_github_config chiamato")
-        self.output_text_ctrl.AppendText("DEBUG: _remove_github_config invocato\n")
 
         if not os.path.exists(self.secure_config_path):
             self.output_text_ctrl.AppendText(_("Nessuna configurazione GitHub salvata da rimuovere.\n"))
@@ -5027,9 +5027,8 @@ class GitFrame(wx.Frame):
             if os.path.exists(self.app_settings_path):
                 try:
                     os.remove(self.app_settings_path)
-                    self.output_text_ctrl.AppendText(f"DEBUG: File impostazioni app rimosso: {self.app_settings_path}\n")
                 except Exception as e:
-                    self.output_text_ctrl.AppendText(f"DEBUG: Errore rimozione {self.app_settings_path}: {e}\n")
+                    pass
 
             self.github_owner = ""
             self.github_repo = ""
@@ -5041,7 +5040,7 @@ class GitFrame(wx.Frame):
             return True
 
 
-        self.output_text_ctrl.AppendText(f"DEBUG: secure_config_path = {self.secure_config_path}\n")
+
         print(f"DEBUG: secure_config_path = {self.secure_config_path}")
 
         try:
@@ -5050,9 +5049,9 @@ class GitFrame(wx.Frame):
                 uuid_part = f.read(4)
                 version = struct.unpack('<I', f.read(4))[0]
 
-                self.output_text_ctrl.AppendText(f"DEBUG: magic prefix letto = {prefix}\n")
-                self.output_text_ctrl.AppendText(f"DEBUG: uuid_part letto = {uuid_part}\n")
-                self.output_text_ctrl.AppendText(f"DEBUG: versione file = {version}\n")
+
+
+
                 print(f"DEBUG: magic_prefix={prefix}, uuid_part={uuid_part}, version={version}")
 
                 if prefix != CONFIG_MAGIC_NUMBER_PREFIX:
@@ -5077,17 +5076,17 @@ class GitFrame(wx.Frame):
 
                 salt_len = struct.unpack('<I', f.read(4))[0]
                 salt = f.read(salt_len)
-                self.output_text_ctrl.AppendText(f"DEBUG: salt_len = {salt_len}\n")
-                self.output_text_ctrl.AppendText(f"DEBUG: prime 8 byte di salt = {salt[:8]}\n")
+
+
                 print(f"DEBUG: salt_len={salt_len}, salt[:8]={salt[:8]}")
 
                 data_len = struct.unpack('<I', f.read(4))[0]
                 encrypted_data = f.read(data_len)
-                self.output_text_ctrl.AppendText(f"DEBUG: data_len = {data_len}\n")
-                self.output_text_ctrl.AppendText(f"DEBUG: prime 8 byte di encrypted_data = {encrypted_data[:8]}\n")
+
+
                 print(f"DEBUG: data_len={data_len}, encrypted_data[:8]={encrypted_data[:8]}")
 
-            self.output_text_ctrl.AppendText("DEBUG: Provo a decriptare con la password fornita...\n")
+
             print("DEBUG: Provo a decriptare con la password fornita...")
             decrypted_json, err = self._decrypt_data(encrypted_data, salt, password)
             if err is not None or decrypted_json is None:
@@ -5108,19 +5107,19 @@ class GitFrame(wx.Frame):
             uuid_file = os.path.join(self._get_app_config_dir(), USER_ID_FILE_NAME)
             if os.path.exists(uuid_file):
                 os.remove(uuid_file)
-                self.output_text_ctrl.AppendText(f"DEBUG: File UUID utente rimosso: {uuid_file}\n")
+
                 print(f"DEBUG: File UUID rimosso: {uuid_file}")
             else:
-                self.output_text_ctrl.AppendText("DEBUG: Nessun file UUID da rimuovere\n")
+
                 print("DEBUG: Nessun user_id.cfg da rimuovere")
 
             # Rimuovi anche settings.json per una pulizia completa
             if os.path.exists(self.app_settings_path):
                 try:
                     os.remove(self.app_settings_path)
-                    self.output_text_ctrl.AppendText(f"DEBUG: File impostazioni app rimosso: {self.app_settings_path}\n")
+
                 except Exception as e:
-                    self.output_text_ctrl.AppendText(f"DEBUG: Errore rimozione {self.app_settings_path}: {e}\n")
+                    pass
 
 
             self.github_owner = ""
@@ -6186,11 +6185,6 @@ class GitFrame(wx.Frame):
             self.output_text_ctrl.AppendText(_("❌ Errore verifica stato: {}\n").format(e))
             
     def ExecuteGithubCommand(self, command_name_key, command_details):
-        self.output_text_ctrl.AppendText(f"DEBUG: ExecuteGithubCommand chiamato!\n")
-        self.output_text_ctrl.AppendText(f"DEBUG: command_name_key ricevuto = '{command_name_key}'\n")
-        self.output_text_ctrl.AppendText(f"DEBUG: type(command_name_key) = {type(command_name_key)}\n")
-        self.output_text_ctrl.AppendText(f"DEBUG: command_details = {command_details}\n")
-        wx.Yield()
     
         self.output_text_ctrl.AppendText(_("Esecuzione comando GitHub: {}...\n").format(command_name_key))
 
@@ -6644,10 +6638,10 @@ class GitFrame(wx.Frame):
                 self.output_text_ctrl.AppendText(
                     _("✅ Workflow '{}' avviato con successo!\n").format(selected_workflow['name'])
                 )
+
                 self.output_text_ctrl.AppendText(
-                    _("🔍 Usa '{}' per vedere le nuove esecuzioni.\n").format(CMD_GITHUB_LIST_WORKFLOW_RUNS)
-                )
-                
+                _("🔍 Controlla lo stato delle esecuzioni nei comandi GitHub Actions.\n")
+                )  
                 suggest_msg = _("Vuoi monitorare automaticamente la nuova esecuzione quando sarà disponibile?")
                 suggest_dlg = wx.MessageDialog(self, suggest_msg, _("Monitoraggio Automatico"), 
                                              wx.YES_NO | wx.ICON_QUESTION)
@@ -6656,7 +6650,7 @@ class GitFrame(wx.Frame):
                 
                 if suggest_response == wx.ID_YES or suggest_response == 2:
                     self.output_text_ctrl.AppendText(_("⏳ Attesa 5 secondi per la nuova esecuzione...\n"))
-                    wx.CallLater(5000, self.auto_find_and_monitor_latest_run)
+                    wx.CallLater(5000, lambda: self.auto_find_and_monitor_latest_run(selected_workflow['name']))
             
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 422:
@@ -6906,7 +6900,7 @@ class GitFrame(wx.Frame):
             return
 
         if command_name_key == CMD_GITHUB_SELECTED_RUN_LOGS:
-            self.output_text_ctrl.AppendText(f"DEBUG: Comando ricevuto = '{command_name_key}'\n")
+
 
             # MODIFICA: Permettere all'utente di scegliere quale run visualizzare
             
