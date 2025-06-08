@@ -3080,42 +3080,20 @@ class GitFrame(wx.Frame):
         except requests.exceptions.RequestException as e:
             self.output_text_ctrl.AppendText(_("❌ Errore durante il recupero delle PR: {}\n").format(e))
     def ShowSuccessNotification(self, title, message, details=None):
-        """Mostra una notifica di successo con opzione per dettagli."""
+        """Mostra una notifica di successo con dettagli immediati se disponibili."""
         
-        # Icona e colori per successo
-        icon = wx.ICON_INFORMATION
-        
-        # Messaggio base
-        display_message = f"✅ {message}"
-        
-        # Se ci sono dettagli, offri opzione per vederli
+        # Se ci sono dettagli, mostra direttamente la finestra completa
         if details and len(details.strip()) > 0:
-            display_message += _("\n\nVuoi vedere i dettagli dell'operazione?")
-            
-            dlg = wx.MessageDialog(
-                self, 
-                display_message, 
-                f"🎉 {title}", 
-                wx.YES_NO | wx.ICON_INFORMATION
-            )
-            
-            dlg.SetYesNoLabels(_("📋 Vedi Dettagli"), _("👍 OK"))
-            
-            response = dlg.ShowModal()
-            dlg.Destroy()
-            
-            if response == wx.ID_YES:
-                # Mostra dettagli in una finestra separata
-                self.ShowDetailsDialog(title, message, details, is_success=True)
+            self.ShowDetailsDialog(title, message, details, is_success=True)
         else:
-            # Notifica semplice senza dettagli
+            # Solo per operazioni semplici senza dettagli
+            display_message = f"✅ {message}"
             wx.MessageBox(
                 display_message,
                 f"🎉 {title}",
-                wx.OK | icon,
+                wx.OK | wx.ICON_INFORMATION,
                 self
             )
-
     def ShowErrorNotification(self, title, message, details=None, suggestions=None):
         """Mostra una notifica di errore con dettagli e suggerimenti opzionali."""
         
@@ -3197,7 +3175,8 @@ class GitFrame(wx.Frame):
         # Text area per dettagli
         details_text = wx.TextCtrl(panel, value=details, style=wx.TE_MULTILINE | wx.TE_READONLY)
         details_text.SetBackgroundColour(wx.Colour(248, 248, 248))
-        
+        details_text.Bind(wx.EVT_KEY_DOWN, lambda e: self._handle_details_key(e, dlg))
+        details_text.SetFocus()  # Focus sul campo dettagli
         # Font monospazio per output tecnico
         mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         if mono_font.IsOk():
@@ -3236,6 +3215,14 @@ class GitFrame(wx.Frame):
         dlg.Center()
         dlg.ShowModal()
         dlg.Destroy()
+    def _handle_details_key(self, event, dialog):
+        """Gestisce tasti nel campo dettagli."""
+        keycode = event.GetKeyCode()
+        
+        if keycode == wx.WXK_RETURN or keycode == wx.WXK_ESCAPE:
+            dialog.EndModal(wx.ID_CLOSE)
+        else:
+            event.Skip()  # Permetti altri tasti (scroll, selezione, etc.)
     def CopyToClipboard(self, text, parent_dialog=None):
         """Copia testo negli appunti con dialogo di conferma accessibile."""
         try:
