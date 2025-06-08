@@ -6802,48 +6802,89 @@ class GitFrame(wx.Frame):
         if hasattr(self, 'statusBar'):
             self.statusBar.SetStatusText(_("Cartella repository impostata a: {}").format(self.repo_path_ctrl.GetValue()))
     def ExecuteDashboardCommand(self, command_name_key, command_details):
-        """Gestisce i comandi della dashboard repository."""
+        """Gestisce i comandi della dashboard repository con risultati in dialog."""
         self.output_text_ctrl.AppendText(_("📊 Esecuzione comando Dashboard: {}...\n").format(command_name_key))
         
         repo_path = self.repo_path_ctrl.GetValue()
         if not os.path.isdir(repo_path):
-            self.output_text_ctrl.AppendText(_("❌ Errore: Directory repository non valida.\n"))
+            self.ShowErrorNotification(
+                title=_("Errore Repository"),
+                message=_("Directory repository non valida"),
+                details=_("Il percorso specificato non è una directory valida:\n{}").format(repo_path),
+                suggestions=_("Verifica che il percorso sia corretto e che la directory esista.")
+            )
             return
         
         if not os.path.isdir(os.path.join(repo_path, ".git")):
-            self.output_text_ctrl.AppendText(_("❌ Errore: Directory non è un repository Git valido.\n"))
+            self.ShowErrorNotification(
+                title=_("Errore Git"),
+                message=_("Directory non è un repository Git valido"),
+                details=_("La directory non contiene una sottocartella .git:\n{}").format(repo_path),
+                suggestions=_("Assicurati di essere nella directory principale di un repository Git inizializzato.")
+            )
             return
         
         try:
-            if command_name_key == CMD_REPO_STATUS_OVERVIEW:
-                self._show_repository_overview(repo_path)
-            elif command_name_key == CMD_REPO_STATISTICS:
-                self._show_repository_statistics(repo_path)
-            elif command_name_key == CMD_RECENT_ACTIVITY:
-                self._show_recent_activity(repo_path)
-            elif command_name_key == CMD_BRANCH_STATUS:
-                self._show_branch_status(repo_path)
-            elif command_name_key == CMD_FILE_CHANGES_SUMMARY:
-                self._show_file_changes_summary(repo_path)
+            # Raccogli i dati per il comando dashboard
+            dashboard_data = self._collect_dashboard_data(repo_path, command_name_key)
+            
+            if dashboard_data['success']:
+                self.ShowSuccessNotification(
+                    title=_("Dashboard - {}").format(command_name_key.replace("_", " ").title()),
+                    message=_("Informazioni repository recuperate con successo!"),
+                    details=dashboard_data['details']
+                )
             else:
-                self.output_text_ctrl.AppendText(_("❌ Comando dashboard non riconosciuto: {}\n").format(command_name_key))
+                self.ShowErrorNotification(
+                    title=_("Errore Dashboard"),
+                    message=_("Errore nel recuperare le informazioni del repository"),
+                    details=dashboard_data['error_details'],
+                    suggestions=_("Verifica che il repository Git sia valido e accessibile.")
+                )
                 
         except Exception as e:
-            self.output_text_ctrl.AppendText(_("❌ Errore durante l'esecuzione del comando dashboard: {}\n").format(e))
+            self.ShowErrorNotification(
+                title=_("Errore Dashboard"),
+                message=_("Errore imprevisto durante l'esecuzione del comando dashboard"),
+                details=_("Errore: {}\nComando: {}\nRepository: {}").format(e, command_name_key, repo_path)
+            )
 
-    # 7. IMPLEMENTA I METODI SPECIFICI DELLA DASHBOARD
-
-    def _show_repository_overview(self, repo_path):
-        """Mostra panoramica generale del repository."""
-        self.output_text_ctrl.AppendText(_("\n🏠 === PANORAMICA REPOSITORY ===\n"))
-        
+    def _collect_dashboard_data(self, repo_path, command_name_key):
+        """Raccoglie i dati per i comandi dashboard e restituisce un dizionario con i risultati."""
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        
+        try:
+            if command_name_key == CMD_REPO_STATUS_OVERVIEW:
+                return self._get_repository_overview_data(repo_path, process_flags)
+            elif command_name_key == CMD_REPO_STATISTICS:
+                return self._get_repository_statistics_data(repo_path, process_flags)
+            elif command_name_key == CMD_RECENT_ACTIVITY:
+                return self._get_recent_activity_data(repo_path, process_flags)
+            elif command_name_key == CMD_BRANCH_STATUS:
+                return self._get_branch_status_data(repo_path, process_flags)
+            elif command_name_key == CMD_FILE_CHANGES_SUMMARY:
+                return self._get_file_changes_data(repo_path, process_flags)
+            else:
+                return {
+                    'success': False,
+                    'error_details': _("Comando dashboard non riconosciuto: {}").format(command_name_key)
+                }
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error_details': _("Errore durante la raccolta dati dashboard: {}").format(e)
+            }
+
+    def _get_repository_overview_data(self, repo_path, process_flags):
+        """Raccoglie i dati per la panoramica repository."""
+        details = _("🏠 === PANORAMICA REPOSITORY ===\n\n")
         
         try:
             # Nome repository
             repo_name = os.path.basename(repo_path)
-            self.output_text_ctrl.AppendText(f"📁 Repository: {repo_name}\n")
-            self.output_text_ctrl.AppendText(f"📍 Percorso: {repo_path}\n\n")
+            details += f"📁 Repository: {repo_name}\n"
+            details += f"📍 Percorso: {repo_path}\n\n"
             
             # Branch corrente
             result = subprocess.run(["git", "branch", "--show-current"], 
@@ -6851,7 +6892,9 @@ class GitFrame(wx.Frame):
                                   creationflags=process_flags)
             if result.returncode == 0:
                 current_branch = result.stdout.strip()
-                self.output_text_ctrl.AppendText(f"🌿 Branch corrente: {current_branch}\n")
+                details += f"🌿 Branch corrente: {current_branch}\n"
+            else:
+                details += f"🌿 Branch corrente: ❌ Errore nel rilevamento\n"
             
             # Stato working directory
             result = subprocess.run(["git", "status", "--porcelain"], 
@@ -6860,24 +6903,24 @@ class GitFrame(wx.Frame):
             if result.returncode == 0:
                 status_lines = result.stdout.strip().split('\n') if result.stdout.strip() else []
                 if status_lines and status_lines[0]:
-                    self.output_text_ctrl.AppendText(f"📝 File modificati: {len(status_lines)}\n")
+                    details += f"📝 File modificati: {len(status_lines)}\n"
                     # Mostra primi 5 file modificati
                     for i, line in enumerate(status_lines[:5]):
                         if line.strip():
                             status_char = line[:2]
                             filename = line[2:]
-                            self.output_text_ctrl.AppendText(f"   {status_char} {filename}\n")
+                            details += f"   {status_char} {filename}\n"
                     if len(status_lines) > 5:
-                        self.output_text_ctrl.AppendText(f"   ... e altri {len(status_lines) - 5} file\n")
+                        details += f"   ... e altri {len(status_lines) - 5} file\n"
                 else:
-                    self.output_text_ctrl.AppendText("✅ Working directory pulita\n")
+                    details += "✅ Working directory pulita\n"
             
             # Ultimo commit
             result = subprocess.run(["git", "log", "-1", "--pretty=format:%h - %s (%cr) <%an>"], 
                                   cwd=repo_path, capture_output=True, text=True,
                                   creationflags=process_flags)
             if result.returncode == 0 and result.stdout:
-                self.output_text_ctrl.AppendText(f"📅 Ultimo commit: {result.stdout}\n")
+                details += f"📅 Ultimo commit: {result.stdout}\n"
             
             # Remote status
             result = subprocess.run(["git", "remote", "-v"], 
@@ -6886,18 +6929,40 @@ class GitFrame(wx.Frame):
             if result.returncode == 0 and result.stdout:
                 remotes = [line for line in result.stdout.split('\n') if 'fetch' in line]
                 if remotes:
-                    self.output_text_ctrl.AppendText(f"🌐 Remote: {remotes[0].split()[1]}\n")
+                    details += f"🌐 Remote: {remotes[0].split()[1]}\n"
             
-            self.output_text_ctrl.AppendText(_("\n✨ Panoramica completata!\n"))
+            # Stato sync con remote
+            try:
+                result = subprocess.run(["git", "status", "-b", "--porcelain"], 
+                                      cwd=repo_path, capture_output=True, text=True,
+                                      creationflags=process_flags)
+                if result.returncode == 0:
+                    status_line = result.stdout.split('\n')[0] if result.stdout else ""
+                    if 'ahead' in status_line:
+                        details += "📤 Repository ha commit non inviati al remote\n"
+                    elif 'behind' in status_line:
+                        details += "📥 Repository non aggiornato con il remote\n"
+                    else:
+                        details += "🔄 Repository sincronizzato con remote\n"
+            except:
+                details += "❓ Stato sync con remote: non determinabile\n"
+            
+            details += _("\n✨ Panoramica completata con successo!")
+            
+            return {
+                'success': True,
+                'details': details
+            }
             
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore nella panoramica: {e}\n")
+            return {
+                'success': False,
+                'error_details': f"Errore nella raccolta dati panoramica: {e}"
+            }
 
-    def _show_repository_statistics(self, repo_path):
-        """Mostra statistiche dettagliate del repository."""
-        self.output_text_ctrl.AppendText(_("\n📊 === STATISTICHE REPOSITORY ===\n"))
-        
-        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+    def _get_repository_statistics_data(self, repo_path, process_flags):
+        """Raccoglie i dati per le statistiche repository."""
+        details = _("📊 === STATISTICHE REPOSITORY ===\n\n")
         
         try:
             # Numero totale commit
@@ -6906,7 +6971,7 @@ class GitFrame(wx.Frame):
                                   creationflags=process_flags)
             if result.returncode == 0:
                 total_commits = result.stdout.strip()
-                self.output_text_ctrl.AppendText(f"📈 Totale commit: {total_commits}\n")
+                details += f"📈 Totale commit: {total_commits}\n"
             
             # Numero contributori
             result = subprocess.run(["git", "shortlog", "-sn", "--all"], 
@@ -6914,18 +6979,19 @@ class GitFrame(wx.Frame):
                                   creationflags=process_flags)
             if result.returncode == 0:
                 contributors = result.stdout.strip().split('\n') if result.stdout.strip() else []
-                self.output_text_ctrl.AppendText(f"👥 Contributori: {len(contributors)}\n")
+                details += f"👥 Contributori: {len(contributors)}\n\n"
                 
                 # Top 5 contributori
                 if contributors:
-                    self.output_text_ctrl.AppendText("\n🏆 Top contributori:\n")
+                    details += "🏆 Top contributori:\n"
                     for i, contributor in enumerate(contributors[:5]):
                         if contributor.strip():
                             parts = contributor.strip().split('\t')
                             if len(parts) >= 2:
                                 commits = parts[0]
                                 name = parts[1]
-                                self.output_text_ctrl.AppendText(f"   {i+1}. {name}: {commits} commits\n")
+                                details += f"   {i+1}. {name}: {commits} commits\n"
+                    details += "\n"
             
             # Numero branch
             result = subprocess.run(["git", "branch", "-a"], 
@@ -6935,8 +7001,8 @@ class GitFrame(wx.Frame):
                 branches = [b.strip() for b in result.stdout.split('\n') if b.strip() and not b.strip().startswith('*')]
                 local_branches = [b for b in branches if not b.startswith('remotes/')]
                 remote_branches = [b for b in branches if b.startswith('remotes/')]
-                self.output_text_ctrl.AppendText(f"🌿 Branch locali: {len(local_branches)}\n")
-                self.output_text_ctrl.AppendText(f"🌐 Branch remoti: {len(remote_branches)}\n")
+                details += f"🌿 Branch locali: {len(local_branches)}\n"
+                details += f"🌐 Branch remoti: {len(remote_branches)}\n"
             
             # Dimensione repository
             try:
@@ -6948,9 +7014,9 @@ class GitFrame(wx.Frame):
                         git_dir_size += os.path.getsize(filepath)
                 
                 size_mb = git_dir_size / (1024 * 1024)
-                self.output_text_ctrl.AppendText(f"💾 Dimensione .git: {size_mb:.1f} MB\n")
+                details += f"💾 Dimensione .git: {size_mb:.1f} MB\n"
             except:
-                pass
+                details += f"💾 Dimensione .git: ❓ Non calcolabile\n"
             
             # File tracciati
             result = subprocess.run(["git", "ls-files"], 
@@ -6958,58 +7024,93 @@ class GitFrame(wx.Frame):
                                   creationflags=process_flags)
             if result.returncode == 0:
                 tracked_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
-                self.output_text_ctrl.AppendText(f"📄 File tracciati: {len(tracked_files)}\n")
+                details += f"📄 File tracciati: {len(tracked_files)}\n"
             
-            self.output_text_ctrl.AppendText(_("\n✨ Statistiche completate!\n"))
+            # Primo e ultimo commit
+            try:
+                # Primo commit
+                result = subprocess.run(["git", "log", "--reverse", "--oneline", "-1"], 
+                                      cwd=repo_path, capture_output=True, text=True,
+                                      creationflags=process_flags)
+                if result.returncode == 0 and result.stdout:
+                    first_commit = result.stdout.strip()
+                    details += f"🌱 Primo commit: {first_commit}\n"
+                
+                # Ultimo commit
+                result = subprocess.run(["git", "log", "--oneline", "-1"], 
+                                      cwd=repo_path, capture_output=True, text=True,
+                                      creationflags=process_flags)
+                if result.returncode == 0 and result.stdout:
+                    last_commit = result.stdout.strip()
+                    details += f"🔚 Ultimo commit: {last_commit}\n"
+            except:
+                pass
+            
+            details += _("\n✨ Statistiche completate con successo!")
+            
+            return {
+                'success': True,
+                'details': details
+            }
             
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore nelle statistiche: {e}\n")
+            return {
+                'success': False,
+                'error_details': f"Errore nella raccolta statistiche: {e}"
+            }
 
-    def _show_recent_activity(self, repo_path):
-        """Mostra attività recente nel repository."""
-        self.output_text_ctrl.AppendText(_("\n📅 === ATTIVITÀ RECENTE (Ultimi 10 commit) ===\n"))
-        
-        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+    def _get_recent_activity_data(self, repo_path, process_flags):
+        """Raccoglie i dati per l'attività recente."""
+        details = _("📅 === ATTIVITÀ RECENTE (Ultimi 15 commit) ===\n\n")
         
         try:
             result = subprocess.run([
                 "git", "log", "--oneline", "--graph", "--decorate", 
-                "--pretty=format:%h|%s|%an|%cr", "-10"
+                "--pretty=format:%h|%s|%an|%cr|%ad", "--date=short", "-15"
             ], cwd=repo_path, capture_output=True, text=True, creationflags=process_flags)
             
             if result.returncode == 0 and result.stdout:
                 lines = result.stdout.strip().split('\n')
-                for i, line in enumerate(lines):
+                commit_count = 0
+                
+                for line in lines:
                     if '|' in line:
                         # Rimuovi i caratteri del graph
                         clean_line = line
-                        for char in ['*', '|', '\\', '/', ' ']:
-                            if clean_line.startswith(char):
-                                clean_line = clean_line[1:]
-                            else:
-                                break
+                        graph_chars = ['*', '|', '\\', '/', ' ']
+                        while clean_line and clean_line[0] in graph_chars:
+                            clean_line = clean_line[1:]
                         
                         parts = clean_line.split('|')
-                        if len(parts) >= 4:
-                            hash_val, message, author, time = parts[0], parts[1], parts[2], parts[3]
-                            self.output_text_ctrl.AppendText(f"  {i+1:2d}. [{hash_val}] {message}\n")
-                            self.output_text_ctrl.AppendText(f"      👤 {author} • ⏰ {time}\n")
-                    else:
-                        # Linea del graph senza commit info
-                        self.output_text_ctrl.AppendText(f"      {line}\n")
+                        if len(parts) >= 5:
+                            hash_val, message, author, time_ago, date = parts[0], parts[1], parts[2], parts[3], parts[4]
+                            commit_count += 1
+                            details += f"  {commit_count:2d}. [{hash_val}] {message}\n"
+                            details += f"      👤 {author} • ⏰ {time_ago} ({date})\n\n"
                 
-                self.output_text_ctrl.AppendText(_("\n✨ Attività recente completata!\n"))
+                if commit_count == 0:
+                    details += _("❌ Nessun commit trovato o formato non riconosciuto.\n")
+                else:
+                    details += f"📊 Totale commit mostrati: {commit_count}\n"
+                    details += _("\n✨ Attività recente recuperata con successo!")
             else:
-                self.output_text_ctrl.AppendText("❌ Nessun commit trovato o errore nel recupero.\n")
-                
+                details += _("❌ Errore nel recupero dei commit o repository vuoto.\n")
+                details += f"Output Git: {result.stderr[:200] if result.stderr else 'Nessun errore specifico'}"
+            
+            return {
+                'success': True,
+                'details': details
+            }
+            
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore nell'attività recente: {e}\n")
+            return {
+                'success': False,
+                'error_details': f"Errore nel recupero attività recente: {e}"
+            }
 
-    def _show_branch_status(self, repo_path):
-        """Mostra stato dettagliato dei branch."""
-        self.output_text_ctrl.AppendText(_("\n🌿 === STATO BRANCH ===\n"))
-        
-        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+    def _get_branch_status_data(self, repo_path, process_flags):
+        """Raccoglie i dati per lo stato dei branch."""
+        details = _("🌿 === STATO BRANCH ===\n\n")
         
         try:
             # Branch corrente
@@ -7017,47 +7118,79 @@ class GitFrame(wx.Frame):
                                   cwd=repo_path, capture_output=True, text=True,
                                   creationflags=process_flags)
             current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
+            details += f"📍 Branch corrente: {current_branch}\n\n"
             
-            # Lista tutti i branch locali
+            # Lista tutti i branch locali con dettagli
             result = subprocess.run(["git", "branch", "-v"], 
                                   cwd=repo_path, capture_output=True, text=True,
                                   creationflags=process_flags)
             
             if result.returncode == 0:
-                self.output_text_ctrl.AppendText(f"📍 Branch corrente: {current_branch}\n\n")
-                self.output_text_ctrl.AppendText("📋 Tutti i branch locali:\n")
+                details += "📋 Branch locali con ultimo commit:\n"
+                branch_count = 0
                 
                 for line in result.stdout.split('\n'):
                     if line.strip():
+                        branch_count += 1
                         if line.startswith('*'):
-                            self.output_text_ctrl.AppendText(f"  ➤ {line[2:]} ← CORRENTE\n")
+                            details += f"  ➤ {line[2:]} ← CORRENTE\n"
                         else:
-                            self.output_text_ctrl.AppendText(f"    {line.strip()}\n")
+                            details += f"    {line.strip()}\n"
+                
+                details += f"\n📊 Totale branch locali: {branch_count}\n"
             
-            # Verifica stato sync con remote
+            # Branch remoti
+            result = subprocess.run(["git", "branch", "-r"], 
+                                  cwd=repo_path, capture_output=True, text=True,
+                                  creationflags=process_flags)
+            
+            if result.returncode == 0:
+                remote_branches = [b.strip() for b in result.stdout.split('\n') if b.strip()]
+                details += f"🌐 Branch remoti: {len(remote_branches)}\n"
+                
+                if remote_branches:
+                    details += "\n🔗 Branch remoti:\n"
+                    for branch in remote_branches[:10]:  # Primi 10
+                        details += f"    {branch}\n"
+                    if len(remote_branches) > 10:
+                        details += f"    ... e altri {len(remote_branches) - 10} branch\n"
+            
+            # Verifica stato sync con remote per branch corrente
             try:
                 result = subprocess.run(["git", "status", "-b", "--porcelain"], 
                                       cwd=repo_path, capture_output=True, text=True,
                                       creationflags=process_flags)
                 if result.returncode == 0:
                     status_line = result.stdout.split('\n')[0] if result.stdout else ""
-                    if 'ahead' in status_line or 'behind' in status_line:
-                        self.output_text_ctrl.AppendText(f"\n📊 Sync status: {status_line}\n")
+                    details += f"\n🔄 Stato sync branch '{current_branch}':\n"
+                    
+                    if 'ahead' in status_line and 'behind' in status_line:
+                        details += "   ⚠️ Branch divergente (ahead e behind)\n"
+                    elif 'ahead' in status_line:
+                        details += "   📤 Branch avanti rispetto al remote\n"
+                    elif 'behind' in status_line:
+                        details += "   📥 Branch indietro rispetto al remote\n"
                     else:
-                        self.output_text_ctrl.AppendText(f"\n✅ Branch '{current_branch}' è sincronizzato con remote\n")
+                        details += "   ✅ Branch sincronizzato con remote\n"
             except:
-                pass
+                details += f"\n❓ Stato sync per '{current_branch}': non determinabile\n"
             
-            self.output_text_ctrl.AppendText(_("\n✨ Stato branch completato!\n"))
+            details += _("\n✨ Stato branch recuperato con successo!")
+            
+            return {
+                'success': True,
+                'details': details
+            }
             
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore nello stato branch: {e}\n")
+            return {
+                'success': False,
+                'error_details': f"Errore nel recupero stato branch: {e}"
+            }
 
-    def _show_file_changes_summary(self, repo_path):
-        """Mostra riepilogo delle modifiche ai file."""
-        self.output_text_ctrl.AppendText(_("\n📝 === RIEPILOGO MODIFICHE FILE ===\n"))
-        
-        process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+    def _get_file_changes_data(self, repo_path, process_flags):
+        """Raccoglie i dati per il riepilogo modifiche file."""
+        details = _("📝 === RIEPILOGO MODIFICHE FILE ===\n\n")
         
         try:
             # Status dettagliato
@@ -7067,68 +7200,113 @@ class GitFrame(wx.Frame):
             
             if result.returncode == 0:
                 if not result.stdout.strip():
-                    self.output_text_ctrl.AppendText("✅ Nessuna modifica pending - working directory pulita!\n")
-                    return
+                    details += "✅ Nessuna modifica pending - working directory pulita!\n"
+                    details += _("\n🎉 Il repository è in uno stato pulito e sincronizzato.")
+                    return {
+                        'success': True,
+                        'details': details
+                    }
                 
                 # Categorizza le modifiche
                 modified = []
                 added = []
                 deleted = []
                 untracked = []
+                renamed = []
+                copied = []
                 
                 for line in result.stdout.strip().split('\n'):
                     if len(line) >= 2:
                         status = line[:2]
                         filename = line[2:].strip()
-                        if status.startswith('M'):
-                            modified.append(filename)
+                        
+                        if status.startswith('M') or status.endswith('M'):
+                            modified.append((status, filename))
                         elif status.startswith('A'):
-                            added.append(filename)
+                            added.append((status, filename))
                         elif status.startswith('D'):
-                            deleted.append(filename)
+                            deleted.append((status, filename))
+                        elif status.startswith('R'):
+                            renamed.append((status, filename))
+                        elif status.startswith('C'):
+                            copied.append((status, filename))
                         elif status.startswith('??'):
-                            untracked.append(filename)
+                            untracked.append((status, filename))
                 
                 # Mostra summary
-                total_changes = len(modified) + len(added) + len(deleted) + len(untracked)
-                self.output_text_ctrl.AppendText(f"📊 Totale file modificati: {total_changes}\n\n")
+                total_changes = len(modified) + len(added) + len(deleted) + len(untracked) + len(renamed) + len(copied)
+                details += f"📊 Totale file con modifiche: {total_changes}\n\n"
                 
                 if modified:
-                    self.output_text_ctrl.AppendText(f"📝 File modificati ({len(modified)}):\n")
-                    for file in modified[:10]:  # Primi 10
-                        self.output_text_ctrl.AppendText(f"   M  {file}\n")
-                    if len(modified) > 10:
-                        self.output_text_ctrl.AppendText(f"   ... e altri {len(modified) - 10} file\n")
-                    self.output_text_ctrl.AppendText("\n")
+                    details += f"📝 File modificati ({len(modified)}):\n"
+                    for status, file in modified[:15]:  # Primi 15
+                        details += f"   {status}  {file}\n"
+                    if len(modified) > 15:
+                        details += f"   ... e altri {len(modified) - 15} file modificati\n"
+                    details += "\n"
                 
                 if added:
-                    self.output_text_ctrl.AppendText(f"➕ File aggiunti ({len(added)}):\n")
-                    for file in added[:10]:
-                        self.output_text_ctrl.AppendText(f"   A  {file}\n")
-                    if len(added) > 10:
-                        self.output_text_ctrl.AppendText(f"   ... e altri {len(added) - 10} file\n")
-                    self.output_text_ctrl.AppendText("\n")
+                    details += f"➕ File aggiunti ({len(added)}):\n"
+                    for status, file in added[:15]:
+                        details += f"   {status}  {file}\n"
+                    if len(added) > 15:
+                        details += f"   ... e altri {len(added) - 15} file aggiunti\n"
+                    details += "\n"
                 
                 if deleted:
-                    self.output_text_ctrl.AppendText(f"❌ File eliminati ({len(deleted)}):\n")
-                    for file in deleted[:10]:
-                        self.output_text_ctrl.AppendText(f"   D  {file}\n")
-                    if len(deleted) > 10:
-                        self.output_text_ctrl.AppendText(f"   ... e altri {len(deleted) - 10} file\n")
-                    self.output_text_ctrl.AppendText("\n")
+                    details += f"❌ File eliminati ({len(deleted)}):\n"
+                    for status, file in deleted[:15]:
+                        details += f"   {status}  {file}\n"
+                    if len(deleted) > 15:
+                        details += f"   ... e altri {len(deleted) - 15} file eliminati\n"
+                    details += "\n"
+                
+                if renamed:
+                    details += f"🔄 File rinominati ({len(renamed)}):\n"
+                    for status, file in renamed[:10]:
+                        details += f"   {status}  {file}\n"
+                    if len(renamed) > 10:
+                        details += f"   ... e altri {len(renamed) - 10} file rinominati\n"
+                    details += "\n"
+                
+                if copied:
+                    details += f"📋 File copiati ({len(copied)}):\n"
+                    for status, file in copied[:10]:
+                        details += f"   {status}  {file}\n"
+                    if len(copied) > 10:
+                        details += f"   ... e altri {len(copied) - 10} file copiati\n"
+                    details += "\n"
                 
                 if untracked:
-                    self.output_text_ctrl.AppendText(f"❓ File non tracciati ({len(untracked)}):\n")
-                    for file in untracked[:10]:
-                        self.output_text_ctrl.AppendText(f"   ?? {file}\n")
-                    if len(untracked) > 10:
-                        self.output_text_ctrl.AppendText(f"   ... e altri {len(untracked) - 10} file\n")
+                    details += f"❓ File non tracciati ({len(untracked)}):\n"
+                    for status, file in untracked[:15]:
+                        details += f"   {status}  {file}\n"
+                    if len(untracked) > 15:
+                        details += f"   ... e altri {len(untracked) - 15} file non tracciati\n"
+                    details += "\n"
+                
+                # Suggerimenti azioni
+                details += "💡 Azioni suggerite:\n"
+                if modified or deleted:
+                    details += f"   • Usa '{CMD_ADD_ALL}' per mettere in stage tutte le modifiche\n"
+                if added or modified or deleted:
+                    details += f"   • Usa '{CMD_COMMIT}' per creare un commit dopo staging\n"
+                if untracked:
+                    details += "   • Aggiungi file importanti o usa .gitignore per escludere quelli non necessari\n"
             
-            self.output_text_ctrl.AppendText(_("\n✨ Riepilogo modifiche completato!\n"))
+            details += _("\n✨ Riepilogo modifiche completato con successo!")
+            
+            return {
+                'success': True,
+                'details': details
+            }
             
         except Exception as e:
-            self.output_text_ctrl.AppendText(f"❌ Errore nel riepilogo modifiche: {e}\n")
-
+            return {
+                'success': False,
+                'error_details': f"Errore nel riepilogo modifiche: {e}"
+            }
+     
 # === GESTORI EVENTI MENU ===
 
     def OnMenuChangeRepository(self, event):
