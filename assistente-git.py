@@ -2521,6 +2521,655 @@ class GitFrame(wx.Frame):
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
+    def should_use_details_dialog(self, command_name):
+        """Tutti i comandi Git usano ShowDetailsDialog per una UX consistente."""
+        return True  # Tutti i comandi usano la dialog!
+
+    def format_git_output_for_dialog(self, command_name, stdout, stderr, success):
+        """Formatta l'output Git per la visualizzazione in ShowDetailsDialog."""
+        
+        # Comandi con formattazione speciale
+        if command_name == CMD_STATUS:
+            return self._format_status_output(stdout, stderr, success)
+        elif command_name == CMD_DIFF or command_name == CMD_DIFF_STAGED:
+            return self._format_diff_output(stdout, stderr, success, command_name)
+        elif command_name == CMD_LOG_CUSTOM:
+            return self._format_log_output(stdout, stderr, success)
+        elif command_name == CMD_GREP:
+            return self._format_grep_output(stdout, stderr, success)
+        elif command_name == CMD_LS_FILES:
+            return self._format_ls_files_output(stdout, stderr, success)
+        elif command_name == CMD_BRANCH_A:
+            return self._format_branch_output(stdout, stderr, success)
+        elif command_name == CMD_REMOTE_V:
+            return self._format_remote_output(stdout, stderr, success)
+        elif command_name == CMD_SHOW_COMMIT:
+            return self._format_show_commit_output(stdout, stderr, success)
+        
+        # Comandi di azione (commit, push, pull, etc.) - formattazione generica ma efficace
+        elif command_name in [CMD_COMMIT, CMD_PUSH, CMD_PULL, CMD_ADD_ALL, CMD_FETCH_ORIGIN]:
+            return self._format_action_command_output(command_name, stdout, stderr, success)
+        
+        # Comandi di modifica repository (checkout, merge, etc.)
+        elif command_name in [CMD_CHECKOUT_B, CMD_CHECKOUT_EXISTING, CMD_MERGE, CMD_BRANCH_D, CMD_BRANCH_FORCE_D]:
+            return self._format_modification_command_output(command_name, stdout, stderr, success)
+        
+        # Comandi di configurazione (remote, init, etc.)
+        elif command_name in [CMD_INIT_REPO, CMD_REMOTE_ADD_ORIGIN, CMD_REMOTE_SET_URL, CMD_TAG_LIGHTWEIGHT]:
+            return self._format_config_command_output(command_name, stdout, stderr, success)
+        
+        # Tutti gli altri comandi - formattazione generica intelligente
+        else:
+            return self._format_smart_generic_output(command_name, stdout, stderr, success)
+
+    def _format_status_output(self, stdout, stderr, success):
+        """Formatta l'output di git status."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Status"),
+                'message': _("Impossibile recuperare lo stato del repository"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("✅ Repository Pulito"),
+                'message': _("Il repository è in uno stato pulito"),
+                'details': _("🎉 STATO REPOSITORY\n\n✅ Working directory pulita\n✅ Nessuna modifica in stage\n✅ Tutto sincronizzato"),
+                'suggestions': None
+            }
+        
+        # Analizza l'output per fornire un riassunto
+        lines = stdout.strip().split('\n')
+        modified_files = 0
+        staged_files = 0
+        untracked_files = 0
+        
+        for line in lines:
+            if 'modified:' in line:
+                modified_files += 1
+            elif 'new file:' in line:
+                staged_files += 1
+            elif 'Untracked files:' in line:
+                break  # I file non tracciati sono listati dopo
+        
+        # Conta i file non tracciati
+        in_untracked_section = False
+        for line in lines:
+            if 'Untracked files:' in line:
+                in_untracked_section = True
+            elif in_untracked_section and line.startswith('\t'):
+                untracked_files += 1
+        
+        summary = f"📊 RIEPILOGO MODIFICHE:\n"
+        summary += f"• File modificati: {modified_files}\n"
+        summary += f"• File in stage: {staged_files}\n"
+        summary += f"• File non tracciati: {untracked_files}\n\n"
+        
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        suggestions = None
+        if modified_files > 0 or untracked_files > 0:
+            suggestions = f"Usa '{CMD_ADD_ALL}' per aggiungere modifiche, poi '{CMD_COMMIT}' per committare."
+        
+        return {
+            'title': _("📋 Stato Repository"),
+            'message': _("Stato repository recuperato con successo"),
+            'details': formatted_details,
+            'suggestions': suggestions
+        }
+
+    def _format_diff_output(self, stdout, stderr, success, command_name):
+        """Formatta l'output di git diff."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Diff"),
+                'message': _("Impossibile recuperare le differenze"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida.")
+            }
+        
+        diff_type = "staged" if command_name == CMD_DIFF_STAGED else "working directory"
+        
+        if not stdout.strip():
+            return {
+                'title': _("ℹ️ Nessuna Differenza"),
+                'message': _(f"Nessuna modifica trovata in {diff_type}"),
+                'details': _("🔍 ANALISI DIFFERENZE\n\n✅ Nessuna modifica rilevata\n\nQuesto significa che:\n• Non ci sono file modificati da mostrare\n• Il working directory è sincronizzato"),
+                'suggestions': None
+            }
+        
+        # Analizza le statistiche del diff
+        lines = stdout.split('\n')
+        files_changed = 0
+        additions = 0
+        deletions = 0
+        
+        for line in lines:
+            if line.startswith('+++') or line.startswith('---'):
+                if not line.endswith('/dev/null'):
+                    files_changed += 1
+            elif line.startswith('+') and not line.startswith('+++'):
+                additions += 1
+            elif line.startswith('-') and not line.startswith('---'):
+                deletions += 1
+        
+        files_changed = files_changed // 2  # Ogni file ha sia +++ che ---
+        
+        summary = f"📊 STATISTICHE DIFF ({diff_type}):\n"
+        summary += f"• File modificati: {files_changed}\n"
+        summary += f"• Righe aggiunte: {additions}\n"
+        summary += f"• Righe rimosse: {deletions}\n\n"
+        
+        formatted_details = f"{summary}🔍 DIFFERENZE COMPLETE:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _(f"🔍 Differenze - {diff_type.title()}"),
+            'message': _(f"Differenze {diff_type} recuperate con successo"),
+            'details': formatted_details,
+            'suggestions': _("Usa i marker +/- per identificare aggiunte e rimozioni.")
+        }
+
+    def _format_log_output(self, stdout, stderr, success):
+        """Formatta l'output di git log."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Log"),
+                'message': _("Impossibile recuperare la cronologia"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida con commit.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("ℹ️ Nessun Commit"),
+                'message': _("Nessun commit trovato nel repository"),
+                'details': _("📅 CRONOLOGIA COMMIT\n\n❌ Repository vuoto o nessun commit nel range specificato"),
+                'suggestions': _("Crea il primo commit o verifica i parametri di ricerca.")
+            }
+        
+        # Conta i commit
+        commit_count = len([line for line in stdout.split('\n') if line.strip() and not line.startswith(' ')])
+        
+        summary = f"📅 CRONOLOGIA COMMIT:\n"
+        summary += f"• Commit mostrati: {commit_count}\n"
+        summary += f"• Ordinati dal più recente al più vecchio\n\n"
+        
+        formatted_details = f"{summary}📋 DETTAGLIO COMMIT:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _("📅 Cronologia Commit"),
+            'message': _(f"Recuperati {commit_count} commit dalla cronologia"),
+            'details': formatted_details,
+            'suggestions': _("Usa gli hash per riferimenti specifici ai commit.")
+        }
+
+    def _format_grep_output(self, stdout, stderr, success):
+        """Formatta l'output di git grep."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Grep"),
+                'message': _("Errore durante la ricerca"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica la sintassi del pattern di ricerca.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("🔍 Nessun Risultato"),
+                'message': _("Nessuna corrispondenza trovata"),
+                'details': _("🔍 RISULTATI RICERCA\n\n❌ Nessuna corrispondenza trovata per il pattern specificato\n\nProva a:\n• Verificare l'ortografia\n• Usare pattern più generici\n• Controllare che i file contengano il testo cercato"),
+                'suggestions': _("Modifica il pattern di ricerca o verifica i contenuti dei file.")
+            }
+        
+        # Conta risultati e file
+        lines = stdout.strip().split('\n')
+        results_count = len(lines)
+        files_with_matches = len(set(line.split(':')[0] for line in lines if ':' in line))
+        
+        summary = f"🔍 RISULTATI RICERCA:\n"
+        summary += f"• Corrispondenze trovate: {results_count}\n"
+        summary += f"• File con corrispondenze: {files_with_matches}\n\n"
+        
+        formatted_details = f"{summary}📋 DETTAGLIO RISULTATI:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _("🔍 Risultati Ricerca"),
+            'message': _(f"Trovate {results_count} corrispondenze in {files_with_matches} file"),
+            'details': formatted_details,
+            'suggestions': _("I risultati mostrano 'file:riga:contenuto' per ogni corrispondenza.")
+        }
+
+    def _format_ls_files_output(self, stdout, stderr, success):
+        """Formatta l'output di git ls-files."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Ls-Files"),
+                'message': _("Impossibile elencare i file"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("ℹ️ Nessun File"),
+                'message': _("Nessun file trovato"),
+                'details': _("📄 FILE TRACCIATI\n\n❌ Nessun file corrisponde ai criteri di ricerca\n\nPossibili cause:\n• Repository vuoto\n• Pattern troppo specifico\n• Nessun file ancora tracciato da Git"),
+                'suggestions': _("Aggiungi file al repository o modifica il pattern di ricerca.")
+            }
+        
+        files = stdout.strip().split('\n')
+        file_count = len([f for f in files if f.strip()])
+        
+        # Analizza tipi di file
+        extensions = {}
+        for file in files:
+            if '.' in file:
+                ext = file.split('.')[-1].lower()
+                extensions[ext] = extensions.get(ext, 0) + 1
+        
+        summary = f"📄 FILE TRACCIATI DA GIT:\n"
+        summary += f"• Totale file: {file_count}\n"
+        
+        if extensions:
+            summary += f"• Tipi di file principali:\n"
+            for ext, count in sorted(extensions.items(), key=lambda x: x[1], reverse=True)[:5]:
+                summary += f"  - .{ext}: {count} file\n"
+        
+        summary += "\n"
+        
+        formatted_details = f"{summary}📋 ELENCO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _("📄 File Tracciati"),
+            'message': _(f"Trovati {file_count} file tracciati da Git"),
+            'details': formatted_details,
+            'suggestions': None
+        }
+
+    def _format_branch_output(self, stdout, stderr, success):
+        """Formatta l'output di git branch -a."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Branch"),
+                'message': _("Impossibile elencare i branch"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida.")
+            }
+        
+        lines = stdout.strip().split('\n') if stdout.strip() else []
+        
+        local_branches = []
+        remote_branches = []
+        current_branch = ""
+        
+        for line in lines:
+            line = line.strip()
+            if line.startswith('*'):
+                current_branch = line[2:].strip()
+                local_branches.append(current_branch)
+            elif line.startswith('remotes/'):
+                remote_branches.append(line[8:])  # Rimuovi "remotes/"
+            elif line and not line.startswith('remotes/'):
+                local_branches.append(line)
+        
+        summary = f"🌿 BRANCH REPOSITORY:\n"
+        summary += f"• Branch corrente: {current_branch}\n"
+        summary += f"• Branch locali: {len(local_branches)}\n"
+        summary += f"• Branch remoti: {len(remote_branches)}\n\n"
+        
+        formatted_details = f"{summary}📋 ELENCO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        suggestions = None
+        if len(local_branches) > 1:
+            suggestions = f"Usa '{CMD_CHECKOUT_EXISTING}' per cambiare branch."
+        
+        return {
+            'title': _("🌿 Branch Repository"),
+            'message': _(f"Trovati {len(local_branches)} branch locali e {len(remote_branches)} remoti"),
+            'details': formatted_details,
+            'suggestions': suggestions
+        }
+
+    def _format_remote_output(self, stdout, stderr, success):
+        """Formatta l'output di git remote -v."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Remote"),
+                'message': _("Impossibile elencare i remote"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica di essere in una directory Git valida.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("ℹ️ Nessun Remote"),
+                'message': _("Nessun repository remoto configurato"),
+                'details': _("🌐 REPOSITORY REMOTI\n\n❌ Nessun remote configurato\n\nPer aggiungere un remote:\n• Usa il comando per aggiungere origin\n• Configura manualmente con git remote add"),
+                'suggestions': f"Usa '{CMD_REMOTE_ADD_ORIGIN}' per configurare un remote."
+            }
+        
+        lines = stdout.strip().split('\n')
+        remotes = {}
+        
+        for line in lines:
+            parts = line.split('\t')
+            if len(parts) >= 2:
+                name = parts[0]
+                url_and_type = parts[1]
+                url = url_and_type.split(' ')[0]
+                
+                if name not in remotes:
+                    remotes[name] = url
+        
+        summary = f"🌐 REPOSITORY REMOTI:\n"
+        summary += f"• Remoti configurati: {len(remotes)}\n"
+        
+        for name, url in remotes.items():
+            summary += f"• {name}: {url}\n"
+        
+        summary += "\n"
+        
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _("🌐 Repository Remoti"),
+            'message': _(f"Configurati {len(remotes)} repository remoti"),
+            'details': formatted_details,
+            'suggestions': None
+        }
+
+    def _format_show_commit_output(self, stdout, stderr, success):
+        """Formatta l'output di git show."""
+        if not success:
+            return {
+                'title': _("❌ Errore Git Show"),
+                'message': _("Impossibile mostrare il commit"),
+                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'suggestions': _("Verifica che l'hash o il riferimento del commit sia valido.")
+            }
+        
+        if not stdout.strip():
+            return {
+                'title': _("ℹ️ Nessun Dettaglio"),
+                'message': _("Nessun dettaglio disponibile per il commit"),
+                'details': _("📄 DETTAGLI COMMIT\n\n❌ Nessun dettaglio disponibile"),
+                'suggestions': _("Verifica l'hash o il riferimento del commit.")
+            }
+        
+        # Estrai informazioni base dal commit
+        lines = stdout.split('\n')
+        commit_hash = ""
+        author = ""
+        date = ""
+        message = ""
+        
+        for i, line in enumerate(lines):
+            if line.startswith('commit '):
+                commit_hash = line.split(' ')[1][:8]  # Primi 8 caratteri
+            elif line.startswith('Author: '):
+                author = line[8:]
+            elif line.startswith('Date: '):
+                date = line[6:]
+            elif line.strip() and not any(line.startswith(x) for x in ['commit ', 'Author: ', 'Date: ', 'diff --git']):
+                if not message:
+                    message = line.strip()
+        
+        summary = f"📄 DETTAGLI COMMIT:\n"
+        if commit_hash:
+            summary += f"• Hash: {commit_hash}\n"
+        if author:
+            summary += f"• Autore: {author}\n"
+        if date:
+            summary += f"• Data: {date}\n"
+        if message:
+            summary += f"• Messaggio: {message}\n"
+        summary += "\n"
+        
+        formatted_details = f"{summary}📋 INFORMAZIONI COMPLETE:\n{'-'*50}\n{stdout}"
+        
+        return {
+            'title': _("📄 Dettagli Commit"),
+            'message': _("Dettagli commit recuperati con successo"),
+            'details': formatted_details,
+            'suggestions': _("Usa i marker +/- per vedere le modifiche specifiche.")
+        }
+
+    def _format_action_command_output(self, command_name, stdout, stderr, success):
+        """Formatta output per comandi di azione (commit, push, pull, add, fetch)."""
+        
+        # Determina il tipo di azione
+        action_icons = {
+            CMD_COMMIT: "💾",
+            CMD_PUSH: "📤", 
+            CMD_PULL: "📥",
+            CMD_ADD_ALL: "➕",
+            CMD_FETCH_ORIGIN: "🔄"
+        }
+        
+        icon = action_icons.get(command_name, "⚡")
+        action_name = command_name.split("(")[0].strip()  # Rimuovi descrizioni extra
+        
+        if not success:
+            return {
+                'title': f"❌ {action_name} Fallito",
+                'message': f"Il comando {action_name.lower()} ha riscontrato un errore",
+                'details': f"🚨 ERRORE {action_name.upper()}:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'suggestions': self._get_error_suggestions(command_name, stderr)
+            }
+        
+        # Analizza l'output per successo
+        summary = f"{icon} OPERAZIONE {action_name.upper()} COMPLETATA\n\n"
+        
+        if command_name == CMD_COMMIT:
+            # Estrai hash commit se presente
+            if "commit" in stdout.lower():
+                lines = stdout.split('\n')
+                for line in lines:
+                    if 'commit' in line.lower() and len(line.split()) > 1:
+                        summary += f"📋 Commit creato: {line}\n"
+                        break
+            summary += "✅ Modifiche salvate nel repository\n"
+            
+        elif command_name == CMD_PUSH:
+            if "up-to-date" in stdout.lower():
+                summary += "✅ Repository già aggiornato\n"
+            else:
+                summary += "✅ Modifiche inviate al server remoto\n"
+                
+        elif command_name == CMD_PULL:
+            if "up-to-date" in stdout.lower() or "already up to date" in stdout.lower():
+                summary += "✅ Repository già aggiornato\n"
+            else:
+                summary += "✅ Modifiche scaricate e integrate\n"
+                
+        elif command_name == CMD_ADD_ALL:
+            summary += "✅ Tutte le modifiche aggiunte all'area di stage\n"
+            
+        elif command_name == CMD_FETCH_ORIGIN:
+            summary += "✅ Informazioni remote aggiornate\n"
+        
+        summary += "\n"
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        if stderr and stderr.strip():
+            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+        
+        return {
+            'title': f"{icon} {action_name} Completato",
+            'message': f"Operazione {action_name.lower()} eseguita con successo",
+            'details': formatted_details,
+            'suggestions': self._get_success_suggestions(command_name)
+        }
+
+    def _format_modification_command_output(self, command_name, stdout, stderr, success):
+        """Formatta output per comandi di modifica (checkout, merge, branch operations)."""
+        
+        modification_icons = {
+            CMD_CHECKOUT_B: "🆕",
+            CMD_CHECKOUT_EXISTING: "🔄", 
+            CMD_MERGE: "🔀",
+            CMD_BRANCH_D: "🗑️",
+            CMD_BRANCH_FORCE_D: "💥"
+        }
+        
+        icon = modification_icons.get(command_name, "🔧")
+        action_name = command_name.split("(")[0].strip()
+        
+        if not success:
+            return {
+                'title': f"❌ {action_name} Fallito",
+                'message': f"Impossibile completare l'operazione {action_name.lower()}",
+                'details': f"🚨 ERRORE {action_name.upper()}:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'suggestions': self._get_error_suggestions(command_name, stderr)
+            }
+        
+        summary = f"{icon} MODIFICA REPOSITORY COMPLETATA\n\n"
+        
+        if command_name == CMD_CHECKOUT_B:
+            summary += "✅ Nuovo branch creato e attivato\n"
+        elif command_name == CMD_CHECKOUT_EXISTING:
+            summary += "✅ Passaggio al branch completato\n"
+        elif command_name == CMD_MERGE:
+            summary += "✅ Branch unificati con successo\n"
+        elif command_name in [CMD_BRANCH_D, CMD_BRANCH_FORCE_D]:
+            summary += "✅ Branch eliminato dal repository\n"
+        
+        summary += "\n"
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        if stderr and stderr.strip():
+            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+        
+        return {
+            'title': f"{icon} {action_name} Completato",
+            'message': f"Modifica repository eseguita con successo",
+            'details': formatted_details,
+            'suggestions': self._get_success_suggestions(command_name)
+        }
+
+    def _format_config_command_output(self, command_name, stdout, stderr, success):
+        """Formatta output per comandi di configurazione."""
+        
+        config_icons = {
+            CMD_INIT_REPO: "🎯",
+            CMD_REMOTE_ADD_ORIGIN: "🌐",
+            CMD_REMOTE_SET_URL: "🔗",
+            CMD_TAG_LIGHTWEIGHT: "🏷️"
+        }
+        
+        icon = config_icons.get(command_name, "⚙️")
+        action_name = command_name.split("(")[0].strip()
+        
+        if not success:
+            return {
+                'title': f"❌ {action_name} Fallito",
+                'message': f"Impossibile completare la configurazione",
+                'details': f"🚨 ERRORE CONFIGURAZIONE:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'suggestions': self._get_error_suggestions(command_name, stderr)
+            }
+        
+        summary = f"{icon} CONFIGURAZIONE COMPLETATA\n\n"
+        
+        if command_name == CMD_INIT_REPO:
+            summary += "✅ Repository Git inizializzato\n"
+        elif command_name == CMD_REMOTE_ADD_ORIGIN:
+            summary += "✅ Repository remoto 'origin' aggiunto\n"
+        elif command_name == CMD_REMOTE_SET_URL:
+            summary += "✅ URL repository remoto aggiornato\n"
+        elif command_name == CMD_TAG_LIGHTWEIGHT:
+            summary += "✅ Tag creato nel repository\n"
+        
+        summary += "\n"
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        if stderr and stderr.strip():
+            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+        
+        return {
+            'title': f"{icon} {action_name} Completato",
+            'message': f"Configurazione eseguita con successo",
+            'details': formatted_details,
+            'suggestions': self._get_success_suggestions(command_name)
+        }
+
+    def _format_smart_generic_output(self, command_name, stdout, stderr, success):
+        """Formattazione intelligente per tutti gli altri comandi."""
+        
+        action_name = command_name.split("(")[0].strip()
+        
+        if not success:
+            return {
+                'title': f"❌ {action_name} Fallito",
+                'message': f"Il comando ha riscontrato un errore",
+                'details': f"🚨 ERRORE:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'suggestions': _("Verifica i parametri del comando e lo stato del repository.")
+            }
+        
+        # Determina l'icona in base al tipo di comando
+        icon = "✅"
+        if any(word in action_name.lower() for word in ['stash', 'salva']):
+            icon = "💾"
+        elif any(word in action_name.lower() for word in ['restore', 'ripristina', 'reset']):
+            icon = "🔄"
+        elif any(word in action_name.lower() for word in ['clean', 'pulisci']):
+            icon = "🧹"
+        elif any(word in action_name.lower() for word in ['clone', 'clona']):
+            icon = "📦"
+        
+        summary = f"{icon} OPERAZIONE COMPLETATA\n\n"
+        summary += f"✅ {action_name} eseguito con successo\n\n"
+        
+        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        
+        if stderr and stderr.strip():
+            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+        
+        return {
+            'title': f"{icon} {action_name} Completato",
+            'message': f"Comando eseguito con successo",
+            'details': formatted_details,
+            'suggestions': None
+        }
+
+    def _get_error_suggestions(self, command_name, stderr):
+        """Fornisce suggerimenti specifici in base agli errori."""
+        
+        if not stderr:
+            return None
+            
+        stderr_lower = stderr.lower()
+        
+        # Suggerimenti per errori comuni
+        if "not a git repository" in stderr_lower:
+            return f"Inizializza un repository Git con '{CMD_INIT_REPO}' o verifica di essere nella directory corretta."
+        elif "no upstream branch" in stderr_lower:
+            return "Imposta un upstream branch prima di fare push."
+        elif "conflict" in stderr_lower:
+            return "Risolvi i conflitti di merge prima di continuare."
+        elif "permission denied" in stderr_lower:
+            return "Verifica i permessi di accesso al repository o al file."
+        elif "already exists" in stderr_lower:
+            return "L'elemento specificato esiste già. Usa un nome diverso o elimina quello esistente."
+        elif "does not exist" in stderr_lower or "not found" in stderr_lower:
+            return "Verifica che l'elemento specificato esista e sia accessibile."
+        
+        return "Controlla l'output dell'errore e verifica la sintassi del comando."
+
+    def _get_success_suggestions(self, command_name):
+        """Fornisce suggerimenti per azioni successive dopo il successo."""
+        
+        suggestions_map = {
+            CMD_ADD_ALL: f"Ora puoi creare un commit con '{CMD_COMMIT}'.",
+            CMD_COMMIT: f"Invia le modifiche al server con '{CMD_PUSH}'.",
+            CMD_PULL: f"Se necessario, risolvi eventuali conflitti e crea un commit.",
+            CMD_CHECKOUT_B: f"Inizia a lavorare nel nuovo branch e crea commit.",
+            CMD_INIT_REPO: f"Aggiungi file con '{CMD_ADD_ALL}' e crea il primo commit.",
+            CMD_REMOTE_ADD_ORIGIN: f"Ora puoi fare push con '{CMD_PUSH}'.",
+        }
+        
+        return suggestions_map.get(command_name, None)
 
 
     def handle_list_issues(self, command_name_key, command_details):
@@ -5299,45 +5948,41 @@ class GitFrame(wx.Frame):
                 except Exception as e:
                     full_output += _("Errore durante l'esecuzione di {}: {}\n").format(' '.join(cmd_parts), e); success = False; break
 
-        self.output_text_ctrl.AppendText(full_output)
+        # Scrivi sempre un breve messaggio nel terminale per tracking
+        self.output_text_ctrl.AppendText(_("🔄 Eseguito: {}\n").format(command_name_original_translated))
 
+        # TUTTI i comandi Git ora usano ShowDetailsDialog
         if success:
-            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
-                self.output_text_ctrl.AppendText(_("\nOperazione .gitignore completata con successo.\n"))
-            elif command_name_original_translated == CMD_LS_FILES:
-                self.output_text_ctrl.AppendText(_("\nRicerca file completata.\n"))
-                # Per LS_FILES non mostriamo popup (è solo una ricerca)
-            else:
-                self.output_text_ctrl.AppendText(_("\nComando/i completato/i con successo.\n"))
-                # Mostra popup di successo
-                self.ShowOperationResult(
-                    operation_name=command_name_original_translated,
-                    success=True,
-                    output=full_output
-                )
+            format_data = self.format_git_output_for_dialog(
+                command_name_original_translated, 
+                full_output,  # L'output completo che hai già costruito
+                "",  # stderr separato se necessario 
+                True
+            )
+            
+            self.ShowSuccessNotification(
+                title=format_data['title'],
+                message=format_data['message'],
+                details=format_data['details']
+            )
+            
+            # Aggiungi suggerimenti nel terminale se presenti
+            if format_data.get('suggestions'):
+                self.output_text_ctrl.AppendText(_("💡 {}\n").format(format_data['suggestions']))
         else:
-            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
-                self.output_text_ctrl.AppendText(_("\nErrore durante l'aggiornamento del file .gitignore.\n"))
-                self.ShowOperationResult(
-                    operation_name=command_name_original_translated,
-                    success=False,
-                    error_output=full_output
-                )
-            elif command_name_original_translated == CMD_LS_FILES:
-                self.output_text_ctrl.AppendText(_("\nErrore durante la ricerca dei file.\n"))
-                self.ShowOperationResult(
-                    operation_name=command_name_original_translated,
-                    success=False,
-                    error_output=full_output
-                )
-            elif cmds_to_run: # Solo se c'erano comandi da eseguire
-                self.output_text_ctrl.AppendText(_("\nEsecuzione (o parte di essa) fallita o con errori. Controllare l'output per i dettagli.\n"))
-                self.ShowOperationResult(
-                    operation_name=command_name_original_translated,
-                    success=False,
-                    error_output=full_output
-                )
-
+            format_data = self.format_git_output_for_dialog(
+                command_name_original_translated,
+                full_output,
+                "",  # stderr separato se necessario
+                False
+            )
+            
+            self.ShowErrorNotification(
+                title=format_data['title'],
+                message=format_data['message'],
+                details=format_data['details'],
+                suggestions=format_data.get('suggestions')
+            )
         if success and command_name_original_translated == CMD_AMEND_COMMIT:
             dlg = wx.MessageDialog(self, _("Commit modificato con successo.\n\n"
                                  "ATTENZIONE: Se questo commit era già stato inviato (push) a un repository condiviso, "
