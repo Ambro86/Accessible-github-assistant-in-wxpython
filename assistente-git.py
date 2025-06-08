@@ -3755,31 +3755,11 @@ class GitFrame(wx.Frame):
         
         # Se ci sono dettagli, offri opzione per vederli
         if details and len(details.strip()) > 0:
-            display_message += _("\n\nVuoi vedere i dettagli dell'errore per diagnosticare il problema?")
-            
-            dlg = wx.MessageDialog(
-                self, 
-                display_message, 
-                f"💥 {title}", 
-                wx.YES_NO | wx.ICON_ERROR
-            )
-            
-            dlg.SetYesNoLabels(_("🔍 Vedi Dettagli"), _("😞 Chiudi"))
-            
-            response = dlg.ShowModal()
-            dlg.Destroy()
-            
-            if response == wx.ID_YES:
-                # Mostra dettagli in una finestra separata
-                self.ShowDetailsDialog(title, message, details, is_success=False, suggestions=suggestions)
+            # Mostra dettagli in una finestra separata
+            self.ShowDetailsDialog(title, message, details, is_success=False, suggestions=suggestions)
         else:
-            # Notifica semplice senza dettagli
-            wx.MessageBox(
-                display_message,
-                f"💥 {title}",
-                wx.OK | wx.ICON_ERROR,
-                self
-            )
+            # Solo per errori semplici senza        dettagli - usa MessageBox standard
+            display_message = f"❌ {message}"
 
     def ShowDetailsDialog(self, title, message, details, is_success=True, suggestions=None):
         """Mostra una finestra di dettagli espandibile."""
