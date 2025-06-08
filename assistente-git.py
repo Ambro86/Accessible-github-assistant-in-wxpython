@@ -2475,6 +2475,7 @@ class GitFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
         self.command_tree_ctrl = None
+        self.monitoring_dialog = None  # Traccia la dialog di monitoraggio attiva
         self.monitoring_timer = None
         self.monitoring_run_id = None
         self.monitoring_owner = None
@@ -2521,6 +2522,77 @@ class GitFrame(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+    def _create_monitoring_dialog(self, title, message, details):
+        """Crea una dialog di monitoraggio non-modale che può essere chiusa automaticamente."""
+        
+        # Crea dialog personalizzata
+        dlg = wx.Dialog(self, title=f"🎯 {title}", size=(600, 450))
+        panel = wx.Panel(dlg)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con messaggio principale
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Icona
+        icon_label = wx.StaticText(panel, label="⏱️")
+        icon_font = icon_label.GetFont()
+        icon_font.SetPointSize(20)
+        icon_label.SetFont(icon_font)
+        
+        # Messaggio principale
+        message_label = wx.StaticText(panel, label=message)
+        message_font = message_label.GetFont()
+        message_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        message_font.SetPointSize(11)
+        message_label.SetFont(message_font)
+        
+        header_sizer.Add(icon_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
+        header_sizer.Add(message_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        
+        main_sizer.Add(header_sizer, 0, wx.ALL | wx.EXPAND, 15)
+        
+        # Separator
+        line = wx.StaticLine(panel)
+        main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        
+        # Area dettagli
+        details_label = wx.StaticText(panel, label="📋 Stato Monitoraggio:")
+        details_font = details_label.GetFont()
+        details_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        details_label.SetFont(details_font)
+        main_sizer.Add(details_label, 0, wx.ALL, 15)
+        
+        # Text area per dettagli
+        details_text = wx.TextCtrl(panel, value=details, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        details_text.SetBackgroundColour(wx.Colour(248, 248, 248))
+        
+        # Font monospazio
+        mono_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            details_text.SetFont(mono_font)
+        
+        main_sizer.Add(details_text, 1, wx.ALL | wx.EXPAND, 15)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label="✖️ Chiudi")
+        close_btn.SetDefault()
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
+        
+        btn_sizer.AddStretchSpacer()
+        btn_sizer.Add(close_btn, 0)
+        
+        main_sizer.Add(btn_sizer, 0, wx.ALL | wx.EXPAND, 15)
+        
+        panel.SetSizer(main_sizer)
+        dlg.Center()
+        
+        # Mostra la dialog in modo non-modale
+        dlg.Show()
+        
+        return dlg
 
     def should_use_details_dialog(self, command_name):
         """Tutti i comandi Git usano ShowDetailsDialog per una UX consistente."""
@@ -4440,10 +4512,6 @@ class GitFrame(wx.Frame):
         
         print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval}ms")
         
-        self.output_text_ctrl.AppendText(
-            f"⏱️ Monitoraggio avviato per workflow run ID {run_id}.\n"
-            f"Polling ogni 10 secondi. Durata massima: 30 minuti.\n"
-        )
 
 
     def stop_monitoring_run(self):
@@ -4453,6 +4521,7 @@ class GitFrame(wx.Frame):
             self.monitoring_timer.Stop()
             self.monitoring_timer.Destroy()
             self.monitoring_timer = None
+            
         
         # Reset delle variabili di monitoraggio
         self.monitoring_run_id = None
@@ -4460,6 +4529,15 @@ class GitFrame(wx.Frame):
         self.monitoring_repo = None
         self.monitoring_start_time = None
         self.monitoring_poll_count = 0
+        if hasattr(self, 'monitoring_dialog') and self.monitoring_dialog:
+            try:
+                self.monitoring_dialog.EndModal(wx.ID_CLOSE)
+                self.monitoring_dialog.Destroy()
+            except:
+                pass  # Dialog già chiusa
+            self.monitoring_dialog = None
+
+
     def on_monitoring_timer(self, event):
         """Callback del timer per il monitoraggio del workflow run."""
         try:
@@ -4527,7 +4605,15 @@ class GitFrame(wx.Frame):
 
             # 6) Il workflow NON è più "in progress" → è terminato o cancellato
             print(f"DEBUG_MONITOR: Workflow terminato! Status: {current_status}, Conclusion: {current_conclusion}")
-            
+            if self.monitoring_dialog:
+                try:
+                    self.monitoring_dialog.EndModal(wx.ID_CLOSE)
+                    self.monitoring_dialog.Destroy()
+                except:
+                    pass  # Dialog già chiusa o errore
+                self.monitoring_dialog = None
+
+
             # Recupero dati locali prima di azzerare lo stato
             run_id_local = self.monitoring_run_id
             owner_local = self.monitoring_owner
@@ -4631,7 +4717,15 @@ class GitFrame(wx.Frame):
             # Gestione specifica per errori HTTP (es. 404 quando la run viene cancellata)
             if http_err.response.status_code == 404:
                 print(f"DEBUG_MONITOR: Run ID {self.monitoring_run_id} non trovata (404) - probabilmente cancellata")
+                if self.monitoring_dialog:
+                    try:
+                        self.monitoring_dialog.EndModal(wx.ID_CLOSE)
+                        self.monitoring_dialog.Destroy()
+                    except:
+                        pass
+                    self.monitoring_dialog = None
                 
+
                 # Recupero dati prima di fermare il monitoraggio
                 run_id_local = self.monitoring_run_id
                 owner_local = self.monitoring_owner
@@ -6143,7 +6237,7 @@ class GitFrame(wx.Frame):
         except Exception as e:
             print(f"DEBUG_WORKFLOWS: Errore recupero workflow: {e}")
             return []
-    def auto_find_and_monitor_latest_run(self, workflow_name=None): # Firma modificata
+    def auto_find_and_monitor_latest_run(self, workflow_name=None):
         """Trova automaticamente l'ultima run e avvia il monitoraggio."""
         try:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
@@ -6151,9 +6245,9 @@ class GitFrame(wx.Frame):
             if self.github_token:
                 headers["Authorization"] = f"Bearer {self.github_token}"
 
-            params = {'per_page': 5} # Recupera solo le prime 5 esecuzioni più recenti
+            params = {'per_page': 5}  # Recupera solo le prime 5 esecuzioni più recenti
             response = requests.get(api_url, headers=headers, params=params, timeout=10)
-            response.raise_for_status() # Solleva un'eccezione per errori HTTP (4xx o 5xx)
+            response.raise_for_status()
 
             runs_data = response.json()
             latest_runs = runs_data.get('workflow_runs', [])
@@ -6161,38 +6255,161 @@ class GitFrame(wx.Frame):
             if latest_runs:
                 latest_run = latest_runs[0]  # La più recente è la prima nella lista
                 run_id = latest_run['id']
-                # 1. Definire 'status' PRIMA del suo utilizzo
                 status = latest_run.get('status', 'unknown')
 
-                # 2. Definire il nome del workflow da monitorare/visualizzare.
-                #    Usa 'workflow_name' se è stato passato (dal trigger manuale),
-                #    altrimenti usa il nome dell'esecuzione specifica dall'API.
+                # Usa 'workflow_name' se è stato passato (dal trigger manuale),
+                # altrimenti usa il nome dell'esecuzione specifica dall'API.
                 actual_workflow_name_to_monitor = workflow_name if workflow_name else latest_run.get('name', _('(Nome Workflow Sconosciuto)'))
 
-                # 3. Ora si possono usare 'actual_workflow_name_to_monitor', 'run_id', e 'status'
+                # Breve messaggio nel terminale
                 self.output_text_ctrl.AppendText(
-                    _("🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n").format(actual_workflow_name_to_monitor, run_id, status)
+                    _("🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n").format(
+                        actual_workflow_name_to_monitor, run_id, status
+                    )
                 )
 
                 # Controlla se la run è in uno stato che giustifica il monitoraggio
                 if status.lower() in ['queued', 'in_progress', 'waiting', 'requested', 'pending']:
-                    self.selected_run_id = run_id # Salva l'ID della run selezionata per il monitoraggio
-                    # 4. Impostare 'self.monitoring_workflow_name' che verrà usato dal timer
+                    self.selected_run_id = run_id  # Salva l'ID della run selezionata per il monitoraggio
                     self.monitoring_workflow_name = actual_workflow_name_to_monitor
                     self.start_monitoring_run(run_id, self.github_owner, self.github_repo)
-                    self.output_text_ctrl.AppendText(_("🔄 Monitoraggio automatico avviato!\n"))
+                    
+                    # Mostra stato monitoraggio nella dialog invece della console
+                    monitoring_details = f"⏱️ MONITORAGGIO WORKFLOW AVVIATO\n\n"
+                    monitoring_details += f"📋 Nome: {actual_workflow_name_to_monitor}\n"
+                    monitoring_details += f"🆔 Run ID: {run_id}\n"
+                    monitoring_details += f"📊 Status: {status}\n"
+                    monitoring_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                    monitoring_details += f"⏰ Avviato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    monitoring_details += "🔄 CONFIGURAZIONE MONITORAGGIO:\n"
+                    monitoring_details += "• Polling ogni 10 secondi\n"
+                    monitoring_details += "• Durata massima: 30 minuti\n"
+                    monitoring_details += "• Notifica automatica al completamento\n"
+                    monitoring_details += "• Beep sonoro durante l'esecuzione (se abilitato)\n\n"
+                    monitoring_details += "✅ STATO ATTUALE:\n"
+                    monitoring_details += "• Monitoraggio attivo e funzionante\n"
+                    monitoring_details += "• Il workflow verrà seguito automaticamente\n"
+                    monitoring_details += "• Riceverai una notifica quando terminerà\n\n"
+                    monitoring_details += "💡 INFORMAZIONI:\n"
+                    monitoring_details += "• Puoi continuare a usare l'applicazione normalmente\n"
+                    monitoring_details += "• Il monitoraggio continua in background\n"
+                    monitoring_details += "• La notifica finale includerà i risultati completi"
+                    if self.monitoring_dialog:
+                        try:
+                            self.monitoring_dialog.EndModal(wx.ID_CLOSE)
+                            self.monitoring_dialog.Destroy()
+                        except:
+                            pass  # Dialog già chiusa
+                        self.monitoring_dialog = None
+
+                    # Crea e mostra la nuova dialog di monitoraggio
+                    self.monitoring_dialog = self._create_monitoring_dialog(
+                        title="⏱️ Monitoraggio Avviato",
+                        message=f"Monitoraggio automatico attivato per '{actual_workflow_name_to_monitor}'",
+                        details=monitoring_details
+                    )
+
+                    # Breve conferma nel terminale
+                    self.output_text_ctrl.AppendText(_("✅ Monitoraggio attivato - progress mostrato in finestra\n"))
                 else:
                     # Se la run è già completata o in uno stato terminale
-                    self.output_text_ctrl.AppendText(_("ℹ️ Il workflow è già terminato ({})\n").format(status))
+                    completion_details = f"ℹ️ WORKFLOW GIÀ COMPLETATO\n\n"
+                    completion_details += f"📋 Nome: {actual_workflow_name_to_monitor}\n"
+                    completion_details += f"🆔 Run ID: {run_id}\n"
+                    completion_details += f"📊 Status: {status}\n"
+                    completion_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                    completion_details += f"⏰ Verificato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    completion_details += "✅ STATO:\n"
+                    completion_details += "• Il workflow è già terminato\n"
+                    completion_details += "• Non è necessario il monitoraggio\n"
+                    completion_details += "• I risultati sono già disponibili\n\n"
+                    completion_details += "💡 AZIONI DISPONIBILI:\n"
+                    completion_details += "• Visualizza i log dell'esecuzione\n"
+                    completion_details += "• Scarica eventuali artifact generati\n"
+                    completion_details += "• Controlla i risultati nei comandi GitHub Actions"
+                    
+                    self.ShowSuccessNotification(
+                        title="ℹ️ Workflow Già Completato",
+                        message=f"'{actual_workflow_name_to_monitor}' è già terminato",
+                        details=completion_details
+                    )
+                    
+                    self.output_text_ctrl.AppendText(_("ℹ️ Workflow già completato ({})\n").format(status))
             else:
-                # Nessuna esecuzione trovata per il repository/branch specificato (implicito nei parametri API)
-                self.output_text_ctrl.AppendText(_("❌ Nessuna esecuzione recente trovata\n"))
+                # Nessuna esecuzione trovata
+                no_runs_details = f"❌ NESSUNA ESECUZIONE RECENTE\n\n"
+                no_runs_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                no_runs_details += f"🔍 Cercato: Ultime 5 esecuzioni\n"
+                no_runs_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                no_runs_details += "❌ RISULTATO:\n"
+                no_runs_details += "• Nessuna esecuzione workflow trovata\n"
+                no_runs_details += "• Il repository potrebbe non avere workflow attivi\n"
+                no_runs_details += "• Le esecuzioni potrebbero essere molto vecchie\n\n"
+                no_runs_details += "🔧 POSSIBILI CAUSE:\n"
+                no_runs_details += "• Il workflow è stato appena creato\n"
+                no_runs_details += "• Non ci sono state esecuzioni recenti\n"
+                no_runs_details += "• Problemi di accesso o permessi\n"
+                no_runs_details += "• Repository senza workflow configurati\n\n"
+                no_runs_details += "💡 SUGGERIMENTI:\n"
+                no_runs_details += "• Verifica che il workflow sia stato effettivamente avviato\n"
+                no_runs_details += "• Controlla lo stato su GitHub Actions\n"
+                no_runs_details += "• Riprova tra qualche secondo"
+                
+                self.ShowErrorNotification(
+                    title="❌ Nessuna Esecuzione Trovata",
+                    message="Non sono state trovate esecuzioni recenti da monitorare",
+                    details=no_runs_details,
+                    suggestions="Verifica che il workflow sia stato avviato correttamente su GitHub."
+                )
 
-        except requests.exceptions.RequestException as e_req: # Gestisce specificamente errori di rete/HTTP
-            self.output_text_ctrl.AppendText(_("❌ Errore di rete/API nel recupero automatico: {}\n").format(e_req))
-        except Exception as e: # Gestisce altre eccezioni impreviste
-            # Se 'e' fosse NameError("name 'status' is not defined"), indicherebbe un problema di logica nel blocco try.
-            self.output_text_ctrl.AppendText(_("❌ Errore imprevisto nel recupero automatico: {}\n").format(e))
+        except requests.exceptions.RequestException as e_req:
+            # Gestisce errori di rete/HTTP
+            error_details = f"🌐 ERRORE CONNESSIONE\n\n"
+            error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+            error_details += f"📝 Dettagli: {e_req}\n"
+            error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+            error_details += "❌ PROBLEMA:\n"
+            error_details += "• Errore di rete durante la ricerca delle esecuzioni\n"
+            error_details += "• Server GitHub temporaneamente non disponibile\n"
+            error_details += "• Problemi di connessione internet\n"
+            error_details += "• Timeout della richiesta\n\n"
+            error_details += "🔧 SOLUZIONI:\n"
+            error_details += "• Verifica la connessione internet\n"
+            error_details += "• Riprova il monitoraggio tra qualche minuto\n"
+            error_details += "• Controlla lo stato dei servizi GitHub\n"
+            error_details += "• Verifica i permessi del token GitHub"
+            
+            self.ShowErrorNotification(
+                title="❌ Errore di Rete",
+                message="Problema di connessione durante la ricerca delle esecuzioni",
+                details=error_details,
+                suggestions="Controlla la connessione e riprova tra qualche minuto."
+            )
+            
+        except Exception as e:
+            # Gestisce altre eccezioni impreviste
+            error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
+            error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+            error_details += f"📝 Dettagli: {e}\n"
+            error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+            error_details += "❌ PROBLEMA:\n"
+            error_details += "• Errore sconosciuto durante la ricerca automatica\n"
+            error_details += "• Possibile problema interno dell'applicazione\n"
+            error_details += "• Risposta inattesa dall'API GitHub\n\n"
+            error_details += "🔧 AZIONI:\n"
+            error_details += "• Riprova l'operazione di monitoraggio\n"
+            error_details += "• Verifica la configurazione GitHub\n"
+            error_details += "• Controlla i log per dettagli aggiuntivi\n"
+            error_details += "• Segnala il problema se persiste"
+            
+            self.ShowErrorNotification(
+                title="❌ Errore Imprevisto",
+                message="Errore sconosciuto durante la ricerca automatica delle esecuzioni",
+                details=error_details,
+                suggestions="Riprova l'operazione o segnala il problema se persiste."
+            )
+
+
     def verify_workflow_cancellation(self, run_id, run_name):
         """Verifica lo stato di un workflow dopo la cancellazione."""
         try:
