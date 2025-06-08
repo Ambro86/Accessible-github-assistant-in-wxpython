@@ -4318,12 +4318,80 @@ class GitFrame(wx.Frame):
 
     def handle_create_issue(self, command_name_key, command_details):
         """Gestisce la creazione di una nuova issue"""
+        # *** NUOVO: VERIFICA REPOSITORY CORRENTE ***
+        repo_path = self.repo_path_ctrl.GetValue()
+        
+        # Controlla se siamo in un repository Git valido
+        if not os.path.isdir(repo_path) or not os.path.isdir(os.path.join(repo_path, ".git")):
+            self.ShowErrorNotification(
+                title="❌ Repository Git Non Valido",
+                message="Non sei in una directory Git valida",
+                details=f"🚨 PROBLEMA REPOSITORY:\n\nPercorso corrente: {repo_path}\n\nIl percorso specificato:\n• Non è una directory valida\n• Non contiene una cartella .git\n• Non è un repository Git inizializzato\n\nPer creare issue:\n• Devi essere nella directory di un repository Git\n• Il repository deve avere un remote GitHub configurato\n• Il repository deve corrispondere a quello configurato in GitHub Actions",
+                suggestions="Vai nella directory del repository Git corretto prima di creare issue."
+            )
+            return
+        
+        # Prova a derivare owner/repo dal repository corrente
+        current_derived_owner, current_derived_repo = self._get_github_repo_details_from_current_path()
+        
+        # Verifica che il repository corrente corrisponda a quello configurato
+        if current_derived_owner and current_derived_repo:
+            if (self.github_owner != current_derived_owner or 
+                self.github_repo != current_derived_repo):
+                
+                # Repository locale diverso da quello configurato
+                confirm_message = _(
+                    "⚠️ DISCREPANZA REPOSITORY RILEVATA\n\n"
+                    "Repository locale attuale:\n"
+                    "🗂️ {}/{}\n\n"
+                    "Repository configurato in GitHub Actions:\n"
+                    "⚙️ {}/{}\n\n"
+                    "L'issue verrà creata nel repository CONFIGURATO ({}), "
+                    "non in quello locale corrente ({}).\n\n"
+                    "Vuoi continuare comunque?"
+                ).format(
+                    current_derived_owner, current_derived_repo,
+                    self.github_owner, self.github_repo,
+                    self.github_repo, current_derived_repo
+                )
+                
+                confirm_dlg = wx.MessageDialog(
+                    self, 
+                    confirm_message,
+                    _("Attenzione: Repository Diversi"), 
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING
+                )
+                
+                if confirm_dlg.ShowModal() != wx.ID_YES:
+                    self.output_text_ctrl.AppendText(_("Creazione issue annullata dall'utente.\n"))
+                    confirm_dlg.Destroy()
+                    return
+                confirm_dlg.Destroy()
+                
+                # Log del warning nel terminale
+                self.output_text_ctrl.AppendText(
+                    _("⚠️ Issue creata in {}/{} (repository configurato) invece di {}/{} (repository locale)\n").format(
+                        self.github_owner, self.github_repo, current_derived_owner, current_derived_repo
+                    )
+                )
+        
+        # Procedi con la verifica della configurazione GitHub
         if not self.github_owner or not self.github_repo:
-            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            self.ShowErrorNotification(
+                title="❌ Configurazione GitHub Mancante",
+                message="Repository GitHub non configurato",
+                details=f"🔧 CONFIGURAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Configurare il repository GitHub (owner/repo)\n2️⃣ Configurare un token GitHub per autenticazione\n\nStato attuale:\n❌ Repository non impostato\n❌ Impossibile creare issue\n\nCosa fare:\n• Imposta il repository tramite configurazione GitHub\n• Assicurati di essere nella directory del repository corretto\n• Verifica che il repository abbia un remote GitHub",
+                suggestions=f"Usa '{CMD_GITHUB_CONFIGURE}' per configurare il repository GitHub."
+            )
             return
         
         if not self.github_token:
-            self.output_text_ctrl.AppendText(_("ERRORE: Token GitHub necessario per creare issue.\n"))
+            self.ShowErrorNotification(
+                title="❌ Token GitHub Mancante",
+                message="Token GitHub necessario per creare issue",
+                details=f"🔐 AUTENTICAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Un token GitHub Personal Access Token (PAT)\n2️⃣ Il token deve avere permessi per creare issue\n\nStato attuale:\n❌ Token non configurato\n❌ Impossibile autenticare con GitHub\n\nPer ottenere un token:\n• Vai su GitHub Settings → Personal Access Tokens\n• Crea un nuovo token con permessi 'repo' o 'issues'\n• Configura il token nell'applicazione",
+                suggestions=f"Configura un token GitHub tramite '{CMD_GITHUB_CONFIGURE}'."
+            )
             return
         
         # Recupera labels e assignees disponibili
@@ -4358,7 +4426,6 @@ class GitFrame(wx.Frame):
             
             self.output_text_ctrl.AppendText(_("🚀 Creazione issue '{}' in corso...\n").format(values["title"]))
             wx.Yield()
-            
             try:
                 response = requests.post(issues_url, headers=headers, json=payload, timeout=15)
                 response.raise_for_status()
@@ -4367,11 +4434,40 @@ class GitFrame(wx.Frame):
                 issue_number = issue_data["number"]
                 issue_url = issue_data["html_url"]
                 
-                self.output_text_ctrl.AppendText(_("✅ Issue #{} creata con successo!\n").format(issue_number))
-                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(issue_url))
+                # Formatta i dettagli per la dialog di successo
+                success_details = f"🎯 ISSUE CREATA CON SUCCESSO\n\n"
+                success_details += f"📋 Titolo: {values['title']}\n"
+                success_details += f"🔢 Numero: #{issue_number}\n"
+                success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                success_details += f"🔗 URL: {issue_url}\n"
+                success_details += f"⏰ Creata: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                
+                if values['labels']:
+                    success_details += f"🏷️ Labels assegnate: {', '.join(values['labels'])}\n"
+                if values['assignees']:
+                    success_details += f"👥 Assegnata a: {', '.join(values['assignees'])}\n"
+                
+                success_details += "\n✅ STATO:\n"
+                success_details += "• Issue creata e disponibile su GitHub\n"
+                success_details += "• Visibile a tutti i collaboratori del repository\n"
+                success_details += "• Pronta per commenti e discussioni\n\n"
+                success_details += "💡 PROSSIMI PASSI:\n"
+                success_details += "• Visualizza l'issue nel browser\n"
+                success_details += "• Aggiungi commenti o aggiornamenti\n"
+                success_details += "• Traccia il progresso del lavoro"
+                
+                # Mostra successo nella dialog
+                self.ShowSuccessNotification(
+                    title="🎯 Issue Creata",
+                    message=f"Issue #{issue_number} creata con successo",
+                    details=success_details
+                )
+                
+                # Breve messaggio nel terminale
+                self.output_text_ctrl.AppendText(_("✅ Issue #{} creata - dettagli mostrati in finestra\n").format(issue_number))
                 
                 # Opzione per aprire nel browser
-                open_browser_msg = _("Vuoi aprire l'issue nel browser?")
+                open_browser_msg = _("Vuoi aprire l'issue #{} nel browser?").format(issue_number)
                 open_dlg = wx.MessageDialog(self, open_browser_msg, _("Apri Issue"), wx.YES_NO | wx.ICON_QUESTION)
                 if open_dlg.ShowModal() == wx.ID_YES:
                     import webbrowser
@@ -4379,33 +4475,139 @@ class GitFrame(wx.Frame):
                 open_dlg.Destroy()
                 
             except requests.exceptions.RequestException as e:
-                self.output_text_ctrl.AppendText(_("❌ Errore durante la creazione dell'issue: {}\n").format(e))
+                # Mostra errore nella dialog invece della console
+                error_details = f"🚨 ERRORE CREAZIONE ISSUE\n\n"
+                error_details += f"📋 Titolo tentato: {values['title']}\n"
+                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"📝 Errore: {e}\n"
+                error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                
                 if hasattr(e, 'response') and e.response is not None:
-                    self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(e.response.text[:300]))
+                    error_details += f"📊 Codice HTTP: {e.response.status_code}\n"
+                    error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
+                    
+                    if e.response.status_code == 401:
+                        error_details += "❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare issue"
+                        suggestions = "Verifica e aggiorna il token GitHub nelle impostazioni."
+                    elif e.response.status_code == 403:
+                        error_details += "❌ ERRORE PERMESSI:\n• Non hai permessi per creare issue in questo repository\n• Repository privato senza accesso"
+                        suggestions = "Verifica di avere accesso in scrittura al repository."
+                    elif e.response.status_code == 404:
+                        error_details += "❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
+                        suggestions = "Verifica la configurazione del repository GitHub."
+                    else:
+                        suggestions = "Controlla la connessione e i permessi del token GitHub."
+                else:
+                    error_details += "❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
+                    suggestions = "Verifica la connessione internet e riprova."
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore Creazione Issue",
+                    message="Impossibile creare l'issue su GitHub",
+                    details=error_details,
+                    suggestions=suggestions
+                )
+
+
         else:
             self.output_text_ctrl.AppendText(_("Creazione issue annullata.\n"))
         
         dlg.Destroy()
 
+
+    
     def handle_create_pull_request(self, command_name_key, command_details):
         """Gestisce la creazione di una nuova pull request"""
+        
+        # *** VERIFICA REPOSITORY CORRENTE - con dialog invece che console ***
+        repo_path = self.repo_path_ctrl.GetValue()
+        
+        # Controlla se siamo in un repository Git valido
+        if not os.path.isdir(repo_path) or not os.path.isdir(os.path.join(repo_path, ".git")):
+            self.ShowErrorNotification(
+                title="❌ Repository Git Non Valido",
+                message="Non sei in una directory Git valida",
+                details=f"🚨 PROBLEMA REPOSITORY:\n\nPercorso corrente: {repo_path}\n\nIl percorso specificato:\n• Non è una directory valida\n• Non contiene una cartella .git\n• Non è un repository Git inizializzato\n\nPer creare Pull Request:\n• Devi essere nella directory di un repository Git\n• Il repository deve avere un remote GitHub configurato\n• Il repository deve corrispondere a quello configurato in GitHub Actions",
+                suggestions="Vai nella directory del repository Git corretto prima di creare PR."
+            )
+            return
+        
+        # Prova a derivare owner/repo dal repository corrente
+        current_derived_owner, current_derived_repo = self._get_github_repo_details_from_current_path()
+        
+        # Verifica che il repository corrente corrisponda a quello configurato
+        if current_derived_owner and current_derived_repo:
+            if (self.github_owner != current_derived_owner or 
+                self.github_repo != current_derived_repo):
+                
+                # Repository locale diverso da quello configurato
+                confirm_message = _(
+                    "⚠️ DISCREPANZA REPOSITORY RILEVATA\n\n"
+                    "Repository locale attuale:\n"
+                    "🗂️ {}/{}\n\n"
+                    "Repository configurato in GitHub Actions:\n"
+                    "⚙️ {}/{}\n\n"
+                    "La Pull Request verrà creata nel repository CONFIGURATO ({}), "
+                    "non in quello locale corrente ({}).\n\n"
+                    "Vuoi continuare comunque?"
+                ).format(
+                    current_derived_owner, current_derived_repo,
+                    self.github_owner, self.github_repo,
+                    self.github_repo, current_derived_repo
+                )
+                
+                confirm_dlg = wx.MessageDialog(
+                    self, 
+                    confirm_message,
+                    _("Attenzione: Repository Diversi"), 
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING
+                )
+                
+                if confirm_dlg.ShowModal() != wx.ID_YES:
+                    # Usa la dialog invece che console
+                    self.ShowErrorNotification(
+                        title="❌ Creazione PR Annullata",
+                        message="Creazione Pull Request annullata dall'utente",
+                        details=f"🚫 OPERAZIONE INTERROTTA:\n\nL'utente ha scelto di non procedere con la creazione della PR nel repository configurato.\n\nRepository locale: {current_derived_owner}/{current_derived_repo}\nRepository configurato: {self.github_owner}/{self.github_repo}\n\nPer evitare questa situazione:\n• Configura il repository corretto nelle impostazioni GitHub\n• Oppure vai nella directory del repository configurato",
+                        suggestions="Configura il repository corretto o vai nella directory appropriata."
+                    )
+                    confirm_dlg.Destroy()
+                    return
+                confirm_dlg.Destroy()
+                
+                # Repository diverso rilevato - informazione già mostrata nella dialog di conferma
+        
+        # Procedi con la verifica della configurazione GitHub
         if not self.github_owner or not self.github_repo:
-            self.output_text_ctrl.AppendText(_("ERRORE: Repository GitHub non configurato.\n"))
+            self.ShowErrorNotification(
+                title="❌ Configurazione GitHub Mancante",
+                message="Repository GitHub non configurato",
+                details=f"🔧 CONFIGURAZIONE RICHIESTA:\n\nPer creare Pull Request è necessario:\n\n1️⃣ Configurare il repository GitHub (owner/repo)\n2️⃣ Configurare un token GitHub per autenticazione\n\nStato attuale:\n❌ Repository non impostato\n❌ Impossibile creare PR\n\nCosa fare:\n• Imposta il repository tramite configurazione GitHub\n• Assicurati di essere nella directory del repository corretto\n• Verifica che il repository abbia un remote GitHub",
+                suggestions=f"Usa '{CMD_GITHUB_CONFIGURE}' per configurare il repository GitHub."
+            )
             return
         
         if not self.github_token:
-            self.output_text_ctrl.AppendText(_("ERRORE: Token GitHub necessario per creare PR.\n"))
+            self.ShowErrorNotification(
+                title="❌ Token GitHub Mancante",
+                message="Token GitHub necessario per creare Pull Request",
+                details=f"🔐 AUTENTICAZIONE RICHIESTA:\n\nPer creare Pull Request è necessario:\n\n1️⃣ Un token GitHub Personal Access Token (PAT)\n2️⃣ Il token deve avere permessi per creare PR\n\nStato attuale:\n❌ Token non configurato\n❌ Impossibile autenticare con GitHub\n\nPer ottenere un token:\n• Vai su GitHub Settings → Personal Access Tokens\n• Crea un nuovo token con permessi 'repo' o 'pull_requests'\n• Configura il token nell'applicazione",
+                suggestions=f"Configura un token GitHub tramite '{CMD_GITHUB_CONFIGURE}'."
+            )
             return
         
-        # Recupera branch disponibili e branch corrente
-        self.output_text_ctrl.AppendText(_("Recupero informazioni branch...\n"))
-        wx.Yield()
+        # Recupera branch disponibili e branch corrente (operazione in background)
         
         branches_list = self.get_repository_branches()
         current_branch = self.get_current_git_branch()
         
         if not branches_list:
-            self.output_text_ctrl.AppendText(_("ERRORE: Impossibile recuperare i branch del repository.\n"))
+            self.ShowErrorNotification(
+                title="❌ Nessun Branch Disponibile",
+                message="Impossibile recuperare i branch del repository",
+                details=f"🌿 ERRORE BRANCH:\n\nNon è stato possibile recuperare la lista dei branch per il repository {self.github_owner}/{self.github_repo}.\n\nPossibili cause:\n• Repository non esistente o non accessibile\n• Token GitHub senza permessi sufficienti\n• Problemi di connessione di rete\n• Repository senza branch configurati\n\nVerifica:\n• Che il repository esista su GitHub\n• Che il token abbia accesso al repository\n• La connessione internet",
+                suggestions="Verifica la configurazione del repository e del token GitHub."
+            )
             return
         
         # Mostra dialog per creare PR
@@ -4414,18 +4616,34 @@ class GitFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             values = dlg.GetValues()
             
+            # *** VALIDAZIONI CON DIALOG INVECE CHE CONSOLE ***
             if not values["title"].strip():
-                self.output_text_ctrl.AppendText(_("ERRORE: Il titolo della PR è obbligatorio.\n"))
+                self.ShowErrorNotification(
+                    title="❌ Titolo Mancante",
+                    message="Il titolo della Pull Request è obbligatorio",
+                    details="📝 CAMPO RICHIESTO:\n\nIl titolo della Pull Request è un campo obbligatorio e non può essere vuoto.\n\nIl titolo serve a:\n• Identificare rapidamente la PR\n• Descrivere brevemente le modifiche\n• Facilitare la revisione del codice\n\nInserisci un titolo descrittivo che spieghi le modifiche apportate.",
+                    suggestions="Torna indietro e inserisci un titolo descrittivo per la Pull Request."
+                )
                 dlg.Destroy()
                 return
             
             if not values["head"] or not values["base"]:
-                self.output_text_ctrl.AppendText(_("ERRORE: Branch di origine e destinazione sono obbligatori.\n"))
+                self.ShowErrorNotification(
+                    title="❌ Branch Non Selezionati",
+                    message="Branch di origine e destinazione sono obbligatori",
+                    details="🌿 SELEZIONE BRANCH RICHIESTA:\n\nPer creare una Pull Request è necessario specificare:\n\n🎯 Branch di origine (HEAD): Il branch con le tue modifiche\n🎯 Branch di destinazione (BASE): Il branch in cui verranno unite le modifiche\n\nEntrambi i branch devono essere selezionati per procedere.\n\nVerifica che:\n• Hai selezionato il branch di origine\n• Hai selezionato il branch di destinazione\n• I branch esistano nel repository",
+                    suggestions="Torna indietro e seleziona entrambi i branch richiesti."
+                )
                 dlg.Destroy()
                 return
             
             if values["head"] == values["base"]:
-                self.output_text_ctrl.AppendText(_("ERRORE: Branch di origine e destinazione non possono essere uguali.\n"))
+                self.ShowErrorNotification(
+                    title="❌ Branch Identici",
+                    message="Branch di origine e destinazione non possono essere uguali",
+                    details=f"🔄 CONFLITTO SELEZIONE BRANCH:\n\nHai selezionato lo stesso branch per origine e destinazione:\n\n❌ Branch selezionato: '{values['head']}'\n\nUna Pull Request serve a unire modifiche TRA branch diversi.\nNon è possibile creare una PR da un branch verso se stesso.\n\nCosa fare:\n• Seleziona un branch diverso per l'origine o la destinazione\n• Assicurati di avere un branch con le tue modifiche\n• Il branch di destinazione dovrebbe essere quello principale (es: main, master)\n\nEsempio tipico:\n🎯 Da: 'feature/nuova-funzionalita'\n🎯 Verso: 'main'",
+                    suggestions="Seleziona branch diversi per origine e destinazione della Pull Request."
+                )
                 dlg.Destroy()
                 return
             
@@ -4438,13 +4656,9 @@ class GitFrame(wx.Frame):
                 "draft": values["draft"]
             }
             
-            # Crea PR via API
+            # Crea PR via API (operazione in background)
             headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             pr_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/pulls"
-            
-            self.output_text_ctrl.AppendText(_("🚀 Creazione PR '{}' da '{}' verso '{}'...\n").format(
-                values["title"], values["head"], values["base"]))
-            wx.Yield()
             
             try:
                 response = requests.post(pr_url, headers=headers, json=payload, timeout=15)
@@ -4454,16 +4668,48 @@ class GitFrame(wx.Frame):
                 pr_number = pr_data["number"]
                 pr_html_url = pr_data["html_url"]
                 
-                self.output_text_ctrl.AppendText(_("✅ Pull Request #{} creata con successo!\n").format(pr_number))
-                self.output_text_ctrl.AppendText(_("🔗 URL: {}\n").format(pr_html_url))
+                # *** SUCCESSO CON DIALOG INVECE CHE CONSOLE ***
+                success_details = f"🎯 PULL REQUEST CREATA CON SUCCESSO\n\n"
+                success_details += f"📋 Titolo: {values['title']}\n"
+                success_details += f"🔢 Numero: #{pr_number}\n"
+                success_details += f"🌿 Branch: {values['head']} → {values['base']}\n"
+                success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                success_details += f"🔗 URL: {pr_html_url}\n"
+                success_details += f"⏰ Creata: {datetime.now().strftime('%H:%M:%S')}\n"
                 
-                # Se auto-merge è richiesto e la PR non è draft
-                if values["auto_merge"] and not values["draft"]:
-                    self.output_text_ctrl.AppendText(_("🔄 Tentativo di abilitare auto-merge...\n"))
-                    # Nota: l'auto-merge richiede API specifiche e configurazione repository
+                if values["draft"]:
+                    success_details += "\n🚧 STATO: Draft (bozza)\n"
+                    success_details += "• La PR è in modalità bozza\n"
+                    success_details += "• Non può essere mergiata finché è draft\n"
+                    success_details += "• Utile per lavori in corso\n"
+                else:
+                    success_details += "\n✅ STATO: Pronta per revisione\n"
+                    success_details += "• La PR è pronta per essere revisionata\n"
+                    success_details += "• Può essere assegnata a reviewer\n"
+                    success_details += "• Può essere mergiata quando approvata\n"
+                
+                if values["auto_merge"]:
+                    success_details += "\n🤖 AUTO-MERGE: Richiesto\n"
+                    success_details += "• La PR verrà mergiata automaticamente quando possibile\n"
+                    success_details += "• Richiede che il repository abbia l'auto-merge abilitato\n"
+                
+                success_details += "\n💡 PROSSIMI PASSI:\n"
+                success_details += "• Visualizza la PR nel browser\n"
+                success_details += "• Assegna reviewer se necessario\n"
+                success_details += "• Monitora lo stato dei check automatici\n"
+                success_details += "• Aggiorna la descrizione se necessario"
+                
+                # Mostra successo nella dialog
+                self.ShowSuccessNotification(
+                    title="🎯 Pull Request Creata",
+                    message=f"PR #{pr_number} creata con successo",
+                    details=success_details
+                )
+                
+                # Se auto-merge è richiesto e la PR non è draft, potrebbe essere configurato automaticamente
                 
                 # Opzione per aprire nel browser
-                open_browser_msg = _("Vuoi aprire la PR nel browser?")
+                open_browser_msg = _("Vuoi aprire la Pull Request nel browser?")
                 open_dlg = wx.MessageDialog(self, open_browser_msg, _("Apri PR"), wx.YES_NO | wx.ICON_QUESTION)
                 if open_dlg.ShowModal() == wx.ID_YES:
                     import webbrowser
@@ -4471,17 +4717,49 @@ class GitFrame(wx.Frame):
                 open_dlg.Destroy()
                 
             except requests.exceptions.RequestException as e:
-                self.output_text_ctrl.AppendText(_("❌ Errore durante la creazione della PR: {}\n").format(e))
+                # *** ERRORE CON DIALOG INVECE CHE CONSOLE ***
+                error_details = f"🚨 ERRORE CREAZIONE PULL REQUEST\n\n"
+                error_details += f"📋 Titolo tentato: {values['title']}\n"
+                error_details += f"🌿 Branch: {values['head']} → {values['base']}\n"
+                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"📝 Errore: {e}\n"
+                error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                
                 if hasattr(e, 'response') and e.response is not None:
-                    error_details = e.response.text[:300]
-                    self.output_text_ctrl.AppendText(_("Dettagli errore: {}\n").format(error_details))
+                    error_details += f"📊 Codice HTTP: {e.response.status_code}\n"
+                    error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
                     
-                    # Gestione errori specifici
-                    if "No commits between" in error_details:
-                        self.output_text_ctrl.AppendText(_("💡 Suggerimento: Assicurati che ci siano commit nel branch '{}' che non sono in '{}'.\n").format(values["head"], values["base"]))
-                    elif "A pull request already exists" in error_details:
-                        self.output_text_ctrl.AppendText(_("💡 Suggerimento: Una PR tra questi branch potrebbe già esistere.\n"))
+                    if e.response.status_code == 401:
+                        error_details += "❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare PR"
+                        suggestions = "Verifica e aggiorna il token GitHub nelle impostazioni."
+                    elif e.response.status_code == 403:
+                        error_details += "❌ ERRORE PERMESSI:\n• Non hai permessi per creare PR in questo repository\n• Repository privato senza accesso"
+                        suggestions = "Verifica di avere accesso in scrittura al repository."
+                    elif e.response.status_code == 404:
+                        error_details += "❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
+                        suggestions = "Verifica la configurazione del repository GitHub."
+                    elif e.response.status_code == 422:
+                        error_details += "❌ DATI NON VALIDI:\n• I branch specificati potrebbero non esistere\n• Non ci sono differenze tra i branch\n• Parametri della PR non validi"
+                        if "No commits between" in e.response.text:
+                            suggestions = f"Non ci sono commit nel branch '{values['head']}' che non sono già in '{values['base']}'. Verifica che ci siano effettivamente delle modifiche da unire."
+                        elif "A pull request already exists" in e.response.text:
+                            suggestions = f"Una Pull Request tra questi branch potrebbe già esistere. Verifica su GitHub."
+                        else:
+                            suggestions = "Verifica che i branch selezionati esistano e abbiano delle differenze."
+                    else:
+                        suggestions = "Controlla la connessione e i permessi del token GitHub."
+                else:
+                    error_details += "❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
+                    suggestions = "Verifica la connessione internet e riprova."
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore Creazione Pull Request",
+                    message="Impossibile creare la Pull Request su GitHub",
+                    details=error_details,
+                    suggestions=suggestions
+                )
         else:
+            # *** ANCHE L'ANNULLAMENTO USA BREVE MESSAGGIO ***
             self.output_text_ctrl.AppendText(_("Creazione PR annullata.\n"))
         
         dlg.Destroy()
