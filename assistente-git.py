@@ -98,7 +98,14 @@ CONFIG_MAGIC_NUMBER_PREFIX = b'AGCF'
 CONFIG_FORMAT_VERSION = 2
 SALT_SIZE = 16
 PBKDF2_ITERATIONS = 390000
-
+# --- ID per Menu Bar ---
+ID_EXPAND_ALL = 2001
+ID_COLLAPSE_ALL = 2002
+ID_REFRESH_TREE = 2003
+ID_GITHUB_CONFIG_QUICK = 2004
+ID_GITHUB_DASHBOARD = 2005
+ID_COMMAND_HELP = 2006
+ID_SHORTCUTS_HELP = 2007
 # --- Define translatable command and category names (keys) ---
 CAT_REPO_OPS = _("Operazioni di Base sul Repository")
 CAT_LOCAL_CHANGES = _("Modifiche Locali e Commit")
@@ -4671,6 +4678,7 @@ class GitFrame(wx.Frame):
         dlg.Destroy()
     def InitUI(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.CreateMenuBar()
         repo_sizer_box = wx.StaticBoxSizer(wx.HORIZONTAL, self.panel, _("Cartella del Repository (Directory di Lavoro)"))
         repo_label = wx.StaticText(self.panel, label=_("Percorso:"))
         repo_sizer_box.Add(repo_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
@@ -4726,6 +4734,95 @@ class GitFrame(wx.Frame):
         self.statusBar = self.CreateStatusBar(1); self.statusBar.SetStatusText(_("Pronto."))
         self.panel.SetSizer(main_sizer); self.Layout()
         if self.command_tree_ctrl and self.command_tree_ctrl.GetSelection().IsOk(): self.OnTreeItemSelectionChanged(None)
+    def CreateMenuBar(self):
+        """Crea la barra dei menu."""
+        menubar = wx.MenuBar()
+        
+        # === MENU FILE ===
+        file_menu = wx.Menu()
+        file_menu.Append(wx.ID_OPEN, _("&Cambia Repository...\tCtrl+O"), 
+                         _("Seleziona una diversa cartella repository"))
+        file_menu.AppendSeparator()
+        file_menu.Append(wx.ID_REFRESH, _("A&ggiorna Repository\tF5"), 
+                         _("Ricarica informazioni repository corrente"))
+        file_menu.AppendSeparator()
+        file_menu.Append(wx.ID_EXIT, _("&Esci\tCtrl+Q"), 
+                         _("Chiudi l'applicazione"))
+        
+        # === MENU VISUALIZZA ===
+        view_menu = wx.Menu()
+        view_menu.Append(ID_EXPAND_ALL, _("&Espandi Tutto\tCtrl+E"), 
+                         _("Espandi tutte le categorie di comandi"))
+        view_menu.Append(ID_COLLAPSE_ALL, _("&Comprimi Tutto\tCtrl+R"), 
+                         _("Comprimi tutte le categorie di comandi"))
+        view_menu.AppendSeparator()
+        view_menu.Append(ID_REFRESH_TREE, _("Aggiorna &Lista Comandi\tCtrl+L"), 
+                         _("Ricarica l'albero dei comandi"))
+        
+        # === MENU GIT ===
+        git_menu = wx.Menu()
+        # Comandi Git più comuni
+        git_menu.Append(3001, _("&Status\tCtrl+S"), _("Mostra stato repository"))
+        git_menu.Append(3002, _("&Add All\tCtrl+A"), _("Aggiungi tutte le modifiche"))
+        git_menu.Append(3003, _("&Commit...\tCtrl+M"), _("Crea un nuovo commit"))
+        git_menu.AppendSeparator()
+        git_menu.Append(3004, _("&Pull\tCtrl+Down"), _("Scarica modifiche dal server"))
+        git_menu.Append(3005, _("P&ush\tCtrl+Up"), _("Invia modifiche al server"))
+        
+        # === MENU GITHUB ===
+        github_menu = wx.Menu()
+        github_menu.Append(ID_GITHUB_CONFIG_QUICK, _("&Configurazione...\tCtrl+G"), 
+                           _("Configura repository e token GitHub"))
+        github_menu.AppendSeparator()
+        github_menu.Append(ID_GITHUB_DASHBOARD, _("&Dashboard Web\tCtrl+D"), 
+                           _("Apri repository GitHub nel browser"))
+        
+        # === MENU AIUTO ===
+        help_menu = wx.Menu()
+        help_menu.Append(ID_COMMAND_HELP, _("&Info Comando\tSpazio"), 
+                         _("Mostra informazioni sul comando selezionato"))
+        help_menu.Append(ID_SHORTCUTS_HELP, _("&Scorciatoie Tastiera\tF1"), 
+                         _("Mostra elenco scorciatoie da tastiera"))
+        help_menu.AppendSeparator()
+        help_menu.Append(wx.ID_ABOUT, _("&Informazioni...\tCtrl+I"), 
+                         _("Informazioni sull'applicazione"))
+        
+        # Aggiungi menu alla barra
+        menubar.Append(file_menu, _("&File"))
+        menubar.Append(view_menu, _("&Visualizza"))
+        menubar.Append(git_menu, _("&Git"))
+        menubar.Append(github_menu, _("Git&Hub"))
+        menubar.Append(help_menu, _("&Aiuto"))
+        
+        self.SetMenuBar(menubar)
+        
+        # === BIND EVENTI MENU ===
+        # File menu
+        self.Bind(wx.EVT_MENU, self.OnMenuChangeRepository, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.OnMenuRefreshRepo, id=wx.ID_REFRESH)
+        self.Bind(wx.EVT_MENU, self.OnMenuExit, id=wx.ID_EXIT)
+        
+        # View menu
+        self.Bind(wx.EVT_MENU, self.OnMenuExpandAll, id=ID_EXPAND_ALL)
+        self.Bind(wx.EVT_MENU, self.OnMenuCollapseAll, id=ID_COLLAPSE_ALL)
+        self.Bind(wx.EVT_MENU, self.OnMenuRefreshTree, id=ID_REFRESH_TREE)
+        
+        # Git menu
+        self.Bind(wx.EVT_MENU, self.OnMenuGitStatus, id=3001)
+        self.Bind(wx.EVT_MENU, self.OnMenuGitAddAll, id=3002)
+        self.Bind(wx.EVT_MENU, self.OnMenuGitCommit, id=3003)
+        self.Bind(wx.EVT_MENU, self.OnMenuGitPull, id=3004)
+        self.Bind(wx.EVT_MENU, self.OnMenuGitPush, id=3005)
+        
+        # GitHub menu
+        self.Bind(wx.EVT_MENU, self.OnMenuGitHubConfig, id=ID_GITHUB_CONFIG_QUICK)
+        self.Bind(wx.EVT_MENU, self.OnMenuGitHubDashboard, id=ID_GITHUB_DASHBOARD)
+        
+        # Help menu
+        self.Bind(wx.EVT_MENU, self.OnMenuCommandHelp, id=ID_COMMAND_HELP)
+        self.Bind(wx.EVT_MENU, self.OnMenuShortcutsHelp, id=ID_SHORTCUTS_HELP)
+        self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
+
     def OnRepoPathManuallyChanged(self, event):
         if not self.repo_path_ctrl: # Può essere chiamato durante la distruzione del widget
             event.Skip()
@@ -4751,13 +4848,73 @@ class GitFrame(wx.Frame):
         except (wx.wxAssertionError, RuntimeError, AttributeError): return False
 
     def OnCharHook(self, event):
-        if not self.IsTreeCtrlValid(): event.Skip(); return
+        """Gestisce scorciatoie da tastiera globali."""
+        if not self.IsTreeCtrlValid(): 
+            event.Skip()
+            return
+        
+        keycode = event.GetKeyCode()
+        ctrl_down = event.ControlDown()
+        
+        # Scorciatoie con Ctrl
+        if ctrl_down:
+            if keycode == ord('O'):  # Ctrl+O
+                self.OnMenuChangeRepository(event)
+                return
+            elif keycode == ord('S'):  # Ctrl+S
+                self.OnMenuGitStatus(event)
+                return
+            elif keycode == ord('A'):  # Ctrl+A
+                self.OnMenuGitAddAll(event)
+                return
+            elif keycode == ord('M'):  # Ctrl+M
+                self.OnMenuGitCommit(event)
+                return
+            elif keycode == ord('G'):  # Ctrl+G
+                self.OnMenuGitHubConfig(event)
+                return
+            elif keycode == ord('D'):  # Ctrl+D
+                self.OnMenuGitHubDashboard(event)
+                return
+            elif keycode == ord('E'):  # Ctrl+E
+                self.OnMenuExpandAll(event)
+                return
+            elif keycode == ord('R'):  # Ctrl+R
+                self.OnMenuCollapseAll(event)
+                return
+            elif keycode == ord('L'):  # Ctrl+L
+                self.OnMenuRefreshTree(event)
+                return
+            elif keycode == ord('I'):  # Ctrl+I
+                self.OnMenuAbout(event)
+                return
+            elif keycode == ord('Q'):  # Ctrl+Q
+                self.OnMenuExit(event)
+                return
+            elif keycode == wx.WXK_UP:  # Ctrl+Up
+                self.OnMenuGitPush(event)
+                return
+            elif keycode == wx.WXK_DOWN:  # Ctrl+Down
+                self.OnMenuGitPull(event)
+                return
+        
+        # Scorciatoie senza modificatori
+        if keycode == wx.WXK_F1:  # F1
+            self.OnMenuShortcutsHelp(event)
+            return
+        elif keycode == wx.WXK_F5:  # F5
+            self.OnMenuRefreshRepo(event)
+            return
+        
+        # Comportamento originale per Spazio
         focused_widget = self.FindFocus()
         if focused_widget == self.command_tree_ctrl:
-            keycode = event.GetKeyCode()
-            if keycode == wx.WXK_SPACE: self.ShowItemInfoDialog(); return
+            if keycode == wx.WXK_SPACE:
+                self.ShowItemInfoDialog()
+                return
+        
         event.Skip()
-
+        
     def ShowItemInfoDialog(self):
         if not self.IsTreeCtrlValid(): return
         selected_item_id = self.command_tree_ctrl.GetSelection()
@@ -6984,6 +7141,319 @@ class GitFrame(wx.Frame):
             
         except Exception as e:
             self.output_text_ctrl.AppendText(f"❌ Errore nel riepilogo modifiche: {e}\n")
+
+# === GESTORI EVENTI MENU ===
+
+    def OnMenuChangeRepository(self, event):
+        """Cambia repository tramite menu."""
+        self.OnBrowseRepoPath(event)
+
+    def OnMenuRefreshRepo(self, event):
+        """Aggiorna informazioni repository corrente."""
+        self._update_github_context_from_path()
+        self.output_text_ctrl.AppendText(_("🔄 Informazioni repository aggiornate.\n"))
+
+    def OnMenuExit(self, event):
+        """Chiudi applicazione."""
+        self.Close()
+
+    def OnMenuExpandAll(self, event):
+        """Espandi tutte le categorie."""
+        if not self.IsTreeCtrlValid():
+            return
+        self.command_tree_ctrl.ExpandAll()
+        self.output_text_ctrl.AppendText(_("📂 Tutte le categorie espanse.\n"))
+
+    def OnMenuCollapseAll(self, event):
+        """Comprimi tutte le categorie."""
+        if not self.IsTreeCtrlValid():
+            return
+        self.command_tree_ctrl.CollapseAll()
+        self.output_text_ctrl.AppendText(_("📁 Tutte le categorie compresse.\n"))
+
+    def OnMenuRefreshTree(self, event):
+        """Ricarica albero comandi."""
+        if not self.IsTreeCtrlValid():
+            return
+        # Salva selezione corrente se possibile
+        selected = self.command_tree_ctrl.GetSelection()
+        selected_text = ""
+        if selected.IsOk():
+            selected_text = self.command_tree_ctrl.GetItemText(selected)
+        
+        # Ricostruisci albero (potresti implementare una logica di refresh più sofisticata)
+        self.output_text_ctrl.AppendText(_("🔄 Lista comandi aggiornata.\n"))
+        
+        # Prova a riselezionare l'elemento precedente
+        if selected_text:
+            self._find_and_select_tree_item(selected_text)
+
+    def _find_and_select_tree_item(self, text_to_find):
+        """Helper per trovare e selezionare un item nell'albero."""
+        try:
+            def search_tree(item):
+                if self.command_tree_ctrl.GetItemText(item) == text_to_find:
+                    self.command_tree_ctrl.SelectItem(item)
+                    return True
+                
+                child, cookie = self.command_tree_ctrl.GetFirstChild(item)
+                while child.IsOk():
+                    if search_tree(child):
+                        return True
+                    child, cookie = self.command_tree_ctrl.GetNextChild(item, cookie)
+                return False
+            
+            search_tree(self.tree_root)
+        except:
+            pass
+
+    def OnMenuGitStatus(self, event):
+        """Esegui git status tramite menu."""
+        self._execute_command_by_name(CMD_STATUS)
+
+    def OnMenuGitAddAll(self, event):
+        """Esegui git add all tramite menu."""
+        self._execute_command_by_name(CMD_ADD_ALL)
+
+    def OnMenuGitCommit(self, event):
+        """Esegui git commit tramite menu."""
+        self._execute_command_by_name(CMD_COMMIT)
+
+    def OnMenuGitPull(self, event):
+        """Esegui git pull tramite menu."""
+        self._execute_command_by_name(CMD_PULL)
+
+    def OnMenuGitPush(self, event):
+        """Esegui git push tramite menu."""
+        self._execute_command_by_name(CMD_PUSH)
+
+    def _execute_command_by_name(self, command_name):
+        """Helper per eseguire un comando dato il suo nome."""
+        cmd_details = ORIGINAL_COMMANDS.get(command_name)
+        if not cmd_details:
+            self.output_text_ctrl.AppendText(_("❌ Comando '{}' non trovato.\n").format(command_name))
+            return
+        
+        command_type = cmd_details.get("type", "git")
+        
+        if command_type == "github":
+            self.ExecuteGithubCommand(command_name, cmd_details)
+        elif command_type == "dashboard":
+            self.ExecuteDashboardCommand(command_name, cmd_details)
+        elif command_type == "git":
+            if cmd_details.get("input_needed", False):
+                # Per comandi che necessitano input, mostra dialog
+                prompt = cmd_details.get("input_label", _("Valore:"))
+                placeholder = cmd_details.get("placeholder", "")
+                dlg_title = _("Input per: {}").format(command_name)
+                input_dialog = InputDialog(self, dlg_title, prompt, placeholder)
+                if input_dialog.ShowModal() == wx.ID_OK:
+                    user_input = input_dialog.GetValue()
+                    self.ExecuteGitCommand(command_name, cmd_details, user_input)
+                input_dialog.Destroy()
+            else:
+                self.ExecuteGitCommand(command_name, cmd_details, "")
+
+    def OnMenuGitHubConfig(self, event):
+        """Apri configurazione GitHub tramite menu."""
+        self._execute_command_by_name(CMD_GITHUB_CONFIGURE)
+
+    def OnMenuGitHubDashboard(self, event):
+        """Apri dashboard GitHub nel browser."""
+        if not self.github_owner or not self.github_repo:
+            wx.MessageBox(
+                _("Repository GitHub non configurato.\n"
+                  "Usa 'GitHub → Configurazione' per impostarlo."),
+                _("Repository Non Configurato"), wx.OK | wx.ICON_INFORMATION, self
+            )
+            return
+        
+        github_url = f"https://github.com/{self.github_owner}/{self.github_repo}"
+        try:
+            webbrowser.open(github_url)
+            self.output_text_ctrl.AppendText(_("🌐 Aperto dashboard GitHub: {}\n").format(github_url))
+        except Exception as e:
+            wx.MessageBox(
+                _("Errore nell'aprire il browser:\n{}\n\nURL: {}").format(e, github_url),
+                _("Errore Browser"), wx.OK | wx.ICON_ERROR, self
+            )
+
+    def OnMenuCommandHelp(self, event):
+        """Mostra aiuto per comando selezionato."""
+        self.ShowItemInfoDialog()
+    def OnMenuShortcutsHelp(self, event):
+        """Mostra elenco scorciatoie da tastiera in finestra scrollabile."""
+        shortcuts_text = _(
+            "🎹 SCORCIATOIE TASTIERA\n\n"
+            "=== GENERALI ===\n"
+            "Spazio               - Mostra informazioni sul comando selezionato\n"
+            "Invio                - Esegui comando selezionato nell'albero\n"
+            "F5                   - Aggiorna informazioni repository corrente\n"
+            "F1                   - Mostra questa finestra delle scorciatoie\n"
+            "Ctrl+Q               - Esci dall'applicazione\n"
+            "Esc                  - Chiudi dialog aperti\n\n"
+            "=== NAVIGAZIONE REPOSITORY ===\n"
+            "Ctrl+O               - Cambia cartella repository (Sfoglia...)\n"
+            "Ctrl+E               - Espandi tutte le categorie di comandi\n"
+            "Ctrl+R               - Comprimi tutte le categorie di comandi\n"
+            "Ctrl+L               - Aggiorna lista comandi nell'albero\n"
+            "↑ ↓                  - Naviga nell'albero dei comandi\n"
+            "← →                  - Espandi/Comprimi categoria selezionata\n\n"
+            "=== COMANDI GIT RAPIDI ===\n"
+            "Ctrl+S               - Git Status (mostra stato repository)\n"
+            "Ctrl+A               - Git Add All (aggiungi tutte le modifiche)\n"
+            "Ctrl+M               - Git Commit (crea nuovo commit con messaggio)\n"
+            "Ctrl+↑               - Git Push (invia modifiche al server)\n"
+            "Ctrl+↓               - Git Pull (scarica modifiche dal server)\n\n"
+            "=== GITHUB ===\n"
+            "Ctrl+G               - Configurazione GitHub (token, repository)\n"
+            "Ctrl+D               - Apri Dashboard GitHub nel browser\n\n"
+            "=== INFORMAZIONI ===\n"
+            "Ctrl+I               - Informazioni sull'applicazione\n\n"
+            "=== SUGGERIMENTI ===\n"
+            "• Usa il mouse per selezionare comandi nell'albero\n"
+            "• Doppio click su un comando per eseguirlo\n"
+            "• La barra di stato mostra info sul comando selezionato\n"
+            "• I comandi pericolosi richiedono sempre conferma\n"
+            "• Usa il pannello di output per monitorare le operazioni\n\n"
+            "=== COMANDI SPECIALI ===\n"
+            "• I comandi con '...' richiedono input aggiuntivo\n"
+            "• I comandi GitHub necessitano di configurazione preliminare\n"
+            "• La Dashboard mostra statistiche complete del repository\n\n"
+            "💡 Ricorda: Puoi sempre usare i menu tradizionali come alternativa!"
+        )
+        
+        # Crea finestra personalizzata per le scorciatoie
+        shortcuts_dialog = wx.Dialog(self, title=_("🎹 Scorciatoie Tastiera - Assistente Git"), 
+                                     size=(700, 600))
+        
+        panel = wx.Panel(shortcuts_dialog)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con icona
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Icona grande
+        icon_label = wx.StaticText(panel, label="⌨️")
+        icon_font = icon_label.GetFont()
+        icon_font.SetPointSize(24)
+        icon_label.SetFont(icon_font)
+        
+        # Titolo
+        title_label = wx.StaticText(panel, label=_("Guida Scorciatoie Tastiera"))
+        title_font = title_label.GetFont()
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        title_font.SetPointSize(14)
+        title_label.SetFont(title_font)
+        
+        header_sizer.Add(icon_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
+        header_sizer.Add(title_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        
+        main_sizer.Add(header_sizer, 0, wx.ALL | wx.EXPAND, 15)
+        
+        # Separator line
+        line = wx.StaticLine(panel)
+        main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        
+        # Campo di testo scrollabile
+        shortcuts_text_ctrl = wx.TextCtrl(panel, 
+                                         value=shortcuts_text,
+                                         style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_WORDWRAP)
+        
+        # Font monospazio per migliore allineamento
+        mono_font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if mono_font.IsOk():
+            shortcuts_text_ctrl.SetFont(mono_font)
+        
+        # Colore di sfondo leggero
+        shortcuts_text_ctrl.SetBackgroundColour(wx.Colour(248, 248, 248))
+        
+        main_sizer.Add(shortcuts_text_ctrl, 1, wx.EXPAND | wx.ALL, 15)
+        
+        # Separator line
+        line2 = wx.StaticLine(panel)
+        main_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Bottone copia
+        copy_btn = wx.Button(panel, label=_("📋 Copia Tutto"))
+        copy_btn.Bind(wx.EVT_BUTTON, lambda e: self._copy_shortcuts_to_clipboard(shortcuts_text))
+        
+        # Bottone stampa (opzionale)
+        print_btn = wx.Button(panel, label=_("🖨️ Salva Come File"))
+        print_btn.Bind(wx.EVT_BUTTON, lambda e: self._save_shortcuts_to_file(shortcuts_text, shortcuts_dialog))
+        
+        # Bottone chiudi
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
+        close_btn.SetDefault()
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: shortcuts_dialog.EndModal(wx.ID_CLOSE))
+        
+        btn_sizer.Add(copy_btn, 0, wx.RIGHT, 10)
+        btn_sizer.Add(print_btn, 0, wx.RIGHT, 20)
+        btn_sizer.AddStretchSpacer()
+        btn_sizer.Add(close_btn, 0)
+        
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 15)
+        
+        panel.SetSizer(main_sizer)
+        
+        # Centra e mostra
+        shortcuts_dialog.Center()
+        shortcuts_text_ctrl.SetInsertionPoint(0)  # Scroll all'inizio
+        shortcuts_dialog.ShowModal()
+        shortcuts_dialog.Destroy()
+
+    def _copy_shortcuts_to_clipboard(self, text):
+        """Copia le scorciatoie negli appunti."""
+        self.CopyToClipboard(text)
+    def _save_shortcuts_to_file(self, text, parent_dialog):
+        """Salva le scorciatoie in un file di testo."""
+        file_dlg = wx.FileDialog(
+            parent_dialog,
+            _("Salva Scorciatoie Come..."),
+            defaultDir=os.getcwd(),
+            defaultFile="AssistenteGit_Scorciatoie.txt",
+            wildcard=_("File di testo (*.txt)|*.txt|Tutti i file (*.*)|*.*"),
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+        
+        if file_dlg.ShowModal() == wx.ID_OK:
+            file_path = file_dlg.GetPath()
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(text)
+                
+                wx.MessageBox(
+                    _("💾 Scorciatoie salvate con successo in:\n{}").format(file_path),
+                    _("File Salvato"), wx.OK | wx.ICON_INFORMATION, parent_dialog
+                )
+            except Exception as e:
+                wx.MessageBox(
+                    _("❌ Errore nel salvare il file: {}").format(e),
+                    _("Errore Salvataggio"), wx.OK | wx.ICON_ERROR, parent_dialog
+                )
+        
+        file_dlg.Destroy()
+    def OnMenuAbout(self, event):
+        """Mostra informazioni sull'applicazione."""
+        about_text = _(
+            "🎯 ASSISTENTE GIT SEMPLICE v1.1\n\n"
+            "Un'interfaccia grafica intuitiva per Git e GitHub Actions,\n"
+            "progettata per semplificare le operazioni Git quotidiane.\n\n"
+            "✨ CARATTERISTICHE:\n"
+            "• Comandi Git organizzati per categoria\n"
+            "• Integrazione GitHub Actions e Release\n"
+            "• Dashboard repository completo\n"
+            "• Supporto multilingua\n"
+            "• Configurazione sicura token GitHub\n\n"
+            "🛠️ Sviluppato con Python e wxPython\n"
+            "📅 2024 - Interfaccia Utente Semplificata per Git\n\n"
+            "💡 Usa F1 per vedere tutte le scorciatoie!"
+        )
+        
+        wx.MessageBox(about_text, _("Informazioni - Assistente Git"), wx.OK | wx.ICON_INFORMATION, self)
 if __name__ == '__main__':
     app = wx.App(False)
     frame = GitFrame(None)
