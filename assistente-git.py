@@ -7163,9 +7163,30 @@ class GitFrame(wx.Frame):
                             self.output_text_ctrl.AppendText(_("Errore nella decodifica o elaborazione del file di log {}: {}\n").format(log_file_to_display, e_decode))
                     else:
                         self.output_text_ctrl.AppendText(_("Nessun file di log selezionato per la visualizzazione.\n"))
-                
+
                 if log_content_found:
-                    self.output_text_ctrl.AppendText(_("\n--- Fine dei log ---\n"))
+                    # Formatta i log per la dialog
+                    workflow_name_for_display = workflow_name_for_logs or _('Workflow Sconosciuto')
+                    
+                    # Costruisci il contenuto formattato per la dialog
+                    log_summary = f"📋 LOG WORKFLOW: {workflow_name_for_display}\n"
+                    log_summary += f"🆔 Run ID: {run_id_for_logs}\n"
+                    log_summary += f"📁 Repository: {self.github_owner}/{self.github_repo}\n"
+                    log_summary += f"📄 File log: {log_file_to_display}\n"
+                    log_summary += f"⏰ Recuperato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    
+                    formatted_log_details = f"{log_summary}{'='*60}\n📋 CONTENUTO LOG COMPLETO:\n{'='*60}\n\n{log_data}"
+                    
+                    # Mostra nella dialog invece che nel terminale
+                    self.ShowSuccessNotification(
+                        title=f"📋 Log Workflow - {workflow_name_for_display}",
+                        message=f"Log recuperati con successo per run ID {run_id_for_logs}",
+                        details=formatted_log_details
+                    )
+                    
+                    # Brief messaggio nel terminale
+                    self.output_text_ctrl.AppendText(_("✅ Log mostrati in finestra dettagli per run ID {}\n").format(run_id_for_logs))
+                    
                     # Opzione per aggiornare la run selezionata
                     if run_id_for_logs != self.selected_run_id:
                         update_msg = _("Vuoi impostare questa esecuzione (ID: {}) come quella attualmente selezionata per future operazioni?").format(run_id_for_logs)
@@ -7175,21 +7196,58 @@ class GitFrame(wx.Frame):
                             self.output_text_ctrl.AppendText(_("✅ Run selezionata aggiornata a ID: {}\n").format(run_id_for_logs))
                         update_dlg.Destroy()
                 else:
-                    self.output_text_ctrl.AppendText(_("\nNessun contenuto di log visualizzato.\n"))
-            
+                    # Mostra errore nella dialog
+                    self.ShowErrorNotification(
+                        title="❌ Log Non Disponibili",
+                        message="Nessun contenuto di log visualizzabile",
+                        details=f"🚨 PROBLEMA LOG:\n\nNessun file di log è stato trovato o processato con successo.\n\nRun ID: {run_id_for_logs}\nWorkflow: {workflow_name_for_logs}\nRepository: {self.github_owner}/{self.github_repo}",
+                        suggestions="Verifica che l'esecuzione sia completata e che abbia generato log."
+                        )
             except requests.exceptions.HTTPError as e: 
-                self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
+                error_details = f"🚨 ERRORE HTTP API GITHUB:\n\n"
+                error_details += f"Codice errore: {e.response.status_code}\n"
+                error_details += f"Risposta: {e.response.text[:500]}\n\n"
+                
                 if e.response.status_code == 404:
-                    self.output_text_ctrl.AppendText(_("Possibile causa: L'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido.\n"))
+                    error_details += "❌ CAUSA PROBABILE:\nL'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido."
+                    suggestions = "Verifica che l'ID dell'esecuzione sia corretto e che i log non siano scaduti."
                 elif e.response.status_code == 410:
-                    self.output_text_ctrl.AppendText(_("Errore 410: I log per questa esecuzione sono scaduti e non più disponibili.\n"))
+                    error_details += "❌ LOG SCADUTI:\nI log per questa esecuzione sono scaduti e non più disponibili su GitHub."
+                    suggestions = "I log GitHub Actions scadono dopo un periodo di tempo. Non è possibile recuperarli."
+                else:
+                    suggestions = "Verifica la connessione di rete e i permessi del token GitHub."
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore Download Log",
+                    message=f"Errore HTTP {e.response.status_code} durante il recupero dei log",
+                    details=error_details,
+                    suggestions=suggestions
+                )
+                
             except requests.exceptions.RequestException as e:
-                self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
+                self.ShowErrorNotification(
+                    title="❌ Errore di Rete",
+                    message="Problema di connessione durante il download dei log",
+                    details=f"🌐 ERRORE CONNESSIONE:\n\nDettagli: {e}\n\nPossibili cause:\n• Problemi di connessione internet\n• Server GitHub temporaneamente non disponibile\n• Timeout della richiesta",
+                    suggestions="Controlla la connessione internet e riprova tra qualche minuto."
+                )
+                
             except zipfile.BadZipFile:
-                self.output_text_ctrl.AppendText(_("Errore: Il file scaricato non è un archivio ZIP valido.\n"))
+                self.ShowErrorNotification(
+                    title="❌ File Log Corrotto",
+                    message="Il file dei log scaricato non è valido",
+                    details="🗜️ ERRORE ARCHIVIO:\n\nIl file scaricato da GitHub non è un archivio ZIP valido.\n\nQuesto può accadere se:\n• Il download è stato interrotto\n• I log sono corrotti sul server\n• Problema temporaneo di GitHub",
+                    suggestions="Riprova il download dei log o contatta il supporto GitHub se il problema persiste."
+                )
+                
             except Exception as e_generic:
-                self.output_text_ctrl.AppendText(_("Errore imprevisto durante il recupero dei log: {}\n").format(e_generic))
-            
+                self.ShowErrorNotification(
+                    title="❌ Errore Imprevisto",
+                    message="Errore sconosciuto durante il recupero dei log",
+                    details=f"⚠️ ERRORE GENERICO:\n\nDettagli: {e_generic}\n\nStack trace disponibile nella console per debugging.",
+                    suggestions="Riprova l'operazione o segnala il problema se persiste."
+                )
+
             return
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
