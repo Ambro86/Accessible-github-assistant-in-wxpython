@@ -4558,39 +4558,74 @@ class GitFrame(wx.Frame):
                 icon = "🏁"
                 result = f"terminato (conclusione: {current_conclusion or 'N/D'})"
 
-            message = (
-                f"{icon} WORKFLOW COMPLETATO!\n\n"
-                f"Nome: {workflow_name_local}\n"
-                f"Run ID: {run_id_local}\n"
-                f"Repository: {owner_local}/{repo_local}\n"
-                f"Risultato: {result}\n"
-                f"Durata monitoraggio: {duration_local/60:.1f} minuti\n\n"
-                "Usa i comandi per visualizzare log o scaricare artefatti."
-            )
+            # Formatta i dettagli completi per la dialog
+            workflow_details = f"🎯 WORKFLOW COMPLETATO\n\n"
+            workflow_details += f"📋 Nome: {workflow_name_local}\n"
+            workflow_details += f"🆔 Run ID: {run_id_local}\n"
+            workflow_details += f"🏢 Repository: {owner_local}/{repo_local}\n"
+            workflow_details += f"📊 Risultato: {result}\n"
+            workflow_details += f"⏱️ Durata monitoraggio: {duration_local/60:.1f} minuti\n"
+            workflow_details += f"📅 Completato: {datetime.now().strftime('%H:%M:%S')}\n\n"
 
-            # 9) Apro un MessageDialog di notifica
-            dialog_title = f"Workflow {result.upper()}"
-            icon_style = wx.ICON_INFORMATION if current_conclusion == "success" else wx.ICON_WARNING
-            
-            dlg = wx.MessageDialog(
-                parent=self,
-                message=message,
-                caption=dialog_title,
-                style=wx.OK | icon_style
-            )
-            dlg.ShowModal()
-            dlg.Destroy()
+            # Aggiungi informazioni specifiche in base al risultato
+            if current_conclusion == "success":
+                workflow_details += "✅ SUCCESSO:\n"
+                workflow_details += "• Il workflow è stato completato con successo\n"
+                workflow_details += "• Tutti i job sono stati eseguiti correttamente\n"
+                workflow_details += "• Eventuali artifact potrebbero essere disponibili per il download\n\n"
+                workflow_details += "💡 AZIONI DISPONIBILI:\n"
+                workflow_details += "• Visualizza i log dettagliati dell'esecuzione\n"
+                workflow_details += "• Scarica gli artifact generati (se presenti)\n"
+                workflow_details += "• Controlla i risultati nei comandi GitHub Actions"
+                
+            elif current_conclusion == "failure":
+                workflow_details += "❌ FALLIMENTO:\n"
+                workflow_details += "• Il workflow è fallito durante l'esecuzione\n"
+                workflow_details += "• Uno o più job hanno riscontrato errori\n"
+                workflow_details += "• Controlla i log per identificare il problema\n\n"
+                workflow_details += "🔍 DEBUGGING CONSIGLIATO:\n"
+                workflow_details += "• Visualizza i log per vedere l'errore specifico\n"
+                workflow_details += "• Verifica la configurazione del workflow\n"
+                workflow_details += "• Controlla eventuali dipendenze o permessi mancanti"
+                
+            elif current_conclusion == "cancelled":
+                workflow_details += "🚫 CANCELLATO:\n"
+                workflow_details += "• Il workflow è stato cancellato manualmente\n"
+                workflow_details += "• L'esecuzione è stata interrotta prima del completamento\n"
+                workflow_details += "• Nessun risultato finale disponibile\n\n"
+                workflow_details += "ℹ️ INFORMAZIONI:\n"
+                workflow_details += "• La cancellazione può richiedere qualche secondo\n"
+                workflow_details += "• Eventuali job in corso sono stati terminati\n"
+                workflow_details += "• Puoi riavviare il workflow se necessario"
+                
+            else:
+                workflow_details += f"ℹ️ STATO: {current_conclusion or 'Non specificato'}\n"
+                workflow_details += "• Il workflow ha terminato l'esecuzione\n"
+                workflow_details += "• Controlla i dettagli per maggiori informazioni\n\n"
+                workflow_details += "🔍 VERIFICA:\n"
+                workflow_details += "• Visualizza i log per dettagli completi\n"
+                workflow_details += "• Controlla lo stato su GitHub Actions"
 
-            # 10) Loggo anche nel TextCtrl
+            # 9) Mostra nella tua dialog invece del MessageBox
+            if current_conclusion == "success":
+                self.ShowSuccessNotification(
+                    title=f"🎉 Workflow Completato con Successo",
+                    message=f"'{workflow_name_local}' eseguito correttamente",
+                    details=workflow_details
+                )
+            else:
+                self.ShowErrorNotification(
+                    title=f"⚠️ Workflow Terminato",
+                    message=f"'{workflow_name_local}' terminato con stato: {result}",
+                    details=workflow_details,
+                    suggestions="Controlla i log del workflow per maggiori dettagli sul problema." if current_conclusion == "failure" else None
+                )
+
+            # 10) Breve messaggio nel terminale per tracking
             self.output_text_ctrl.AppendText(
-                f"\n{icon} WORKFLOW COMPLETATO!\n"
-                f"Nome: {workflow_name_local}\n"
-                f"Run ID: {run_id_local}\n"
-                f"Repository: {owner_local}/{repo_local}\n"
-                f"Risultato: {result}\n"
-                f"Durata monitoraggio: {duration_local/60:.1f} minuti\n"
-                "Usa i comandi per visualizzare log o scaricare artefatti.\n\n"
+                f"🎯 Workflow '{workflow_name_local}' {result} (ID: {run_id_local}) - Dettagli mostrati in finestra\n"
             )
+
 
         except requests.exceptions.HTTPError as http_err:
             # Gestione specifica per errori HTTP (es. 404 quando la run viene cancellata)
@@ -4608,28 +4643,33 @@ class GitFrame(wx.Frame):
                 self.stop_monitoring_run()
                 
                 # Notifica della cancellazione
-                cancel_message = (
-                    f"🚫 WORKFLOW CANCELLATO/RIMOSSO!\n\n"
-                    f"Nome: {workflow_name_local}\n"
-                    f"Run ID: {run_id_local}\n"
-                    f"Repository: {owner_local}/{repo_local}\n"
-                    f"Il workflow è stato cancellato o rimosso da GitHub.\n"
-                    f"Durata monitoraggio: {duration_local/60:.1f} minuti\n"
+                # Formatta i dettagli per la dialog
+                cancel_details = f"🚫 WORKFLOW CANCELLATO/RIMOSSO\n\n"
+                cancel_details += f"📋 Nome: {workflow_name_local}\n"
+                cancel_details += f"🆔 Run ID: {run_id_local}\n"
+                cancel_details += f"🏢 Repository: {owner_local}/{repo_local}\n"
+                cancel_details += f"⏱️ Durata monitoraggio: {duration_local/60:.1f} minuti\n"
+                cancel_details += f"📅 Rilevato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                cancel_details += "❌ STATO:\n"
+                cancel_details += "• Il workflow è stato cancellato o rimosso da GitHub\n"
+                cancel_details += "• L'esecuzione non è più accessibile tramite API\n"
+                cancel_details += "• Possibile cancellazione manuale o automatica\n\n"
+                cancel_details += "ℹ️ POSSIBILI CAUSE:\n"
+                cancel_details += "• Cancellazione manuale dell'esecuzione\n"
+                cancel_details += "• Timeout del workflow\n"
+                cancel_details += "• Eliminazione del workflow stesso\n"
+                cancel_details += "• Problemi di accesso o permessi"
+
+                # Mostra nella dialog
+                self.ShowErrorNotification(
+                    title="🚫 Workflow Cancellato/Rimosso",
+                    message=f"'{workflow_name_local}' non è più accessibile",
+                    details=cancel_details,
+                    suggestions="Il workflow potrebbe essere stato cancellato manualmente o automaticamente."
                 )
-                
-                # Mostra dialog di notifica
-                dlg = wx.MessageDialog(
-                    parent=self,
-                    message=cancel_message,
-                    caption="Workflow Cancellato/Rimosso",
-                    style=wx.OK | wx.ICON_WARNING
-                )
-                dlg.ShowModal()
-                dlg.Destroy()
-                
-                # Log nel TextCtrl
-                self.output_text_ctrl.AppendText(f"\n{cancel_message}\n")
-                
+
+                # Breve messaggio nel terminale
+                self.output_text_ctrl.AppendText(f"🚫 Workflow '{workflow_name_local}' cancellato/rimosso (ID: {run_id_local})\n")
             else:
                 print(f"DEBUG_MONITOR: Errore HTTP {http_err.response.status_code} durante monitoraggio: {http_err}")
                 self.output_text_ctrl.AppendText(f"❌ Errore HTTP durante monitoraggio: {http_err}\n")
@@ -6577,7 +6617,12 @@ class GitFrame(wx.Frame):
             
             workflows = self.get_available_workflows()
             if not workflows:
-                self.output_text_ctrl.AppendText(_("Nessun workflow attivo trovato nel repository {}/{}.\n").format(self.github_owner, self.github_repo))
+                self.ShowErrorNotification(
+                    title="❌ Nessun Workflow Disponibile",
+                    message="Nessun workflow attivo trovato nel repository",
+                    details=f"🔍 RICERCA WORKFLOW:\n\nRepository: {self.github_owner}/{self.github_repo}\n\nPossibili cause:\n• Nessun file .github/workflows/ nel repository\n• I workflow non sono configurati per dispatch manuale\n• I workflow sono disabilitati\n• Problemi di accesso al repository\n\nVerifica:\n• Che esistano file .yml/.yaml in .github/workflows/\n• Che i workflow abbiano 'workflow_dispatch:' abilitato\n• Che il token abbia permessi sufficienti",
+                    suggestions="Verifica la configurazione dei workflow nel repository GitHub."
+                )
                 return
             
             workflow_choices = []
@@ -6630,18 +6675,44 @@ class GitFrame(wx.Frame):
                 )
             )
             wx.Yield()
-            
             try:
                 response = requests.post(trigger_url, headers=headers, json=payload, timeout=15)
                 response.raise_for_status()
                 
-                self.output_text_ctrl.AppendText(
-                    _("✅ Workflow '{}' avviato con successo!\n").format(selected_workflow['name'])
+                # Formatta i dettagli del successo per la dialog
+                success_details = f"🚀 WORKFLOW AVVIATO CON SUCCESSO\n\n"
+                success_details += f"📋 Nome Workflow: {selected_workflow['name']}\n"
+                success_details += f"🌿 Branch: {values['branch']}\n"
+                success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                success_details += f"📝 Input Parametri: {len(values['inputs'])} parametri\n"
+                success_details += f"⏰ Avviato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                
+                if values['inputs']:
+                    success_details += "🔧 PARAMETRI FORNITI:\n"
+                    for key, value in values['inputs'].items():
+                        success_details += f"  • {key}: {value}\n"
+                    success_details += "\n"
+                
+                success_details += "✅ STATO:\n"
+                success_details += "• Il workflow è stato accodato per l'esecuzione\n"
+                success_details += "• GitHub Actions lo avvierà nei prossimi secondi\n"
+                success_details += "• Puoi monitorare il progresso in tempo reale\n\n"
+                success_details += "💡 PROSSIMI PASSI:\n"
+                success_details += "• Attiva il monitoraggio automatico per seguire l'esecuzione\n"
+                success_details += "• Visualizza i log quando l'esecuzione sarà completata\n"
+                success_details += "• Scarica eventuali artifact generati"
+                
+                # Mostra successo nella dialog
+                self.ShowSuccessNotification(
+                    title="🚀 Workflow Avviato",
+                    message=f"'{selected_workflow['name']}' avviato con successo",
+                    details=success_details
                 )
-
-                self.output_text_ctrl.AppendText(
-                _("🔍 Controlla lo stato delle esecuzioni nei comandi GitHub Actions.\n")
-                )  
+                
+                # Breve messaggio nel terminale
+                self.output_text_ctrl.AppendText(_("✅ Workflow '{}' avviato - dettagli mostrati in finestra\n").format(selected_workflow['name']))
+                
+                # Chiedi per il monitoraggio automatico
                 suggest_msg = _("Vuoi monitorare automaticamente la nuova esecuzione quando sarà disponibile?")
                 suggest_dlg = wx.MessageDialog(self, suggest_msg, _("Monitoraggio Automatico"), 
                                              wx.YES_NO | wx.ICON_QUESTION)
@@ -6649,18 +6720,82 @@ class GitFrame(wx.Frame):
                 suggest_dlg.Destroy()
                 
                 if suggest_response == wx.ID_YES or suggest_response == 2:
-                    self.output_text_ctrl.AppendText(_("⏳ Attesa 5 secondi per la nuova esecuzione...\n"))
+                    self.output_text_ctrl.AppendText(_("⏳ Monitoraggio automatico attivato - attesa nuova esecuzione...\n"))
                     wx.CallLater(5000, lambda: self.auto_find_and_monitor_latest_run(selected_workflow['name']))
-            
             except requests.exceptions.HTTPError as e:
+                error_details = f"🚨 ERRORE HTTP DURANTE TRIGGER\n\n"
+                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
+                error_details += f"🌿 Branch: {values['branch']}\n"
+                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"📊 Codice Errore: {e.response.status_code}\n"
+                error_details += f"📝 Risposta Server: {e.response.text[:300]}\n\n"
+                
                 if e.response.status_code == 422:
-                    self.output_text_ctrl.AppendText(_("❌ Errore 422: Il workflow potrebbe non supportare il dispatch manuale o i parametri sono incorretti.\n"))
+                    error_details += "❌ ERRORE 422 - PARAMETRI NON VALIDI:\n"
+                    error_details += "• Il workflow potrebbe non supportare il dispatch manuale\n"
+                    error_details += "• I parametri forniti potrebbero essere incorretti\n"
+                    error_details += "• La configurazione del workflow potrebbe essere errata\n\n"
+                    error_details += "🔧 VERIFICA:\n"
+                    error_details += "• Controlla che il workflow abbia 'workflow_dispatch' abilitato\n"
+                    error_details += "• Verifica i parametri di input richiesti\n"
+                    error_details += "• Controlla la configurazione YAML del workflow"
+                    suggestions = "Verifica la configurazione del workflow e i parametri richiesti."
                 else:
-                    self.output_text_ctrl.AppendText(_("❌ Errore HTTP {}: {}\n").format(e.response.status_code, e.response.text[:300]))
+                    error_details += f"❌ ERRORE HTTP {e.response.status_code}:\n"
+                    error_details += "• Problema di comunicazione con GitHub\n"
+                    error_details += "• Possibili problemi di permessi o autenticazione\n"
+                    error_details += "• Server GitHub temporaneamente non disponibile"
+                    suggestions = "Verifica i permessi del token GitHub e riprova."
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore Trigger Workflow",
+                    message=f"Impossibile avviare '{selected_workflow['name']}'",
+                    details=error_details,
+                    suggestions=suggestions
+                )
+                
             except requests.exceptions.RequestException as e:
-                self.output_text_ctrl.AppendText(_("❌ Errore di rete: {}\n").format(e))
+                error_details = f"🌐 ERRORE DI RETE\n\n"
+                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
+                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"📝 Dettagli: {e}\n\n"
+                error_details += "❌ PROBLEMA:\n"
+                error_details += "• Problemi di connessione internet\n"
+                error_details += "• Server GitHub temporaneamente non disponibile\n"
+                error_details += "• Timeout della richiesta\n\n"
+                error_details += "🔧 SOLUZIONI:\n"
+                error_details += "• Verifica la connessione internet\n"
+                error_details += "• Riprova tra qualche minuto\n"
+                error_details += "• Controlla lo stato di GitHub Actions"
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore di Rete",
+                    message="Problema di connessione durante l'avvio del workflow",
+                    details=error_details,
+                    suggestions="Controlla la connessione internet e riprova."
+                )
+                
             except Exception as e:
-                self.output_text_ctrl.AppendText(_("❌ Errore imprevisto: {}\n").format(e))
+                error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
+                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
+                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"📝 Dettagli: {e}\n"
+                error_details += f"📅 Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                error_details += "❌ PROBLEMA:\n"
+                error_details += "• Errore sconosciuto durante l'operazione\n"
+                error_details += "• Possibile problema interno dell'applicazione\n"
+                error_details += "• Risposta inattesa da GitHub\n\n"
+                error_details += "🔧 AZIONI:\n"
+                error_details += "• Riprova l'operazione\n"
+                error_details += "• Verifica i log per dettagli aggiuntivi\n"
+                error_details += "• Segnala il problema se persiste"
+                
+                self.ShowErrorNotification(
+                    title="❌ Errore Imprevisto",
+                    message="Errore sconosciuto durante l'avvio del workflow",
+                    details=error_details,
+                    suggestions="Riprova l'operazione o segnala il problema se persiste."
+                )
 
         elif command_name_key == CMD_GITHUB_CANCEL_WORKFLOW:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
