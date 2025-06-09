@@ -90,7 +90,7 @@ print(f"DEBUG: Type of lang_translations: {type(lang_translations)}")
 
 
 # --- Costanti per l'archivio di configurazione ---
-APP_CONFIG_DIR_NAME = "AssistenteGit"
+APP_CONFIG_DIR_NAME = _("AssistenteGit")
 USER_ID_FILE_NAME = "user_id.cfg"
 SECURE_CONFIG_FILE_NAME = "github_settings.agd"
 APP_SETTINGS_FILE_NAME = "settings.json" # Nuovo file per opzioni non sensibili
@@ -466,7 +466,7 @@ class WorkflowInputDialog(wx.Dialog):
         
         # Branch selection
         branch_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        branch_label = wx.StaticText(self, label="Branch/Ref:")
+        branch_label = wx.StaticText(self, label=_("Branch/Ref:"))
         parent = self.GetParent()
         # Provo a risalire al percorso del repository: se esiste repo_path_ctrl, lo uso, altrimenti cwd
         if hasattr(parent, 'repo_path_ctrl') and parent.repo_path_ctrl:
@@ -486,7 +486,7 @@ class WorkflowInputDialog(wx.Dialog):
         main_sizer.Add(branch_sizer, 0, wx.ALL|wx.EXPAND, 5)
         
         # Inputs section
-        inputs_label = wx.StaticText(self, label="Input Parameters (JSON format):")
+        inputs_label = wx.StaticText(self, label=_("Input Parameters (JSON format):"))
         main_sizer.Add(inputs_label, 0, wx.ALL, 5)
         
         self.inputs_ctrl = wx.TextCtrl(self, 
@@ -504,7 +504,7 @@ class WorkflowInputDialog(wx.Dialog):
         # Buttons
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.validate_btn = wx.Button(self, label="Valida JSON")
+        self.validate_btn = wx.Button(self, label=_("Valida JSON"))
         self.trigger_btn = wx.Button(self, wx.ID_OK, "Trigger Workflow")
         cancel_btn = wx.Button(self, wx.ID_CANCEL, "Annulla")
         
@@ -526,7 +526,7 @@ class WorkflowInputDialog(wx.Dialog):
         try:
             json_text = self.inputs_ctrl.GetValue().strip()
             if not json_text or json_text == "{}":
-                wx.MessageBox("JSON vuoto - OK per workflow senza input", "Validazione", wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox(_("JSON vuoto - OK per workflow senza input"), _("Validazione"), wx.OK | wx.ICON_INFORMATION)
                 return
             
             parsed = json.loads(json_text)
@@ -540,7 +540,7 @@ class WorkflowInputDialog(wx.Dialog):
         """Valida e chiude il dialog."""
         branch = self.branch_ctrl.GetValue().strip()
         if not branch:
-            wx.MessageBox("Il branch/ref è obbligatorio", "Errore", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(_("Il branch/ref è obbligatorio"), _("Errore"), wx.OK | wx.ICON_ERROR)
             return
         
         # Valida JSON
@@ -1540,7 +1540,7 @@ class IssueManagementDialog(wx.Dialog):
         info_grid.AddGrowableCol(1, 1)
         
         # Autore
-        author_label = wx.StaticText(panel, label="👤 Autore:")
+        author_label = wx.StaticText(panel, label=_("👤 Autore:"))
         author_value = wx.StaticText(panel, label=self.issue_data['user']['login'])
         info_grid.Add(author_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(author_value, 1, wx.EXPAND)
@@ -1551,14 +1551,14 @@ class IssueManagementDialog(wx.Dialog):
         info_grid.Add(created_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(created_value, 1, wx.EXPAND)
         
-        updated_label = wx.StaticText(panel, label="🔄 Aggiornata:")
+        updated_label = wx.StaticText(panel, label=_("🔄 Aggiornata:"))
         updated_value = wx.StaticText(panel, label=self.issue_data['updated_at'][:10])
         info_grid.Add(updated_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(updated_value, 1, wx.EXPAND)
         
         # Assignees
         if self.issue_data.get('assignees'):
-            assignees_label = wx.StaticText(panel, label="👥 Assegnata a:")
+            assignees_label = wx.StaticText(panel, label=_("👥 Assegnata a:"))
             assignees_text = ", ".join([a['login'] for a in self.issue_data['assignees']])
             assignees_value = wx.StaticText(panel, label=assignees_text)
             info_grid.Add(assignees_label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1566,7 +1566,7 @@ class IssueManagementDialog(wx.Dialog):
         
         # Labels
         if self.issue_data.get('labels'):
-            labels_label = wx.StaticText(panel, label="🏷️ Labels:")
+            labels_label = wx.StaticText(panel, label=_("🏷️ Labels:"))
             labels_text = ", ".join([l['name'] for l in self.issue_data['labels']])
             labels_value = wx.StaticText(panel, label=labels_text)
             info_grid.Add(labels_label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1632,7 +1632,7 @@ class IssueManagementDialog(wx.Dialog):
         
         # Contatore caratteri e bottoni
         comment_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.char_count_label = wx.StaticText(panel, label="0 caratteri")
+        self.char_count_label = wx.StaticText(panel, label=_("0 caratteri"))
         self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
         
         self.send_comment_btn = wx.Button(panel, label=_("📤 Invia Commento"))
@@ -1893,13 +1893,13 @@ class PullRequestManagementDialog(wx.Dialog):
         info_grid.AddGrowableCol(1, 1)
         
         # Autore
-        author_label = wx.StaticText(panel, label="👤 Autore:")
+        author_label = wx.StaticText(panel, label=_("👤 Autore:"))
         author_value = wx.StaticText(panel, label=self.pr_data['user']['login'])
         info_grid.Add(author_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(author_value, 1, wx.EXPAND)
         
         # Branch info
-        branch_label = wx.StaticText(panel, label="🌿 Branch:")
+        branch_label = wx.StaticText(panel, label=_("🌿 Branch:"))
         branch_text = f"{self.pr_data['head']['ref']} → {self.pr_data['base']['ref']}"
         branch_value = wx.StaticText(panel, label=branch_text)
         info_grid.Add(branch_label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -4324,10 +4324,21 @@ class GitFrame(wx.Frame):
         # Controlla se siamo in un repository Git valido
         if not os.path.isdir(repo_path) or not os.path.isdir(os.path.join(repo_path, ".git")):
             self.ShowErrorNotification(
-                title="❌ Repository Git Non Valido",
-                message="Non sei in una directory Git valida",
-                details=f"🚨 PROBLEMA REPOSITORY:\n\nPercorso corrente: {repo_path}\n\nIl percorso specificato:\n• Non è una directory valida\n• Non contiene una cartella .git\n• Non è un repository Git inizializzato\n\nPer creare issue:\n• Devi essere nella directory di un repository Git\n• Il repository deve avere un remote GitHub configurato\n• Il repository deve corrispondere a quello configurato in GitHub Actions",
-                suggestions="Vai nella directory del repository Git corretto prima di creare issue."
+                title=_("❌ Repository Git Non Valido"),
+                message=_("Non sei in una directory Git valida"),
+                details=_(
+    "🚨 PROBLEMA REPOSITORY:\n\n"
+    "Percorso corrente: {repo_path}\n\n"
+    "Il percorso specificato:\n"
+    "• Non è una directory valida\n"
+    "• Non contiene una cartella .git\n"
+    "• Non è un repository Git inizializzato\n\n"
+    "Per creare issue:\n"
+    "• Devi essere nella directory di un repository Git\n"
+    "• Il repository deve avere un remote GitHub configurato\n"
+    "• Il repository deve corrispondere a quello configurato in GitHub Actions"
+).format(repo_path=repo_path),
+                suggestions=_("Vai nella directory del repository Git corretto prima di creare issue.")
             )
             return
         
@@ -4378,19 +4389,19 @@ class GitFrame(wx.Frame):
         # Procedi con la verifica della configurazione GitHub
         if not self.github_owner or not self.github_repo:
             self.ShowErrorNotification(
-                title="❌ Configurazione GitHub Mancante",
-                message="Repository GitHub non configurato",
-                details=f"🔧 CONFIGURAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Configurare il repository GitHub (owner/repo)\n2️⃣ Configurare un token GitHub per autenticazione\n\nStato attuale:\n❌ Repository non impostato\n❌ Impossibile creare issue\n\nCosa fare:\n• Imposta il repository tramite configurazione GitHub\n• Assicurati di essere nella directory del repository corretto\n• Verifica che il repository abbia un remote GitHub",
-                suggestions=f"Usa '{CMD_GITHUB_CONFIGURE}' per configurare il repository GitHub."
+                title=_("❌ Configurazione GitHub Mancante"),
+                message=_("Repository GitHub non configurato"),
+                details=_("🔧 CONFIGURAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Configurare il repository GitHub (owner/repo)\n2️⃣ Configurare un token GitHub per autenticazione\n\nStato attuale:\n❌ Repository non impostato\n❌ Impossibile creare issue\n\nCosa fare:\n• Imposta il repository tramite configurazione GitHub\n• Assicurati di essere nella directory del repository corretto\n• Verifica che il repository abbia un remote GitHub"),
+                suggestions=_("Usa '{cmd}' per configurare il repository GitHub.").format(cmd=CMD_GITHUB_CONFIGURE)
             )
             return
         
         if not self.github_token:
             self.ShowErrorNotification(
-                title="❌ Token GitHub Mancante",
-                message="Token GitHub necessario per creare issue",
-                details=f"🔐 AUTENTICAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Un token GitHub Personal Access Token (PAT)\n2️⃣ Il token deve avere permessi per creare issue\n\nStato attuale:\n❌ Token non configurato\n❌ Impossibile autenticare con GitHub\n\nPer ottenere un token:\n• Vai su GitHub Settings → Personal Access Tokens\n• Crea un nuovo token con permessi 'repo' o 'issues'\n• Configura il token nell'applicazione",
-                suggestions=f"Configura un token GitHub tramite '{CMD_GITHUB_CONFIGURE}'."
+                title=_("❌ Token GitHub Mancante"),
+                message=_("Token GitHub necessario per creare issue"),
+                details=_("🔐 AUTENTICAZIONE RICHIESTA:\n\nPer creare issue è necessario:\n\n1️⃣ Un token GitHub Personal Access Token (PAT)\n2️⃣ Il token deve avere permessi per creare issue\n\nStato attuale:\n❌ Token non configurato\n❌ Impossibile autenticare con GitHub\n\nPer ottenere un token:\n• Vai su GitHub Settings → Personal Access Tokens\n• Crea un nuovo token con permessi 'repo' o 'issues'\n• Configura il token nell'applicazione"),
+suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFIGURE)
             )
             return
         
@@ -4435,31 +4446,30 @@ class GitFrame(wx.Frame):
                 issue_url = issue_data["html_url"]
                 
                 # Formatta i dettagli per la dialog di successo
-                success_details = f"🎯 ISSUE CREATA CON SUCCESSO\n\n"
-                success_details += f"📋 Titolo: {values['title']}\n"
-                success_details += f"🔢 Numero: #{issue_number}\n"
-                success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                success_details += f"🔗 URL: {issue_url}\n"
-                success_details += f"⏰ Creata: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                
+                success_details = _("🎯 ISSUE CREATA CON SUCCESSO\n\n")
+                success_details += _("📋 Titolo: {}\n").format(values['title'])
+                success_details += _("🔢 Numero: #{}\n").format(issue_number)
+                success_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                success_details += _("🔗 URL: {}\n").format(issue_url)
+                success_details += _("⏰ Creata: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
                 if values['labels']:
                     success_details += f"🏷️ Labels assegnate: {', '.join(values['labels'])}\n"
                 if values['assignees']:
-                    success_details += f"👥 Assegnata a: {', '.join(values['assignees'])}\n"
+                    success_details += _("👥 Assegnata a: {}\n").format(', '.join(values['assignees']))
                 
-                success_details += "\n✅ STATO:\n"
-                success_details += "• Issue creata e disponibile su GitHub\n"
-                success_details += "• Visibile a tutti i collaboratori del repository\n"
-                success_details += "• Pronta per commenti e discussioni\n\n"
-                success_details += "💡 PROSSIMI PASSI:\n"
-                success_details += "• Visualizza l'issue nel browser\n"
-                success_details += "• Aggiungi commenti o aggiornamenti\n"
-                success_details += "• Traccia il progresso del lavoro"
+                success_details += _("\n✅ STATO:\n")
+                success_details += _("• Issue creata e disponibile su GitHub\n")
+                success_details += _("• Visibile a tutti i collaboratori del repository\n")
+                success_details += _("• Pronta per commenti e discussioni\n\n")
+                success_details += _("💡 PROSSIMI PASSI:\n")
+                success_details += _("• Visualizza l'issue nel browser\n")
+                success_details += _("• Aggiungi commenti o aggiornamenti\n")
+                success_details += _("• Traccia il progresso del lavoro")
                 
                 # Mostra successo nella dialog
                 self.ShowSuccessNotification(
-                    title="🎯 Issue Creata",
-                    message=f"Issue #{issue_number} creata con successo",
+                    title=_("🎯 Issue Creata"),
+                    message=_("Issue #{number} creata con successo").format(number=issue_number),
                     details=success_details
                 )
                 
@@ -4476,34 +4486,40 @@ class GitFrame(wx.Frame):
                 
             except requests.exceptions.RequestException as e:
                 # Mostra errore nella dialog invece della console
-                error_details = f"🚨 ERRORE CREAZIONE ISSUE\n\n"
-                error_details += f"📋 Titolo tentato: {values['title']}\n"
-                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                error_details += f"📝 Errore: {e}\n"
-                error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                
+                error_details = _(
+    "🚨 ERRORE CREAZIONE ISSUE\n\n"
+    "📋 Titolo tentato: {title}\n"
+    "🏢 Repository: {owner}/{repo}\n"
+    "📝 Errore: {error}\n"
+    "⏰ Timestamp: {timestamp}\n\n"
+).format(
+    title=values['title'],
+    owner=self.github_owner,
+    repo=self.github_repo,
+    error=e,
+    timestamp=datetime.now().strftime('%H:%M:%S')
+)
                 if hasattr(e, 'response') and e.response is not None:
-                    error_details += f"📊 Codice HTTP: {e.response.status_code}\n"
-                    error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
-                    
+                    error_details += _("📊 Codice HTTP: {status_code}\n").format(status_code=e.response.status_code)
+                    error_details += _("📄 Risposta server: {response_text}\n\n").format(response_text=e.response.text[:300])
                     if e.response.status_code == 401:
-                        error_details += "❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare issue"
-                        suggestions = "Verifica e aggiorna il token GitHub nelle impostazioni."
+                        error_details += _("❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare issue")
+                        suggestions = _("Verifica e aggiorna il token GitHub nelle impostazioni.")
                     elif e.response.status_code == 403:
-                        error_details += "❌ ERRORE PERMESSI:\n• Non hai permessi per creare issue in questo repository\n• Repository privato senza accesso"
-                        suggestions = "Verifica di avere accesso in scrittura al repository."
+                        error_details += _("❌ ERRORE PERMESSI:\n• Non hai permessi per creare issue in questo repository\n• Repository privato senza accesso")
+                        suggestions = _("Verifica di avere accesso in scrittura al repository.")
                     elif e.response.status_code == 404:
-                        error_details += "❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
-                        suggestions = "Verifica la configurazione del repository GitHub."
+                        error_details += _("❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato")
+                        suggestions = _("Verifica la configurazione del repository GitHub.")
                     else:
-                        suggestions = "Controlla la connessione e i permessi del token GitHub."
+                        suggestions = _("Controlla la connessione e i permessi del token GitHub.")
                 else:
-                    error_details += "❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
-                    suggestions = "Verifica la connessione internet e riprova."
+                    error_details += _("❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta")
+                    suggestions = _("Verifica la connessione internet e riprova.")
                 
                 self.ShowErrorNotification(
-                    title="❌ Errore Creazione Issue",
-                    message="Impossibile creare l'issue su GitHub",
+                    title=_("❌ Errore Creazione Issue"),
+                    message=_("Impossibile creare l'issue su GitHub"),
                     details=error_details,
                     suggestions=suggestions
                 )
@@ -4525,10 +4541,10 @@ class GitFrame(wx.Frame):
         # Controlla se siamo in un repository Git valido
         if not os.path.isdir(repo_path) or not os.path.isdir(os.path.join(repo_path, ".git")):
             self.ShowErrorNotification(
-                title="❌ Repository Git Non Valido",
-                message="Non sei in una directory Git valida",
+                title=_("❌ Repository Git Non Valido"),
+                message=_("Non sei in una directory Git valida"),
                 details=f"🚨 PROBLEMA REPOSITORY:\n\nPercorso corrente: {repo_path}\n\nIl percorso specificato:\n• Non è una directory valida\n• Non contiene una cartella .git\n• Non è un repository Git inizializzato\n\nPer creare Pull Request:\n• Devi essere nella directory di un repository Git\n• Il repository deve avere un remote GitHub configurato\n• Il repository deve corrispondere a quello configurato in GitHub Actions",
-                suggestions="Vai nella directory del repository Git corretto prima di creare PR."
+                suggestions=_("Vai nella directory del repository Git corretto prima di creare PR.")
             )
             return
         
@@ -4566,10 +4582,10 @@ class GitFrame(wx.Frame):
                 if confirm_dlg.ShowModal() != wx.ID_YES:
                     # Usa la dialog invece che console
                     self.ShowErrorNotification(
-                        title="❌ Creazione PR Annullata",
-                        message="Creazione Pull Request annullata dall'utente",
+                        title=_("❌ Creazione PR Annullata"),
+                        message=_("Creazione Pull Request annullata dall'utente"),
                         details=f"🚫 OPERAZIONE INTERROTTA:\n\nL'utente ha scelto di non procedere con la creazione della PR nel repository configurato.\n\nRepository locale: {current_derived_owner}/{current_derived_repo}\nRepository configurato: {self.github_owner}/{self.github_repo}\n\nPer evitare questa situazione:\n• Configura il repository corretto nelle impostazioni GitHub\n• Oppure vai nella directory del repository configurato",
-                        suggestions="Configura il repository corretto o vai nella directory appropriata."
+                        suggestions=_("Configura il repository corretto o vai nella directory appropriata.")
                     )
                     confirm_dlg.Destroy()
                     return
@@ -4580,8 +4596,8 @@ class GitFrame(wx.Frame):
         # Procedi con la verifica della configurazione GitHub
         if not self.github_owner or not self.github_repo:
             self.ShowErrorNotification(
-                title="❌ Configurazione GitHub Mancante",
-                message="Repository GitHub non configurato",
+                title=_("❌ Configurazione GitHub Mancante"),
+                message=_("Repository GitHub non configurato"),
                 details=f"🔧 CONFIGURAZIONE RICHIESTA:\n\nPer creare Pull Request è necessario:\n\n1️⃣ Configurare il repository GitHub (owner/repo)\n2️⃣ Configurare un token GitHub per autenticazione\n\nStato attuale:\n❌ Repository non impostato\n❌ Impossibile creare PR\n\nCosa fare:\n• Imposta il repository tramite configurazione GitHub\n• Assicurati di essere nella directory del repository corretto\n• Verifica che il repository abbia un remote GitHub",
                 suggestions=f"Usa '{CMD_GITHUB_CONFIGURE}' per configurare il repository GitHub."
             )
@@ -4589,8 +4605,8 @@ class GitFrame(wx.Frame):
         
         if not self.github_token:
             self.ShowErrorNotification(
-                title="❌ Token GitHub Mancante",
-                message="Token GitHub necessario per creare Pull Request",
+                title=_("❌ Token GitHub Mancante"),
+                message=_("Token GitHub necessario per creare Pull Request"),
                 details=f"🔐 AUTENTICAZIONE RICHIESTA:\n\nPer creare Pull Request è necessario:\n\n1️⃣ Un token GitHub Personal Access Token (PAT)\n2️⃣ Il token deve avere permessi per creare PR\n\nStato attuale:\n❌ Token non configurato\n❌ Impossibile autenticare con GitHub\n\nPer ottenere un token:\n• Vai su GitHub Settings → Personal Access Tokens\n• Crea un nuovo token con permessi 'repo' o 'pull_requests'\n• Configura il token nell'applicazione",
                 suggestions=f"Configura un token GitHub tramite '{CMD_GITHUB_CONFIGURE}'."
             )
@@ -4603,10 +4619,10 @@ class GitFrame(wx.Frame):
         
         if not branches_list:
             self.ShowErrorNotification(
-                title="❌ Nessun Branch Disponibile",
-                message="Impossibile recuperare i branch del repository",
+                title=_("❌ Nessun Branch Disponibile"),
+                message=_("Impossibile recuperare i branch del repository"),
                 details=f"🌿 ERRORE BRANCH:\n\nNon è stato possibile recuperare la lista dei branch per il repository {self.github_owner}/{self.github_repo}.\n\nPossibili cause:\n• Repository non esistente o non accessibile\n• Token GitHub senza permessi sufficienti\n• Problemi di connessione di rete\n• Repository senza branch configurati\n\nVerifica:\n• Che il repository esista su GitHub\n• Che il token abbia accesso al repository\n• La connessione internet",
-                suggestions="Verifica la configurazione del repository e del token GitHub."
+                suggestions=_("Verifica la configurazione del repository e del token GitHub.")
             )
             return
         
@@ -4619,30 +4635,30 @@ class GitFrame(wx.Frame):
             # *** VALIDAZIONI CON DIALOG INVECE CHE CONSOLE ***
             if not values["title"].strip():
                 self.ShowErrorNotification(
-                    title="❌ Titolo Mancante",
-                    message="Il titolo della Pull Request è obbligatorio",
+                    title=_("❌ Titolo Mancante"),
+                    message=_("Il titolo della Pull Request è obbligatorio"),
                     details="📝 CAMPO RICHIESTO:\n\nIl titolo della Pull Request è un campo obbligatorio e non può essere vuoto.\n\nIl titolo serve a:\n• Identificare rapidamente la PR\n• Descrivere brevemente le modifiche\n• Facilitare la revisione del codice\n\nInserisci un titolo descrittivo che spieghi le modifiche apportate.",
-                    suggestions="Torna indietro e inserisci un titolo descrittivo per la Pull Request."
+                    suggestions=_("Torna indietro e inserisci un titolo descrittivo per la Pull Request.")
                 )
                 dlg.Destroy()
                 return
             
             if not values["head"] or not values["base"]:
                 self.ShowErrorNotification(
-                    title="❌ Branch Non Selezionati",
-                    message="Branch di origine e destinazione sono obbligatori",
+                    title=_("❌ Branch Non Selezionati"),
+                    message=_("Branch di origine e destinazione sono obbligatori"),
                     details="🌿 SELEZIONE BRANCH RICHIESTA:\n\nPer creare una Pull Request è necessario specificare:\n\n🎯 Branch di origine (HEAD): Il branch con le tue modifiche\n🎯 Branch di destinazione (BASE): Il branch in cui verranno unite le modifiche\n\nEntrambi i branch devono essere selezionati per procedere.\n\nVerifica che:\n• Hai selezionato il branch di origine\n• Hai selezionato il branch di destinazione\n• I branch esistano nel repository",
-                    suggestions="Torna indietro e seleziona entrambi i branch richiesti."
+                    suggestions=_("Torna indietro e seleziona entrambi i branch richiesti.")
                 )
                 dlg.Destroy()
                 return
             
             if values["head"] == values["base"]:
                 self.ShowErrorNotification(
-                    title="❌ Branch Identici",
-                    message="Branch di origine e destinazione non possono essere uguali",
+                    title=_("❌ Branch Identici"),
+                    message=_("Branch di origine e destinazione non possono essere uguali"),
                     details=f"🔄 CONFLITTO SELEZIONE BRANCH:\n\nHai selezionato lo stesso branch per origine e destinazione:\n\n❌ Branch selezionato: '{values['head']}'\n\nUna Pull Request serve a unire modifiche TRA branch diversi.\nNon è possibile creare una PR da un branch verso se stesso.\n\nCosa fare:\n• Seleziona un branch diverso per l'origine o la destinazione\n• Assicurati di avere un branch con le tue modifiche\n• Il branch di destinazione dovrebbe essere quello principale (es: main, master)\n\nEsempio tipico:\n🎯 Da: 'feature/nuova-funzionalita'\n🎯 Verso: 'main'",
-                    suggestions="Seleziona branch diversi per origine e destinazione della Pull Request."
+                    suggestions=_("Seleziona branch diversi per origine e destinazione della Pull Request.")
                 )
                 dlg.Destroy()
                 return
@@ -4701,12 +4717,10 @@ class GitFrame(wx.Frame):
                 
                 # Mostra successo nella dialog
                 self.ShowSuccessNotification(
-                    title="🎯 Pull Request Creata",
-                    message=f"PR #{pr_number} creata con successo",
-                    details=success_details
-                )
-                
-                # Se auto-merge è richiesto e la PR non è draft, potrebbe essere configurato automaticamente
+                    title=_("🎯 Pull Request Creata"),
+                    message=_("PR #{} creata con successo").format(pr_number),  # ✅ Formato corretto
+                details=success_details
+                )  # ✅ Solo una parentesi di chiusura# Se auto-merge è richiesto e la PR non è draft, potrebbe essere configurato automaticamente
                 
                 # Opzione per aprire nel browser
                 open_browser_msg = _("Vuoi aprire la Pull Request nel browser?")
@@ -4753,8 +4767,8 @@ class GitFrame(wx.Frame):
                     suggestions = "Verifica la connessione internet e riprova."
                 
                 self.ShowErrorNotification(
-                    title="❌ Errore Creazione Pull Request",
-                    message="Impossibile creare la Pull Request su GitHub",
+                    title=_("❌ Errore Creazione Pull Request"),
+                    message=_("Impossibile creare la Pull Request su GitHub"),
                     details=error_details,
                     suggestions=suggestions
                 )
@@ -4763,7 +4777,6 @@ class GitFrame(wx.Frame):
             self.output_text_ctrl.AppendText(_("Creazione PR annullata.\n"))
         
         dlg.Destroy()
-
 
     def start_monitoring_run(self, run_id, owner, repo):
         """Avvia il monitoraggio periodico di un workflow run."""
@@ -5034,27 +5047,27 @@ class GitFrame(wx.Frame):
 
                 # Mostra nella dialog
                 self.ShowErrorNotification(
-                    title="🚫 Workflow Cancellato/Rimosso",
-                    message=f"'{workflow_name_local}' non è più accessibile",
+                    title=_("🚫 Workflow Cancellato/Rimosso"),
+                    message=_("'{}' non è più accessibile").format(workflow_name_local),
                     details=cancel_details,
-                    suggestions="Il workflow potrebbe essere stato cancellato manualmente o automaticamente."
+                    suggestions=_("Il workflow potrebbe essere stato cancellato manualmente o automaticamente.")
                 )
 
                 # Breve messaggio nel terminale
-                self.output_text_ctrl.AppendText(f"🚫 Workflow '{workflow_name_local}' cancellato/rimosso (ID: {run_id_local})\n")
+                self.output_text_ctrl.AppendText(_("🚫 Workflow '{}' cancellato/rimosso (ID: {})\n").format(workflow_name_local, run_id_local))
             else:
                 print(f"DEBUG_MONITOR: Errore HTTP {http_err.response.status_code} durante monitoraggio: {http_err}")
-                self.output_text_ctrl.AppendText(f"❌ Errore HTTP durante monitoraggio: {http_err}\n")
+                self.output_text_ctrl.AppendText(_("❌ Errore HTTP durante monitoraggio: {}\n").format(http_err))
                 # Non interrompiamo il monitoraggio per altri errori HTTP, potrebbe essere temporaneo
                 
         except requests.exceptions.RequestException as req_err:
             print(f"DEBUG_MONITOR: Errore di rete durante monitoraggio: {req_err}")
             # Non interrompiamo il monitoraggio per errori temporanei di rete
-            self.output_text_ctrl.AppendText(f"⚠️ Errore temporaneo di rete durante monitoraggio: {req_err}\n")
+            self.output_text_ctrl.AppendText(_("⚠️ Errore temporaneo di rete durante monitoraggio: {}\n").format(req_err))
             
         except Exception as e:
             print(f"DEBUG_MONITOR: Errore imprevisto durante monitoraggio: {e}")
-            self.output_text_ctrl.AppendText(f"❌ Errore imprevisto durante monitoraggio: {e}\n")
+            self.output_text_ctrl.AppendText(_("❌ Errore imprevisto durante monitoraggio: {}\n").format(e))
             self.stop_monitoring_run()
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
@@ -6582,8 +6595,8 @@ class GitFrame(wx.Frame):
 
                     # Crea e mostra la nuova dialog di monitoraggio
                     self.monitoring_dialog = self._create_monitoring_dialog(
-                        title="⏱️ Monitoraggio Avviato",
-                        message=f"Monitoraggio automatico attivato per '{actual_workflow_name_to_monitor}'",
+                        title=_("⏱️ Monitoraggio Avviato"),
+                        message=_("Monitoraggio automatico attivato per '{}'").format(actual_workflow_name_to_monitor),
                         details=monitoring_details
                     )
 
@@ -6591,53 +6604,52 @@ class GitFrame(wx.Frame):
                     self.output_text_ctrl.AppendText(_("✅ Monitoraggio attivato - progress mostrato in finestra\n"))
                 else:
                     # Se la run è già completata o in uno stato terminale
-                    completion_details = f"ℹ️ WORKFLOW GIÀ COMPLETATO\n\n"
-                    completion_details += f"📋 Nome: {actual_workflow_name_to_monitor}\n"
-                    completion_details += f"🆔 Run ID: {run_id}\n"
-                    completion_details += f"📊 Status: {status}\n"
-                    completion_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                    completion_details += f"⏰ Verificato: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                    completion_details += "✅ STATO:\n"
-                    completion_details += "• Il workflow è già terminato\n"
-                    completion_details += "• Non è necessario il monitoraggio\n"
-                    completion_details += "• I risultati sono già disponibili\n\n"
-                    completion_details += "💡 AZIONI DISPONIBILI:\n"
-                    completion_details += "• Visualizza i log dell'esecuzione\n"
-                    completion_details += "• Scarica eventuali artifact generati\n"
-                    completion_details += "• Controlla i risultati nei comandi GitHub Actions"
+                    completion_details = _("ℹ️ WORKFLOW GIÀ COMPLETATO\n\n")
+                    completion_details += _("📋 Nome: {}\n").format(actual_workflow_name_to_monitor)
+                    completion_details += _("🆔 Run ID: {}\n").format(run_id)
+                    completion_details += _("📊 Status: {}\n").format(status)
+                    completion_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                    completion_details += _("⏰ Verificato: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                    completion_details += _("✅ STATO:\n")
+                    completion_details += _("• Il workflow è già terminato\n")
+                    completion_details += _("• Non è necessario il monitoraggio\n")
+                    completion_details += _("• I risultati sono già disponibili\n\n")
+                    completion_details += _("💡 AZIONI DISPONIBILI:\n")
+                    completion_details += _("• Visualizza i log dell'esecuzione\n")
+                    completion_details += _("• Scarica eventuali artifact generati\n")
+                    completion_details += _("• Controlla i risultati nei comandi GitHub Actions")
                     
                     self.ShowSuccessNotification(
-                        title="ℹ️ Workflow Già Completato",
-                        message=f"'{actual_workflow_name_to_monitor}' è già terminato",
+                        title=_("ℹ️ Workflow Già Completato"),                        message=_("'{}' è già terminato").format(actual_workflow_name_to_monitor),
                         details=completion_details
                     )
                     
                     self.output_text_ctrl.AppendText(_("ℹ️ Workflow già completato ({})\n").format(status))
             else:
                 # Nessuna esecuzione trovata
-                no_runs_details = f"❌ NESSUNA ESECUZIONE RECENTE\n\n"
-                no_runs_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                no_runs_details += f"🔍 Cercato: Ultime 5 esecuzioni\n"
-                no_runs_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                no_runs_details += "❌ RISULTATO:\n"
-                no_runs_details += "• Nessuna esecuzione workflow trovata\n"
-                no_runs_details += "• Il repository potrebbe non avere workflow attivi\n"
-                no_runs_details += "• Le esecuzioni potrebbero essere molto vecchie\n\n"
-                no_runs_details += "🔧 POSSIBILI CAUSE:\n"
-                no_runs_details += "• Il workflow è stato appena creato\n"
-                no_runs_details += "• Non ci sono state esecuzioni recenti\n"
-                no_runs_details += "• Problemi di accesso o permessi\n"
-                no_runs_details += "• Repository senza workflow configurati\n\n"
-                no_runs_details += "💡 SUGGERIMENTI:\n"
-                no_runs_details += "• Verifica che il workflow sia stato effettivamente avviato\n"
-                no_runs_details += "• Controlla lo stato su GitHub Actions\n"
-                no_runs_details += "• Riprova tra qualche secondo"
+                no_runs_details = _("❌ NESSUNA ESECUZIONE RECENTE\n\n")
+                no_runs_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                no_runs_details += _("🔍 Cercato: Ultime 5 esecuzioni\n")
+                no_runs_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                no_runs_details += _("❌ RISULTATO:\n")
+                no_runs_details += _("• Nessuna esecuzione workflow trovata\n")
+                no_runs_details += _("• Il repository potrebbe non avere workflow attivi\n")
+                no_runs_details += _("• Le esecuzioni potrebbero essere molto vecchie\n\n")
+                no_runs_details += _("🔧 POSSIBILI CAUSE:\n")
+                no_runs_details += _("• Il workflow è stato appena creato\n")
+                no_runs_details += _("• Non ci sono state esecuzioni recenti\n")
+                no_runs_details += _("• Problemi di accesso o permessi\n")
+                no_runs_details += _("• Repository senza workflow configurati\n\n")
+                no_runs_details += _("💡 SUGGERIMENTI:\n")
+                no_runs_details += _("• Verifica che il workflow sia stato effettivamente avviato\n")
+                no_runs_details += _("• Controlla lo stato su GitHub Actions\n")
+                no_runs_details += _("• Riprova tra qualche secondo")
                 
                 self.ShowErrorNotification(
-                    title="❌ Nessuna Esecuzione Trovata",
-                    message="Non sono state trovate esecuzioni recenti da monitorare",
+                    title=_("❌ Nessuna Esecuzione Trovata"),
+                    message=_("Non sono state trovate esecuzioni recenti da monitorare"),
                     details=no_runs_details,
-                    suggestions="Verifica che il workflow sia stato avviato correttamente su GitHub."
+                    suggestions=_("Verifica che il workflow sia stato avviato correttamente su GitHub.")
                 )
 
         except requests.exceptions.RequestException as e_req:
@@ -6658,10 +6670,10 @@ class GitFrame(wx.Frame):
             error_details += "• Verifica i permessi del token GitHub"
             
             self.ShowErrorNotification(
-                title="❌ Errore di Rete",
-                message="Problema di connessione durante la ricerca delle esecuzioni",
+                title=_("❌ Errore di Rete"),
+                message=_("Problema di connessione durante la ricerca delle esecuzioni"),
                 details=error_details,
-                suggestions="Controlla la connessione e riprova tra qualche minuto."
+                suggestions=_("Controlla la connessione e riprova tra qualche minuto.")
             )
             
         except Exception as e:
@@ -6681,10 +6693,10 @@ class GitFrame(wx.Frame):
             error_details += "• Segnala il problema se persiste"
             
             self.ShowErrorNotification(
-                title="❌ Errore Imprevisto",
-                message="Errore sconosciuto durante la ricerca automatica delle esecuzioni",
+                title=_("❌ Errore Imprevisto"),
+                message=_("Errore sconosciuto durante la ricerca automatica delle esecuzioni"),
                 details=error_details,
-                suggestions="Riprova l'operazione o segnala il problema se persiste."
+                suggestions=_("Riprova l'operazione o segnala il problema se persiste.")
             )
 
 
@@ -7113,10 +7125,25 @@ class GitFrame(wx.Frame):
             workflows = self.get_available_workflows()
             if not workflows:
                 self.ShowErrorNotification(
-                    title="❌ Nessun Workflow Disponibile",
-                    message="Nessun workflow attivo trovato nel repository",
-                    details=f"🔍 RICERCA WORKFLOW:\n\nRepository: {self.github_owner}/{self.github_repo}\n\nPossibili cause:\n• Nessun file .github/workflows/ nel repository\n• I workflow non sono configurati per dispatch manuale\n• I workflow sono disabilitati\n• Problemi di accesso al repository\n\nVerifica:\n• Che esistano file .yml/.yaml in .github/workflows/\n• Che i workflow abbiano 'workflow_dispatch:' abilitato\n• Che il token abbia permessi sufficienti",
-                    suggestions="Verifica la configurazione dei workflow nel repository GitHub."
+                    title=_("❌ Nessun Workflow Disponibile"),
+                    message=_("Nessun workflow attivo trovato nel repository"),
+                    details=_(
+                        "🔍 RICERCA WORKFLOW:\n\n"
+                        "Repository: {owner}/{repo}\n\n"
+                        "Possibili cause:\n"
+                        "• Nessun file .github/workflows/ nel repository\n"
+                        "• I workflow non sono configurati per dispatch manuale\n"
+                        "• I workflow sono disabilitati\n"
+                        "• Problemi di accesso al repository\n\n"
+                        "Verifica:\n"
+                        "• Che esistano file .yml/.yaml in .github/workflows/\n"
+                        "• Che i workflow abbiano 'workflow_dispatch:' abilitato\n"
+                        "• Che il token abbia permessi sufficienti"
+                    ).format(
+                        owner=self.github_owner,
+                        repo=self.github_repo
+                    ),
+                    suggestions=_("Verifica la configurazione dei workflow nel repository GitHub.")
                 )
                 return
             
@@ -7198,12 +7225,7 @@ class GitFrame(wx.Frame):
                 success_details += "• Scarica eventuali artifact generati"
                 
                 # Mostra successo nella dialog
-                self.ShowSuccessNotification(
-                    title="🚀 Workflow Avviato",
-                    message=f"'{selected_workflow['name']}' avviato con successo",
-                    details=success_details
-                )
-                
+                self.ShowSuccessNotification(title=_("🚀 Workflow Avviato"), message=_("'{}' avviato con successo").format(selected_workflow['name']), details=success_details)
                 # Breve messaggio nel terminale
                 self.output_text_ctrl.AppendText(_("✅ Workflow '{}' avviato - dettagli mostrati in finestra\n").format(selected_workflow['name']))
                 
@@ -7242,55 +7264,13 @@ class GitFrame(wx.Frame):
                     error_details += "• Server GitHub temporaneamente non disponibile"
                     suggestions = "Verifica i permessi del token GitHub e riprova."
                 
-                self.ShowErrorNotification(
-                    title="❌ Errore Trigger Workflow",
-                    message=f"Impossibile avviare '{selected_workflow['name']}'",
-                    details=error_details,
-                    suggestions=suggestions
-                )
-                
+                self.ShowErrorNotification(title=_("❌ Errore Trigger Workflow"), message=_("Impossibile avviare '{}'").format(selected_workflow['name']), details=error_details, suggestions=suggestions)           
             except requests.exceptions.RequestException as e:
-                error_details = f"🌐 ERRORE DI RETE\n\n"
-                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
-                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                error_details += f"📝 Dettagli: {e}\n\n"
-                error_details += "❌ PROBLEMA:\n"
-                error_details += "• Problemi di connessione internet\n"
-                error_details += "• Server GitHub temporaneamente non disponibile\n"
-                error_details += "• Timeout della richiesta\n\n"
-                error_details += "🔧 SOLUZIONI:\n"
-                error_details += "• Verifica la connessione internet\n"
-                error_details += "• Riprova tra qualche minuto\n"
-                error_details += "• Controlla lo stato di GitHub Actions"
-                
-                self.ShowErrorNotification(
-                    title="❌ Errore di Rete",
-                    message="Problema di connessione durante l'avvio del workflow",
-                    details=error_details,
-                    suggestions="Controlla la connessione internet e riprova."
-                )
-                
+                error_details = _("🌐 ERRORE DI RETE\n\n📋 Workflow: {}\n🏢 Repository: {}/{}\n📝 Dettagli: {}\n\n❌ PROBLEMA:\n• Problemi di connessione internet\n• Server GitHub temporaneamente non disponibile\n• Timeout della richiesta\n\n🔧 SOLUZIONI:\n• Verifica la connessione internet\n• Riprova tra qualche minuto\n• Controlla lo stato di GitHub Actions").format(selected_workflow['name'], self.github_owner, self.github_repo, e)
+                self.ShowErrorNotification(title=_("❌ Errore di Rete"), message=_("Problema di connessione durante l'avvio del workflow"), details=error_details, suggestions=_("Controlla la connessione internet e riprova."))
             except Exception as e:
-                error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
-                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
-                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                error_details += f"📝 Dettagli: {e}\n"
-                error_details += f"📅 Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                error_details += "❌ PROBLEMA:\n"
-                error_details += "• Errore sconosciuto durante l'operazione\n"
-                error_details += "• Possibile problema interno dell'applicazione\n"
-                error_details += "• Risposta inattesa da GitHub\n\n"
-                error_details += "🔧 AZIONI:\n"
-                error_details += "• Riprova l'operazione\n"
-                error_details += "• Verifica i log per dettagli aggiuntivi\n"
-                error_details += "• Segnala il problema se persiste"
-                
-                self.ShowErrorNotification(
-                    title="❌ Errore Imprevisto",
-                    message="Errore sconosciuto durante l'avvio del workflow",
-                    details=error_details,
-                    suggestions="Riprova l'operazione o segnala il problema se persiste."
-                )
+                error_details = _("⚠️ ERRORE IMPREVISTO\n\n📋 Workflow: {}\n🏢 Repository: {}/{}\n📝 Dettagli: {}\n📅 Timestamp: {}\n\n❌ PROBLEMA:\n• Errore sconosciuto durante l'operazione\n• Possibile problema interno dell'applicazione\n• Risposta inattesa da GitHub\n\n🔧 AZIONI:\n• Riprova l'operazione\n• Verifica i log per dettagli aggiuntivi\n• Segnala il problema se persiste").format(selected_workflow['name'], self.github_owner, self.github_repo, e, datetime.now().strftime('%H:%M:%S'))
+                self.ShowErrorNotification(title=_("❌ Errore Imprevisto"), message=_("Errore sconosciuto durante l'avvio del workflow"), details=error_details, suggestions=_("Riprova l'operazione o segnala il problema se persiste."))
 
         elif command_name_key == CMD_GITHUB_CANCEL_WORKFLOW:
             api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs"
@@ -7801,66 +7781,35 @@ class GitFrame(wx.Frame):
                         update_dlg.Destroy()
                 else:
                     # Mostra errore nella dialog
-                    self.ShowErrorNotification(
-                        title="❌ Log Non Disponibili",
-                        message="Nessun contenuto di log visualizzabile",
-                        details=f"🚨 PROBLEMA LOG:\n\nNessun file di log è stato trovato o processato con successo.\n\nRun ID: {run_id_for_logs}\nWorkflow: {workflow_name_for_logs}\nRepository: {self.github_owner}/{self.github_repo}",
-                        suggestions="Verifica che l'esecuzione sia completata e che abbia generato log."
-                        )
+                    self.ShowErrorNotification(title=_("❌ Log Non Disponibili"), message=_("Nessun contenuto di log visualizzabile"), details=_("🚨 PROBLEMA LOG:\n\nNessun file di log è stato trovato o processato con successo.\n\nRun ID: {}\nWorkflow: {}\nRepository: {}/{}").format(run_id_for_logs, workflow_name_for_logs, self.github_owner, self.github_repo), suggestions=_("Verifica che l'esecuzione sia completata e che abbia generato log.")    )
             except requests.exceptions.HTTPError as e: 
-                error_details = f"🚨 ERRORE HTTP API GITHUB:\n\n"
-                error_details += f"Codice errore: {e.response.status_code}\n"
-                error_details += f"Risposta: {e.response.text[:500]}\n\n"
+                error_details = _("🚨 ERRORE HTTP API GITHUB:\n\nCodice errore: {}\nRisposta: {}\n\n").format(e.response.status_code, e.response.text[:500])
                 
                 if e.response.status_code == 404:
-                    error_details += "❌ CAUSA PROBABILE:\nL'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido."
-                    suggestions = "Verifica che l'ID dell'esecuzione sia corretto e che i log non siano scaduti."
+                    error_details += _("❌ CAUSA PROBABILE:\nL'esecuzione workflow o i log potrebbero essere scaduti o l'ID non è valido.")
+                    suggestions = _("Verifica che l'ID dell'esecuzione sia corretto e che i log non siano scaduti.")
                 elif e.response.status_code == 410:
-                    error_details += "❌ LOG SCADUTI:\nI log per questa esecuzione sono scaduti e non più disponibili su GitHub."
-                    suggestions = "I log GitHub Actions scadono dopo un periodo di tempo. Non è possibile recuperarli."
+                    error_details += _("❌ LOG SCADUTI:\nI log per questa esecuzione sono scaduti e non più disponibili su GitHub.")
+                    suggestions = _("I log GitHub Actions scadono dopo un periodo di tempo. Non è possibile recuperarli.")
                 else:
-                    suggestions = "Verifica la connessione di rete e i permessi del token GitHub."
-                
-                self.ShowErrorNotification(
-                    title="❌ Errore Download Log",
-                    message=f"Errore HTTP {e.response.status_code} durante il recupero dei log",
-                    details=error_details,
-                    suggestions=suggestions
-                )
+                    suggestions = _("Verifica la connessione di rete e i permessi del token GitHub.")
+                self.ShowErrorNotification(title=_("❌ Errore Download Log"), message=_("Errore HTTP {} durante il recupero dei log").format(e.response.status_code), details=error_details, suggestions=suggestions)
+ 
                 
             except requests.exceptions.RequestException as e:
-                self.ShowErrorNotification(
-                    title="❌ Errore di Rete",
-                    message="Problema di connessione durante il download dei log",
-                    details=f"🌐 ERRORE CONNESSIONE:\n\nDettagli: {e}\n\nPossibili cause:\n• Problemi di connessione internet\n• Server GitHub temporaneamente non disponibile\n• Timeout della richiesta",
-                    suggestions="Controlla la connessione internet e riprova tra qualche minuto."
-                )
-                
+                self.ShowErrorNotification(title=_("❌ Errore di Rete"), message=_("Problema di connessione durante il download dei log"), details=_("🌐 ERRORE CONNESSIONE:\n\nDettagli: {}\n\nPossibili cause:\n• Problemi di connessione internet\n• Server GitHub temporaneamente non disponibile\n• Timeout della richiesta").format(e), suggestions=_("Controlla la connessione internet e riprova tra qualche minuto."))
+ 
             except zipfile.BadZipFile:
-                self.ShowErrorNotification(
-                    title="❌ File Log Corrotto",
-                    message="Il file dei log scaricato non è valido",
-                    details="🗜️ ERRORE ARCHIVIO:\n\nIl file scaricato da GitHub non è un archivio ZIP valido.\n\nQuesto può accadere se:\n• Il download è stato interrotto\n• I log sono corrotti sul server\n• Problema temporaneo di GitHub",
-                    suggestions="Riprova il download dei log o contatta il supporto GitHub se il problema persiste."
-                )
-                
+                self.ShowErrorNotification(title=_("❌ File Log Corrotto"), message=_("Il file dei log scaricato non è valido"), details=_("🗜️ ERRORE ARCHIVIO:\n\nIl file scaricato da GitHub non è un archivio ZIP valido.\n\nQuesto può accadere se:\n• Il download è stato interrotto\n• I log sono corrotti sul server\n• Problema temporaneo di GitHub"), suggestions=_("Riprova il download dei log o contatta il supporto GitHub se il problema persiste."))
+ 
             except Exception as e_generic:
-                self.ShowErrorNotification(
-                    title="❌ Errore Imprevisto",
-                    message="Errore sconosciuto durante il recupero dei log",
-                    details=f"⚠️ ERRORE GENERICO:\n\nDettagli: {e_generic}\n\nStack trace disponibile nella console per debugging.",
-                    suggestions="Riprova l'operazione o segnala il problema se persiste."
-                )
-
+                self.ShowErrorNotification(title=_("❌ Errore Imprevisto"), message=_("Errore sconosciuto durante il recupero dei log"), details=_("⚠️ ERRORE GENERICO:\n\nDettagli: {}\n\nStack trace disponibile nella console per debugging.").format(e_generic), suggestions=_("Riprova l'operazione o segnala il problema se persiste."))
+ 
             return
         elif command_name_key == CMD_GITHUB_DOWNLOAD_SELECTED_ARTIFACT:
             if not self.selected_run_id:
-                self.ShowErrorNotification(
-                title="❌ Nessuna Esecuzione Selezionata",
-                message="Devi prima selezionare un'esecuzione workflow",
-                details=f"🎯 SELEZIONE RICHIESTA:\n\nPer scaricare gli artifact è necessario:\n\n1️⃣ Selezionare prima un'esecuzione workflow\n2️⃣ Poi utilizzare questo comando per scaricare gli artifact\n\nComandi disponibili per selezionare un'esecuzione:\n• Usa i comandi di GitHub Actions per vedere le esecuzioni\n• Seleziona una specifica esecuzione\n• Torna qui per scaricare i suoi artifact\n\nStato attuale:\n❌ Nessuna esecuzione selezionata\n🏢 Repository: {self.github_owner}/{self.github_repo}",
-                suggestions=f"Utilizza prima un comando per visualizzare le esecuzioni workflow e selezionarne una."
-                )
+                self.ShowErrorNotification(title=_("❌ Nessuna Esecuzione Selezionata"), message=_("Devi prima selezionare un'esecuzione workflow"), details=_("🎯 SELEZIONE RICHIESTA:\n\nPer scaricare gli artifact è necessario:\n\n1️⃣ Selezionare prima un'esecuzione workflow\n2️⃣ Poi utilizzare questo comando per scaricare gli artifact\n\nComandi disponibili per selezionare un'esecuzione:\n• Usa i comandi di GitHub Actions per vedere le esecuzioni\n• Seleziona una specifica esecuzione\n• Torna qui per scaricare i suoi artifact\n\nStato attuale:\n❌ Nessuna esecuzione selezionata\n🏢 Repository: {}/{}").format(self.github_owner, self.github_repo), suggestions=_("Utilizza prima un comando per visualizzare le esecuzioni workflow e selezionarne una."))
+ 
                 return
             run_status_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}"
             self.output_text_ctrl.AppendText(_("Verifica stato attuale esecuzione ID {} (per artefatti)...\n").format(self.selected_run_id))
@@ -7901,12 +7850,7 @@ class GitFrame(wx.Frame):
                 artifacts_data = response.json()
                 if artifacts_data.get('total_count', 0) == 0 or not artifacts_data.get('artifacts'):
                     # Mostra messaggio "nessun artifact" nella dialog invece che console
-                    self.ShowErrorNotification(
-                        title="📦 Nessun Artifact Disponibile", 
-                        message="Nessun artifact trovato per questa esecuzione",
-                        details=f"🔍 RICERCA ARTIFACT:\n\nRun ID: {self.selected_run_id}\nRepository: {self.github_owner}/{self.github_repo}\nWorkflow: {current_status_from_api}\n\nPossibili cause:\n• Il workflow non genera artifact\n• L'esecuzione non è ancora completata\n• Gli artifact sono scaduti\n• Il workflow è fallito prima di creare artifact",
-                        suggestions="Verifica che il workflow sia progettato per creare artifact e che l'esecuzione sia completata con successo."
-                    )
+                    self.ShowErrorNotification(title=_("📦 Nessun Artifact Disponibile"), message=_("Nessun artifact trovato per questa esecuzione"), details=_("🔍 RICERCA ARTIFACT:\n\nRun ID: {}\nRepository: {}/{}\nWorkflow: {}\n\nPossibili cause:\n• Il workflow non genera artifact\n• L'esecuzione non è ancora completata\n• Gli artifact sono scaduti\n• Il workflow è fallito prima di creare artifact").format(self.selected_run_id, self.github_owner, self.github_repo, current_status_from_api), suggestions=_("Verifica che il workflow sia progettato per creare artifact e che l'esecuzione sia completata con successo."))
                     return
 
                 artifact_choices = []
