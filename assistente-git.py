@@ -5753,7 +5753,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         if first_category_node and first_category_node.IsOk():
                self.command_tree_ctrl.SelectItem(first_category_node)
                self.command_tree_ctrl.EnsureVisible(first_category_node)
-
+               self.command_tree_ctrl.SetFocus()
 
         self.command_tree_ctrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeItemSelectionChanged)
         self.command_tree_ctrl.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnTreeItemActivated)
@@ -5774,6 +5774,16 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         self.statusBar = self.CreateStatusBar(1); self.statusBar.SetStatusText(_("Pronto."))
         self.panel.SetSizer(main_sizer); self.Layout()
         if self.command_tree_ctrl and self.command_tree_ctrl.GetSelection().IsOk(): self.OnTreeItemSelectionChanged(None)
+        # Imposta l'ordine di tabulazione
+        # 1. Campo percorso repository
+        self.repo_path_ctrl.MoveBeforeInTabOrder(browse_button)
+        
+        # 2. Bottone sfoglia (dopo il campo testo)
+        browse_button.MoveBeforeInTabOrder(self.command_tree_ctrl)
+        
+        # 3. Albero comandi (controllo principale)
+        self.command_tree_ctrl.MoveBeforeInTabOrder(self.output_text_ctrl)
+        
     def CreateMenuBar(self):
         """Crea la barra dei menu."""
         menubar = wx.MenuBar()
