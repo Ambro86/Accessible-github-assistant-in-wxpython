@@ -8954,7 +8954,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             "• Supporto multilingua\n"
             "• Configurazione sicura token GitHub\n\n"
             "🛠️ Sviluppato con Python e wxPython\n"
-            "📅 2024 - Interfaccia Utente Semplificata per Git\n\n"
+            "📅 2025 - Interfaccia Utente Semplificata per Git\n\n"
             "💡 Usa F1 per vedere tutte le scorciatoie!"
         )
         
