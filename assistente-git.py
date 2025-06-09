@@ -22,13 +22,12 @@ from datetime import datetime, timezone # Aggiungi timezone da datetime
 import gettext
 import locale
 
-print("DEBUG: Starting gettext setup...")
 try:
     locale.setlocale(locale.LC_ALL, '')
     current_locale_info = locale.getlocale()
-    print(f"DEBUG: Locale dopo setlocale(locale.LC_ALL, ''): {current_locale_info}")
+    
 except locale.Error as e:
-    print(f"DEBUG: Errore nell'impostare la locale con stringa vuota: {e}")
+    
     current_locale_info = (None, None)
 
 lang_code = None
@@ -36,7 +35,7 @@ languages = ['en']
 
 try:
     lang_code = current_locale_info[0]
-    print(f"DEBUG: Codice lingua iniziale rilevato: '{lang_code}' (tipo: {type(lang_code)})")
+    
     if lang_code and lang_code.strip():
         processed_languages = []
         if os.name == 'nt': # Windows specific handling
@@ -59,14 +58,14 @@ try:
         if processed_languages and any(pl and pl.strip() for pl in processed_languages):
             languages = [pl for pl in processed_languages if pl and pl.strip()]
         else:
-            print(f"DEBUG: Nessun codice lingua valido dopo l'elaborazione di '{lang_code}', fallback a inglese.")
+            
             languages = ['en']
-        print(f"DEBUG: Lista 'languages' finale per gettext: {languages}")
+
     else:
-        print(f"DEBUG: lang_code era None o vuoto ('{lang_code}'), fallback a inglese.")
+
         languages = ['en']
 except Exception as e_detect:
-    print(f"DEBUG: ECCEZIONE durante il rilevamento/elaborazione della lingua: {type(e_detect).__name__}: {e_detect}")
+
     languages = ['en']
 
 try:
@@ -76,16 +75,16 @@ except NameError:
     script_dir = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.getcwd()
 
 localedir = os.path.join(script_dir, 'locales')
-print(f"DEBUG: Directory 'locales' impostata a: {localedir}")
-print(f"DEBUG: Tentativo di caricare traduzioni per le lingue: {languages} dal dominio 'assistente_git'")
+
+
 try:
     lang_translations = gettext.translation('assistente_git', localedir=localedir, languages=languages, fallback=True)
 except Exception as e_trans:
-    print(f"DEBUG: ECCEZIONE durante gettext.translation: {type(e_trans).__name__}: {e_trans}")
+
     lang_translations = gettext.NullTranslations()
 _ = lang_translations.gettext
-print(f"DEBUG: Test translation for 'Pronto.': {_('Pronto.')}")
-print(f"DEBUG: Type of lang_translations: {type(lang_translations)}")
+
+
 # --- End setup gettext ---
 
 
@@ -322,13 +321,13 @@ class GitHubConfigDialog(wx.Dialog):
         self.Refresh()       # Forza un ridisegno per assicurare che le modifiche siano visibili
         
     def OnDeleteConfig(self, event):
-        print("DEBUG: OnDeleteConfig chiamato") # Questo lo vedi già
+
         # Tentiamo di scrivere anche nell'output GUI per conferma
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
             pass
 
         else:
-            print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio di debug GUI iniziale.")
+            pass
 
         risposta = wx.MessageBox(
             _("Sei sicuro di voler eliminare tutta la configurazione GitHub salvata (incluso il token)?\n"
@@ -338,22 +337,18 @@ class GitHubConfigDialog(wx.Dialog):
             self  # self è GitHubConfigDialog, il genitore del MessageBox
         )
         # Output di debug aggiuntivi per analizzare 'risposta'
-        print(f"DEBUG: wx.MessageBox ha restituito il valore: {risposta}")
-        print(f"DEBUG: Il valore atteso per wx.ID_YES è: {wx.ID_YES}")
-        print(f"DEBUG: Il valore atteso per wx.ID_NO è: {wx.ID_NO}")
 
         if not (risposta == wx.ID_YES or risposta == 2):
-            print(f"DEBUG: La condizione 'risposta ({risposta}) non è né wx.ID_YES ({wx.ID_YES}) né 2' è VERA. L'utente NON ha premuto 'Sì' o il valore restituito è inatteso.")
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
                 pass
             return # Esce dal metodo se l'utente non ha premuto "Sì"
 
         # Se arriviamo qui, l'utente ha premuto "Sì"
-        print(f"DEBUG: La condizione 'risposta ({risposta}) != wx.ID_YES ({wx.ID_YES})' è FALSA. L'utente HA premuto 'Sì'.")
+
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
             pass
         else:
-            print("DEBUG: parent_frame o output_text_ctrl non disponibile per il messaggio GUI 'apro PasswordEntryDialog'.")
+            pass
 
 
         password_dialog = wx.PasswordEntryDialog(
@@ -367,14 +362,14 @@ class GitHubConfigDialog(wx.Dialog):
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
                 pass
             else:
-                print("DEBUG: Utente ha chiuso PasswordEntryDialog senza confermare (messaggio GUI non disponibile).")
+                pass
             password_dialog.Destroy()
             return
 
         pw = password_dialog.GetValue()
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
             pass
-        print(f"DEBUG: Password inserita nel dialogo di eliminazione: '{pw}'") # Aggiunto anche a console per sicurezza
+
         password_dialog.Destroy()
 
         risultato = self.parent_frame._remove_github_config(pw)
@@ -404,7 +399,7 @@ class GitHubConfigDialog(wx.Dialog):
             # _remove_github_config dovrebbe mostrare il suo messaggio di errore se la password è errata etc.
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
                 pass
-            print("DEBUG: _remove_github_config ha restituito False (la funzione stessa dovrebbe aver mostrato un errore all'utente se necessario).")
+
     def GetValues(self):
         return {
             "owner": self.owner_ctrl.GetValue().strip(),
@@ -497,7 +492,7 @@ class WorkflowInputDialog(wx.Dialog):
         
         # Help text
         help_text = wx.StaticText(self, 
-                                  label="💡 Tip: Lascia vuoto {} se il workflow non richiede input")
+                                  label=_("💡 Tip: Lascia vuoto {} se il workflow non richiede input"))
         help_text.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_NORMAL))
         main_sizer.Add(help_text, 0, wx.ALL, 5)
         
@@ -1546,7 +1541,7 @@ class IssueManagementDialog(wx.Dialog):
         info_grid.Add(author_value, 1, wx.EXPAND)
         
         # Date
-        created_label = wx.StaticText(panel, label="📅 Creata:")
+        created_label = wx.StaticText(panel, label=_("📅 Creata:"))
         created_value = wx.StaticText(panel, label=self.issue_data['created_at'][:10])
         info_grid.Add(created_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(created_value, 1, wx.EXPAND)
@@ -1868,16 +1863,16 @@ class PullRequestManagementDialog(wx.Dialog):
         # Stato PR più dettagliato
         if self.pr_data.get('merged_at'):
             state_icon = "🟣"
-            state_text = "MERGED"
+            state_text = _("MERGED")
         elif self.pr_data['state'] == 'open':
             state_icon = "🟢"
-            state_text = "OPEN"
+            state_text = _("OPEN")
         else:
             state_icon = "🔴"
-            state_text = "CLOSED"
+            state_text = _("CLOSED")
         
         if self.pr_data.get('draft', False):
-            state_text += " (DRAFT)"
+            state_text += _(" (DRAFT)")
         
         state_label = wx.StaticText(panel, label=f"{state_icon} {state_text}")
         state_font = state_label.GetFont()
@@ -1906,25 +1901,25 @@ class PullRequestManagementDialog(wx.Dialog):
         info_grid.Add(branch_value, 1, wx.EXPAND)
         
         # Date
-        created_label = wx.StaticText(panel, label="📅 Creata:")
+        created_label = wx.StaticText(panel, label=_("📅 Creata:"))
         created_value = wx.StaticText(panel, label=self.pr_data['created_at'][:10])
         info_grid.Add(created_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(created_value, 1, wx.EXPAND)
         
-        updated_label = wx.StaticText(panel, label="🔄 Aggiornata:")
+        updated_label = wx.StaticText(panel, label=_("🔄 Aggiornata:"))
         updated_value = wx.StaticText(panel, label=self.pr_data['updated_at'][:10])
         info_grid.Add(updated_label, 0, wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(updated_value, 1, wx.EXPAND)
         
         # Data merge se presente
         if self.pr_data.get('merged_at'):
-            merged_label = wx.StaticText(panel, label="🎯 Merged:")
+            merged_label = wx.StaticText(panel, label=_("🎯 Merged:"))
             merged_value = wx.StaticText(panel, label=self.pr_data['merged_at'][:10])
             info_grid.Add(merged_label, 0, wx.ALIGN_CENTER_VERTICAL)
             info_grid.Add(merged_value, 1, wx.EXPAND)
         
         # Stato merge
-        mergeable_label = wx.StaticText(panel, label="🔀 Mergeable:")
+        mergeable_label = wx.StaticText(panel, label=_("🔀 Mergeable:"))
         mergeable_state = self.pr_data.get('mergeable_state', 'unknown')
         mergeable_icons = {
             'clean': '✅ Clean',
@@ -1941,7 +1936,7 @@ class PullRequestManagementDialog(wx.Dialog):
         
         # Commit e file stats
         if 'commits' in self.pr_data or 'changed_files' in self.pr_data:
-            stats_label = wx.StaticText(panel, label="📊 Stats:")
+            stats_label = wx.StaticText(panel, label=_("📊 Stats:"))
             stats_text = ""
             if 'commits' in self.pr_data:
                 stats_text += f"{self.pr_data['commits']} commits"
@@ -1958,7 +1953,7 @@ class PullRequestManagementDialog(wx.Dialog):
         
         # Reviewers se presenti
         if self.pr_data.get('requested_reviewers'):
-            reviewers_label = wx.StaticText(panel, label="👥 Reviewers:")
+            reviewers_label = wx.StaticText(panel, label=_("👥 Reviewers:"))
             reviewers_text = ", ".join([r['login'] for r in self.pr_data['requested_reviewers']])
             reviewers_value = wx.StaticText(panel, label=reviewers_text)
             info_grid.Add(reviewers_label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -2032,7 +2027,7 @@ class PullRequestManagementDialog(wx.Dialog):
         
         # Contatore caratteri e bottoni
         comment_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.char_count_label = wx.StaticText(panel, label="0 caratteri")
+        self.char_count_label = wx.StaticText(panel, label=_("0 caratteri"))
         self.char_count_label.SetForegroundColour(wx.Colour(128, 128, 128))
         
         self.send_comment_btn = wx.Button(panel, label=_("📤 Invia Commento"))
@@ -2500,7 +2495,6 @@ class GitFrame(wx.Frame):
         self.Centre()
         self.SetTitle(_("Assistente Git Semplice v1.1"))
         self.Show(True)
-        print("DEBUG: secure_config_path finale =", self.secure_config_path)
         self._load_app_settings() # Carica le opzioni non sensibili
         github_config_loaded_at_startup = False
         if self.github_ask_pass_on_startup:
@@ -2557,7 +2551,7 @@ class GitFrame(wx.Frame):
         main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
         
         # Area dettagli
-        details_label = wx.StaticText(panel, label="📋 Stato Monitoraggio:")
+        details_label = wx.StaticText(panel, label=_("📋 Stato Monitoraggio:"))
         details_font = details_label.GetFont()
         details_font.SetWeight(wx.FONTWEIGHT_BOLD)
         details_label.SetFont(details_font)
@@ -2577,7 +2571,7 @@ class GitFrame(wx.Frame):
         # Bottoni
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        close_btn = wx.Button(panel, wx.ID_CLOSE, label="✖️ Chiudi")
+        close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
         close_btn.SetDefault()
         close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
         
@@ -2703,7 +2697,7 @@ class GitFrame(wx.Frame):
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
-        diff_type = "staged" if command_name == CMD_DIFF_STAGED else "working directory"
+        diff_type = _("staged") if command_name == CMD_DIFF_STAGED else "working directory"
         
         if not stdout.strip():
             return {
@@ -3043,25 +3037,25 @@ class GitFrame(wx.Frame):
                     if 'commit' in line.lower() and len(line.split()) > 1:
                         summary += f"📋 Commit creato: {line}\n"
                         break
-            summary += "✅ Modifiche salvate nel repository\n"
+            summary += _("✅ Modifiche salvate nel repository\n")
             
         elif command_name == CMD_PUSH:
             if "up-to-date" in stdout.lower():
-                summary += "✅ Repository già aggiornato\n"
+                summary += _("✅ Repository già aggiornato\n")
             else:
-                summary += "✅ Modifiche inviate al server remoto\n"
+                summary += _("✅ Modifiche inviate al server remoto\n")
                 
         elif command_name == CMD_PULL:
             if "up-to-date" in stdout.lower() or "already up to date" in stdout.lower():
-                summary += "✅ Repository già aggiornato\n"
+                summary += _("✅ Repository già aggiornato\n")
             else:
-                summary += "✅ Modifiche scaricate e integrate\n"
+                summary += _("✅ Modifiche scaricate e integrate\n")
                 
         elif command_name == CMD_ADD_ALL:
-            summary += "✅ Tutte le modifiche aggiunte all'area di stage\n"
+            summary += _("✅ Tutte le modifiche aggiunte all'area di stage\n")
             
         elif command_name == CMD_FETCH_ORIGIN:
-            summary += "✅ Informazioni remote aggiornate\n"
+            summary += _("✅ Informazioni remote aggiornate\n")
         
         summary += "\n"
         formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
@@ -3101,13 +3095,13 @@ class GitFrame(wx.Frame):
         summary = f"{icon} MODIFICA REPOSITORY COMPLETATA\n\n"
         
         if command_name == CMD_CHECKOUT_B:
-            summary += "✅ Nuovo branch creato e attivato\n"
+            summary += _("✅ Nuovo branch creato e attivato\n")
         elif command_name == CMD_CHECKOUT_EXISTING:
-            summary += "✅ Passaggio al branch completato\n"
+            summary += _("✅ Passaggio al branch completato\n")
         elif command_name == CMD_MERGE:
-            summary += "✅ Branch unificati con successo\n"
+            summary += _("✅ Branch unificati con successo\n")
         elif command_name in [CMD_BRANCH_D, CMD_BRANCH_FORCE_D]:
-            summary += "✅ Branch eliminato dal repository\n"
+            summary += _("✅ Branch eliminato dal repository\n")
         
         summary += "\n"
         formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
@@ -3146,13 +3140,13 @@ class GitFrame(wx.Frame):
         summary = f"{icon} CONFIGURAZIONE COMPLETATA\n\n"
         
         if command_name == CMD_INIT_REPO:
-            summary += "✅ Repository Git inizializzato\n"
+            summary += _("✅ Repository Git inizializzato\n")
         elif command_name == CMD_REMOTE_ADD_ORIGIN:
-            summary += "✅ Repository remoto 'origin' aggiunto\n"
+            summary += _("✅ Repository remoto 'origin' aggiunto\n")
         elif command_name == CMD_REMOTE_SET_URL:
-            summary += "✅ URL repository remoto aggiornato\n"
+            summary += _("✅ URL repository remoto aggiornato\n")
         elif command_name == CMD_TAG_LIGHTWEIGHT:
-            summary += "✅ Tag creato nel repository\n"
+            summary += _("✅ Tag creato nel repository\n")
         
         summary += "\n"
         formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
@@ -3765,13 +3759,13 @@ class GitFrame(wx.Frame):
             for pr in prs_data:
                 if pr.get('merged_at'):
                     state_icon = "🟣"  # Merged
-                    state_text = "MERGED"
+                    state_text = _("MERGED")
                 elif pr["state"] == "open":
                     state_icon = "🟢"  # Open
-                    state_text = "OPEN"
+                    state_text = _("OPEN")
                 else:
                     state_icon = "🔴"  # Closed
-                    state_text = "CLOSED"
+                    state_text = _("CLOSED")
                 
                 draft_text = " [DRAFT]" if pr.get('draft', False) else ""
                 choice_str = f"{state_icon} #{pr['number']}: {pr['title'][:50]}... ({pr['head']['ref']} → {pr['base']['ref']}){draft_text}"
@@ -4311,7 +4305,7 @@ class GitFrame(wx.Frame):
                         branches.append(branch_name)
                 return branches
             except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
-                print(f"DEBUG: Errore nel recuperare i branch locali: {e}")
+
                 return []
                 
     # Aggiungi queste parti al metodo ExecuteGithubCommand
@@ -4637,7 +4631,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 self.ShowErrorNotification(
                     title=_("❌ Titolo Mancante"),
                     message=_("Il titolo della Pull Request è obbligatorio"),
-                    details="📝 CAMPO RICHIESTO:\n\nIl titolo della Pull Request è un campo obbligatorio e non può essere vuoto.\n\nIl titolo serve a:\n• Identificare rapidamente la PR\n• Descrivere brevemente le modifiche\n• Facilitare la revisione del codice\n\nInserisci un titolo descrittivo che spieghi le modifiche apportate.",
+                    details=_("📝 CAMPO RICHIESTO:\n\nIl titolo della Pull Request è un campo obbligatorio e non può essere vuoto.\n\nIl titolo serve a:\n• Identificare rapidamente la PR\n• Descrivere brevemente le modifiche\n• Facilitare la revisione del codice\n\nInserisci un titolo descrittivo che spieghi le modifiche apportate."),
                     suggestions=_("Torna indietro e inserisci un titolo descrittivo per la Pull Request.")
                 )
                 dlg.Destroy()
@@ -4647,7 +4641,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 self.ShowErrorNotification(
                     title=_("❌ Branch Non Selezionati"),
                     message=_("Branch di origine e destinazione sono obbligatori"),
-                    details="🌿 SELEZIONE BRANCH RICHIESTA:\n\nPer creare una Pull Request è necessario specificare:\n\n🎯 Branch di origine (HEAD): Il branch con le tue modifiche\n🎯 Branch di destinazione (BASE): Il branch in cui verranno unite le modifiche\n\nEntrambi i branch devono essere selezionati per procedere.\n\nVerifica che:\n• Hai selezionato il branch di origine\n• Hai selezionato il branch di destinazione\n• I branch esistano nel repository",
+                    details=_("🌿 SELEZIONE BRANCH RICHIESTA:\n\nPer creare una Pull Request è necessario specificare:\n\n🎯 Branch di origine (HEAD): Il branch con le tue modifiche\n🎯 Branch di destinazione (BASE): Il branch in cui verranno unite le modifiche\n\nEntrambi i branch devono essere selezionati per procedere.\n\nVerifica che:\n• Hai selezionato il branch di origine\n• Hai selezionato il branch di destinazione\n• I branch esistano nel repository"),
                     suggestions=_("Torna indietro e seleziona entrambi i branch richiesti.")
                 )
                 dlg.Destroy()
@@ -4694,26 +4688,26 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 success_details += f"⏰ Creata: {datetime.now().strftime('%H:%M:%S')}\n"
                 
                 if values["draft"]:
-                    success_details += "\n🚧 STATO: Draft (bozza)\n"
-                    success_details += "• La PR è in modalità bozza\n"
-                    success_details += "• Non può essere mergiata finché è draft\n"
-                    success_details += "• Utile per lavori in corso\n"
+                    success_details += _("\n🚧 STATO: Draft (bozza)\n")
+                    success_details += _("• La PR è in modalità bozza\n")
+                    success_details += _("• Non può essere mergiata finché è draft\n")
+                    success_details += _("• Utile per lavori in corso\n")
                 else:
-                    success_details += "\n✅ STATO: Pronta per revisione\n"
-                    success_details += "• La PR è pronta per essere revisionata\n"
-                    success_details += "• Può essere assegnata a reviewer\n"
-                    success_details += "• Può essere mergiata quando approvata\n"
+                    success_details += _("\n✅ STATO: Pronta per revisione\n")
+                    success_details += _("• La PR è pronta per essere revisionata\n")
+                    success_details += _("• Può essere assegnata a reviewer\n")
+                    success_details += _("• Può essere mergiata quando approvata\n")
                 
                 if values["auto_merge"]:
-                    success_details += "\n🤖 AUTO-MERGE: Richiesto\n"
-                    success_details += "• La PR verrà mergiata automaticamente quando possibile\n"
-                    success_details += "• Richiede che il repository abbia l'auto-merge abilitato\n"
+                    success_details += _("\n🤖 AUTO-MERGE: Richiesto\n")
+                    success_details += _("• La PR verrà mergiata automaticamente quando possibile\n")
+                    success_details += _("• Richiede che il repository abbia l'auto-merge abilitato\n")
                 
-                success_details += "\n💡 PROSSIMI PASSI:\n"
-                success_details += "• Visualizza la PR nel browser\n"
-                success_details += "• Assegna reviewer se necessario\n"
-                success_details += "• Monitora lo stato dei check automatici\n"
-                success_details += "• Aggiorna la descrizione se necessario"
+                success_details += _("\n💡 PROSSIMI PASSI:\n")
+                success_details += _("• Visualizza la PR nel browser\n")
+                success_details += _("• Assegna reviewer se necessario\n")
+                success_details += _("• Monitora lo stato dei check automatici\n")
+                success_details += _("• Aggiorna la descrizione se necessario")
                 
                 # Mostra successo nella dialog
                 self.ShowSuccessNotification(
@@ -4744,13 +4738,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
                     
                     if e.response.status_code == 401:
-                        error_details += "❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare PR"
-                        suggestions = "Verifica e aggiorna il token GitHub nelle impostazioni."
+                        error_details += _("❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare PR")
+                        suggestions = _("Verifica e aggiorna il token GitHub nelle impostazioni.")
                     elif e.response.status_code == 403:
-                        error_details += "❌ ERRORE PERMESSI:\n• Non hai permessi per creare PR in questo repository\n• Repository privato senza accesso"
-                        suggestions = "Verifica di avere accesso in scrittura al repository."
+                        error_details += _("❌ ERRORE PERMESSI:\n• Non hai permessi per creare PR in questo repository\n• Repository privato senza accesso")
+                        suggestions = _("Verifica di avere accesso in scrittura al repository.")
                     elif e.response.status_code == 404:
-                        error_details += "❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
+                        error_details += _("❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato")
                         suggestions = "Verifica la configurazione del repository GitHub."
                     elif e.response.status_code == 422:
                         error_details += "❌ DATI NON VALIDI:\n• I branch specificati potrebbero non esistere\n• Non ci sono differenze tra i branch\n• Parametri della PR non validi"
@@ -4780,7 +4774,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
     def start_monitoring_run(self, run_id, owner, repo):
         """Avvia il monitoraggio periodico di un workflow run."""
-        print(f"DEBUG_MONITOR: Avvio monitoraggio per run_id: {run_id}")
         
         # Interrompi qualsiasi monitoraggio precedente
         self.stop_monitoring_run()
@@ -4801,14 +4794,14 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         polling_interval = 10000  # milliseconds
         self.monitoring_timer.Start(polling_interval)
         
-        print(f"DEBUG_MONITOR: Timer avviato con successo per run_id {run_id}. Intervallo: {polling_interval}ms")
+
         
 
 
     def stop_monitoring_run(self):
         """Interrompe il monitoraggio corrente."""
         if hasattr(self, 'monitoring_timer') and self.monitoring_timer and self.monitoring_timer.IsRunning():
-            print("DEBUG_MONITOR: Interruzione timer esistente")
+
             self.monitoring_timer.Stop()
             self.monitoring_timer.Destroy()
             self.monitoring_timer = None
@@ -4847,7 +4840,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
             # 3) Se mancano dati essenziali (run_id, owner o repo), fermo tutto
             if not self.monitoring_run_id or not self.monitoring_owner or not self.monitoring_repo:
-                print("DEBUG_MONITOR: Parametri monitoraggio mancanti, interruzione")
                 self.stop_monitoring_run()
                 return
 
@@ -4865,7 +4857,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 f"{self.monitoring_run_id}"
             )
             
-            print(f"DEBUG_MONITOR: Poll #{self.monitoring_poll_count} - Chiamata API: {api_url}")
+
             
             response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
@@ -4873,7 +4865,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             current_status = run_data.get("status", "unknown").lower()
             current_conclusion = run_data.get("conclusion")
 
-            print(f"DEBUG_MONITOR: Status: {current_status}, Conclusion: {current_conclusion}")
+
 
             # 5) Stati che indicano che il workflow è ancora in progress
             in_progress_states = [
@@ -4881,7 +4873,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             ]
             
             if current_status in in_progress_states:
-                print(f"DEBUG_MONITOR: Workflow ancora in corso ({current_status})")
+
                 # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
                     if os.name == "nt":
@@ -4895,7 +4887,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 return  # esco e aspetto il prossimo tick del timer
 
             # 6) Il workflow NON è più "in progress" → è terminato o cancellato
-            print(f"DEBUG_MONITOR: Workflow terminato! Status: {current_status}, Conclusion: {current_conclusion}")
+
             if self.monitoring_dialog:
                 try:
                     self.monitoring_dialog.EndModal(wx.ID_CLOSE)
@@ -4995,7 +4987,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     title=f"⚠️ Workflow Terminato",
                     message=f"'{workflow_name_local}' terminato con stato: {result}",
                     details=workflow_details,
-                    suggestions="Controlla i log del workflow per maggiori dettagli sul problema." if current_conclusion == "failure" else None
+                    suggestions=_("Controlla i log del workflow per maggiori dettagli sul problema.") if current_conclusion == "failure" else None
                 )
 
             # 10) Breve messaggio nel terminale per tracking
@@ -5007,7 +4999,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         except requests.exceptions.HTTPError as http_err:
             # Gestione specifica per errori HTTP (es. 404 quando la run viene cancellata)
             if http_err.response.status_code == 404:
-                print(f"DEBUG_MONITOR: Run ID {self.monitoring_run_id} non trovata (404) - probabilmente cancellata")
+
                 if self.monitoring_dialog:
                     try:
                         self.monitoring_dialog.EndModal(wx.ID_CLOSE)
@@ -5056,22 +5048,22 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 # Breve messaggio nel terminale
                 self.output_text_ctrl.AppendText(_("🚫 Workflow '{}' cancellato/rimosso (ID: {})\n").format(workflow_name_local, run_id_local))
             else:
-                print(f"DEBUG_MONITOR: Errore HTTP {http_err.response.status_code} durante monitoraggio: {http_err}")
+
                 self.output_text_ctrl.AppendText(_("❌ Errore HTTP durante monitoraggio: {}\n").format(http_err))
                 # Non interrompiamo il monitoraggio per altri errori HTTP, potrebbe essere temporaneo
                 
         except requests.exceptions.RequestException as req_err:
-            print(f"DEBUG_MONITOR: Errore di rete durante monitoraggio: {req_err}")
+
             # Non interrompiamo il monitoraggio per errori temporanei di rete
             self.output_text_ctrl.AppendText(_("⚠️ Errore temporaneo di rete durante monitoraggio: {}\n").format(req_err))
             
         except Exception as e:
-            print(f"DEBUG_MONITOR: Errore imprevisto durante monitoraggio: {e}")
+
             self.output_text_ctrl.AppendText(_("❌ Errore imprevisto durante monitoraggio: {}\n").format(e))
             self.stop_monitoring_run()
     def convert_utc_to_local_timestamp_match(self, ts_match):
         utc_str = ts_match.group(1)
-        print(f"DEBUG_TIMESTAMP: Trovato timestamp potenziale da convertire: '{utc_str}'")
+
         try:
             # Gestisce diversi formati di timestamp UTC
             if utc_str.endswith('Z'):
@@ -5086,21 +5078,21 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 # Assume UTC se non c'è indicazione di fuso orario
                 utc_dt = datetime.fromisoformat(utc_str).replace(tzinfo=timezone.utc)
                 
-            print(f"DEBUG_TIMESTAMP: Parsed UTC datetime: {utc_dt}")
+
             
             # Converte al fuso orario locale del sistema
             local_dt = utc_dt.astimezone()
-            print(f"DEBUG_TIMESTAMP: Converted to local datetime: {local_dt}")
+
             
             formatted_local_dt = local_dt.strftime('%Y-%m-%d %H:%M:%S (Locale)')
-            print(f"DEBUG_TIMESTAMP: Formattato localmente come: '{formatted_local_dt}'")
+
             return formatted_local_dt
             
         except ValueError as e:
-            print(f"DEBUG_TIMESTAMP: Errore parsing/conversione timestamp: {e} per '{utc_str}'")
+
             return ts_match.group(0)
         except Exception as ex:
-            print(f"DEBUG_TIMESTAMP: Errore generico in conversione: {ex} per '{utc_str}'")
+
             return ts_match.group(0)
             # --- Metodi per la gestione della configurazione sicura e delle opzioni ---
     def _get_app_config_dir(self):
@@ -5111,7 +5103,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             try:
                 os.makedirs(app_config_path)
             except OSError as e:
-                print(f"DEBUG: Errore creazione directory config app: {e}")
+
                 app_config_path = os.path.join(script_dir, "." + APP_CONFIG_DIR_NAME.lower())
                 if not os.path.exists(app_config_path):
                     try: os.makedirs(app_config_path)
@@ -5132,7 +5124,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     f.write(str(new_uuid))
                 return new_uuid
         except Exception as e:
-            print(f"DEBUG: Errore gestione UUID utente: {e}. Generazione di un UUID temporaneo.")
+
             return uuid.uuid4()
 
     def _get_secure_config_path(self):
@@ -5162,7 +5154,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             return salt, encrypted_data, None
         except Exception as e:
             error_message = f"{type(e).__name__}: {e}"
-            print(f"DEBUG: Errore imprevisto in _encrypt_data: {error_message}")
+
             return None, None, error_message
 
     def _decrypt_data(self, encrypted_data: bytes, salt: bytes, password: str) -> tuple[bytes | None, str | None]:
@@ -5174,11 +5166,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             return original_data, None
         except InvalidToken:
             error_message = _("Password Master errata o dati corrotti (InvalidToken).")
-            print(f"DEBUG: {error_message}")
+
             return None, error_message
         except (gzip.BadGzipFile, Exception) as e:
             error_message = f"{type(e).__name__}: {e}"
-            print(f"DEBUG: Errore di decrittografia o decompressione: {error_message}")
+
             return None, error_message
 
     def _save_app_settings(self):
@@ -5191,9 +5183,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         try:
             with open(self.app_settings_path, 'w') as f:
                 json.dump(settings_data, f, indent=4)
-            print(f"DEBUG: Opzioni app salvate in {self.app_settings_path}")
+
         except IOError as e:
-            print(f"DEBUG: Errore nel salvare settings.json: {e}")
+
             self.output_text_ctrl.AppendText(_("Errore nel salvare le opzioni dell'applicazione: {}\n").format(e))
 
     def _load_app_settings(self):
@@ -5205,14 +5197,14 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     self.github_ask_pass_on_startup = settings_data.get("ask_pass_on_startup", True)
                     self.github_strip_log_timestamps = settings_data.get("strip_log_timestamps", False)
                     self.github_monitoring_beep = settings_data.get("monitoring_beep", True)  # ← 
-                    print(f"DEBUG: Opzioni caricate da settings.json: ask_pass={self.github_ask_pass_on_startup}, strip_ts={self.github_strip_log_timestamps}")
+
             except (IOError, json.JSONDecodeError) as e:
-                print(f"DEBUG: Errore nel caricare settings.json: {e}. Uso i default.")
+
                 self.github_ask_pass_on_startup = True
                 self.github_strip_log_timestamps = False
                 self.github_monitoring_beep = True
         else:
-            print("DEBUG: settings.json non trovato. Uso i default per le opzioni.")
+
             self.github_ask_pass_on_startup = True
             self.github_strip_log_timestamps = False
             self.github_monitoring_beep = True
@@ -5441,11 +5433,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         return False
 
     def _remove_github_config(self, password: str):
-        print("DEBUG: _remove_github_config chiamato")
+
 
         if not os.path.exists(self.secure_config_path):
             self.output_text_ctrl.AppendText(_("Nessuna configurazione GitHub salvata da rimuovere.\n"))
-            print("DEBUG: _remove_github_config: nessun file da rimuovere")
+
             # Considera questo un successo perché l'obiettivo (nessuna configurazione) è raggiunto
             # Anche se il file settings.json potrebbe esistere ancora.
             # Cancelliamo settings.json se esiste, per una pulizia completa
@@ -5466,7 +5458,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
 
 
-        print(f"DEBUG: secure_config_path = {self.secure_config_path}")
+
 
         try:
             with open(self.secure_config_path, 'rb') as f:
@@ -5477,17 +5469,17 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
 
 
-                print(f"DEBUG: magic_prefix={prefix}, uuid_part={uuid_part}, version={version}")
+
 
                 if prefix != CONFIG_MAGIC_NUMBER_PREFIX:
                     self.output_text_ctrl.AppendText(_("Errore: magic prefix non corrisponde.\n"))
-                    print("DEBUG: magic prefix errato")
+
                     return False
 
                 expected_uuid = self.user_uuid.bytes[:4]
                 if uuid_part != expected_uuid:
                     self.output_text_ctrl.AppendText(_("Errore: UUID utente non corrisponde.\n"))
-                    print("DEBUG: uuid non corrisponde")
+
                     return False
 
                 if version > CONFIG_FORMAT_VERSION:
@@ -5496,29 +5488,29 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                             version, CONFIG_FORMAT_VERSION
                         )
                     )
-                    print("DEBUG: versione file non supportata")
+
                     return False
 
                 salt_len = struct.unpack('<I', f.read(4))[0]
                 salt = f.read(salt_len)
 
 
-                print(f"DEBUG: salt_len={salt_len}, salt[:8]={salt[:8]}")
+
 
                 data_len = struct.unpack('<I', f.read(4))[0]
                 encrypted_data = f.read(data_len)
 
 
-                print(f"DEBUG: data_len={data_len}, encrypted_data[:8]={encrypted_data[:8]}")
 
 
-            print("DEBUG: Provo a decriptare con la password fornita...")
+
+
             decrypted_json, err = self._decrypt_data(encrypted_data, salt, password)
             if err is not None or decrypted_json is None:
                 self.output_text_ctrl.AppendText(
                     _("Errore decrittografia: {}. Impossibile rimuovere.\n").format(err)
                 )
-                print(f"DEBUG: Decrittazione fallita, errore = {err}")
+
                 wx.MessageBox(
                     _("Password Master errata o dati corrotti. Rimozione annullata.\nErrore: {}").format(err),
                     _("Errore Rimozione"), wx.OK | wx.ICON_ERROR
@@ -5527,16 +5519,16 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
             os.remove(self.secure_config_path)
             self.output_text_ctrl.AppendText(_("File di configurazione criptato rimosso.\n"))
-            print("DEBUG: File di configurazione rimosso")
+
 
             uuid_file = os.path.join(self._get_app_config_dir(), USER_ID_FILE_NAME)
             if os.path.exists(uuid_file):
                 os.remove(uuid_file)
 
-                print(f"DEBUG: File UUID rimosso: {uuid_file}")
-            else:
 
-                print("DEBUG: Nessun user_id.cfg da rimuovere")
+            else: pass
+
+
 
             # Rimuovi anche settings.json per una pulizia completa
             if os.path.exists(self.app_settings_path):
@@ -5557,7 +5549,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             self._save_app_settings() # Salva i default di app_settings
 
             self.output_text_ctrl.AppendText(_("Configurazione GitHub, UUID utente e impostazioni app rimossi con successo.\n"))
-            print("DEBUG: Configurazione interna ripulita, nuovo UUID generato, impostazioni app resettate")
+
             return True
 
         except Exception as e:
@@ -5565,7 +5557,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             self.output_text_ctrl.AppendText(
                 _("Errore imprevisto durante la rimozione: {}\n").format(error_str)
             )
-            print(f"DEBUG: Eccezione in _remove_github_config: {error_str}")
+
             wx.MessageBox(
                 _("Errore durante la rimozione della configurazione: {}").format(error_str),
                 _("Errore Rimozione"), wx.OK | wx.ICON_ERROR
@@ -5583,9 +5575,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 if run_id in self.monitoring_timers: # Rimuovi la voce
                      del self.monitoring_timers[run_id]
             if self.monitoring_timers: # Se per qualche motivo non è vuoto
-                 print("DEBUG: Alcuni timer potrebbero non essere stati rimossi correttamente da monitoring_timers.")
+                pass
             else:
-                 print("DEBUG: Tutti i timer di monitoraggio workflow arrestati e rimossi.")
+                pass
 
         self.Destroy()
         
@@ -5765,7 +5757,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         mono_font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         if mono_font.IsOk():
             self.output_text_ctrl.SetFont(mono_font)
-        else: print("DEBUG: Fallimento nel creare il font Monospaced.")
+        else: pass 
         output_sizer_box.Add(self.output_text_ctrl, 1, wx.EXPAND | wx.ALL, 5)
         content_sizer.Add(output_sizer_box, 2, wx.EXPAND, 0)
 
@@ -6439,7 +6431,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 repo = match.group(2)
                 return owner, repo
         except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
-            print(f"DEBUG: Impossibile ottenere URL di origin o analizzarlo: {e}")
+            pass
         return None, None
     def _update_github_context_from_path(self):
         """
@@ -6536,7 +6528,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     })
             return workflows
         except Exception as e:
-            print(f"DEBUG_WORKFLOWS: Errore recupero workflow: {e}")
+
             return []
     def auto_find_and_monitor_latest_run(self, workflow_name=None):
         """Trova automaticamente l'ultima run e avvia il monitoraggio."""
@@ -7465,7 +7457,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 
                 confirm_dialog = wx.MessageDialog(self, confirm_msg_filled, _("Conferma Eliminazione Release"), wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
                 response_confirm_delete = confirm_dialog.ShowModal()
-                print(f"DEBUG_DELETE_RELEASE_CONFIRM: Dialogo conferma eliminazione release ha restituito: {response_confirm_delete}, wx.ID_YES è {wx.ID_YES}")
+
                 confirm_dialog.Destroy()
 
                 if not (response_confirm_delete == wx.ID_YES or response_confirm_delete == 2):
@@ -7487,7 +7479,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         confirm_delete_tag_msg = _("La release è stata eliminata da GitHub.\nVuoi tentare di eliminare anche il tag Git '{tag}' dal repository remoto 'origin'?\n(Comando: git push origin --delete {tag})").format(tag=target_tag_name)
                         tag_delete_dialog = wx.MessageDialog(self, confirm_delete_tag_msg, _("Elimina Tag Git Remoto?"), wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
                         response_delete_tag = tag_delete_dialog.ShowModal()
-                        print(f"DEBUG_DELETE_TAG_CONFIRM: Dialogo conferma eliminazione tag ha restituito: {response_delete_tag}, wx.ID_YES è {wx.ID_YES}")
+
                         tag_delete_dialog.Destroy()
 
                         if response_delete_tag == wx.ID_YES or response_delete_tag == 2:
@@ -7998,7 +7990,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 )
              
 
-    def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description="Comando Git"):
+    def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description=_("Comando Git")):
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         output = ""
         success = False
@@ -8927,7 +8919,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             parent_dialog,
             _("Salva Scorciatoie Come..."),
             defaultDir=os.getcwd(),
-            defaultFile="AssistenteGit_Scorciatoie.txt",
+            defaultFile=_("AssistenteGit_Scorciatoie.txt"),
             wildcard=_("File di testo (*.txt)|*.txt|Tutti i file (*.*)|*.*"),
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         )
