@@ -7840,10 +7840,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             if not allow_artifact_attempt:
                 self.output_text_ctrl.AppendText(_("Recupero artefatti interrotto.\n"))
                 return
-
+            
             artifacts_api_url = f"https://api.github.com/repos/{self.github_owner}/{self.github_repo}/actions/runs/{self.selected_run_id}/artifacts"
-            self.output_text_ctrl.AppendText(_("Recupero lista artefatti per esecuzione ID {}...\n").format(self.selected_run_id))
-            wx.Yield()
+
             try:
                 response = requests.get(artifacts_api_url, headers=headers, timeout=10)
                 response.raise_for_status()
@@ -7862,12 +7861,17 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     except:
                         expires_at_display = _('N/D') 
                     size_kb = art.get('size_in_bytes', 0) // 1024
-                    choice_str = f"{art['name']} ({size_kb} KB, Scade: {expires_at_display})"
+                    choice_str = f"{art['name']} ({size_kb} KB, {_('Scade')}: {expires_at_display})"
                     artifact_choices.append(choice_str)
                     artifact_map[choice_str] = art
                 
                 if not artifact_choices:
-                    self.output_text_ctrl.AppendText(_("Nessun artefatto valido da elencare.\n"))
+                    self.ShowErrorNotification(
+                        title=_("❌ Nessun Artifact Valido"),
+                        message=_("Impossibile elencare artifact disponibili"),
+                        details=_("📦 PROBLEMA ARTIFACT:\n\nGli artifact sono stati trovati ma non sono validi per il download.\n\nRun ID: {}\nRepository: {}/{}").format(self.selected_run_id, self.github_owner, self.github_repo),
+                        suggestions=_("Verifica lo stato dell'esecuzione e riprova.")
+                    )
                     return
                 
                 choice_dlg = wx.SingleChoiceDialog(self, _("Seleziona un artefatto da scaricare:"), _("Download Artefatto per {}/{}").format(self.github_owner, self.github_repo), artifact_choices, wx.CHOICEDLG_STYLE)
@@ -7881,35 +7885,108 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         save_dialog = wx.FileDialog(self, _("Salva Artefatto Come..."), defaultDir=os.getcwd(), defaultFile=default_file_name, wildcard=_("File ZIP (*.zip)|*.zip|Tutti i file (*.*)|*.*"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                         if save_dialog.ShowModal() == wx.ID_OK:
                             save_path = save_dialog.GetPath()
-                            self.output_text_ctrl.AppendText(_("Download di '{}' in corso...\nA: {}\n").format(default_file_name, save_path))
-                            wx.Yield()
+                            
                             try:
                                 artifact_response = requests.get(download_url, headers=headers, stream=True, allow_redirects=True, timeout=120)
                                 artifact_response.raise_for_status()
                                 with open(save_path, 'wb') as f:
                                     for chunk in artifact_response.iter_content(chunk_size=8192):
                                         f.write(chunk)
-                                self.output_text_ctrl.AppendText(_("Artefatto '{}' scaricato: {}\n").format(default_file_name, save_path))
+                                
+                                # Calcola dimensione file scaricato
+                                file_size = os.path.getsize(save_path)
+                                size_mb = file_size / (1024 * 1024)
+                                
+                                # Mostra successo nella dialog
+                                success_details = _("📦 ARTIFACT SCARICATO CON SUCCESSO\n\n")
+                                success_details += _("📁 Nome: {}\n").format(artifact_name_from_api)
+                                success_details += _("💾 Dimensione: {:.2f} MB\n").format(size_mb)
+                                success_details += _("📂 Salvato in: {}\n").format(save_path)
+                                success_details += _("🆔 Run ID: {}\n").format(self.selected_run_id)
+                                success_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                                success_details += _("⏰ Completato: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                                success_details += _("✅ STATO:\n")
+                                success_details += _("• File scaricato correttamente\n")
+                                success_details += _("• Artifact salvato nella posizione scelta\n")
+                                success_details += _("• Pronto per essere utilizzato\n\n")
+                                success_details += _("💡 INFORMAZIONI:\n")
+                                success_details += _("• L'artifact è in formato ZIP\n")
+                                success_details += _("• Estrarre il contenuto per utilizzare i file\n")
+                                success_details += _("• Il file è stato scaricato completamente")
+                                
+                                self.ShowSuccessNotification(
+                                    title=_("📦 Artifact Scaricato"),
+                                    message=_("'{}' scaricato con successo").format(artifact_name_from_api),
+                                    details=success_details
+                                )
+                                
                             except requests.exceptions.RequestException as e_dl:
-                                self.output_text_ctrl.AppendText(_("Errore download artefatto: {}\n").format(e_dl))
+                                # Mostra errore nella dialog
+                                error_details = _("🌐 ERRORE DOWNLOAD ARTIFACT\n\n")
+                                error_details += _("📁 Artifact: {}\n").format(artifact_name_from_api)
+                                error_details += _("📂 Destinazione: {}\n").format(save_path)
+                                error_details += _("📝 Errore: {}\n").format(e_dl)
+                                error_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                                error_details += _("❌ PROBLEMA:\n")
+                                error_details += _("• Errore di rete durante il download\n")
+                                error_details += _("• Connessione interrotta o server non disponibile\n")
+                                error_details += _("• Possibili problemi di autenticazione\n\n")
+                                error_details += _("🔧 SOLUZIONI:\n")
+                                error_details += _("• Verifica la connessione internet\n")
+                                error_details += _("• Riprova il download dell'artifact\n")
+                                error_details += _("• Controlla i permessi del token GitHub")
+                                
+                                self.ShowErrorNotification(
+                                    title=_("❌ Errore Download Artifact"),
+                                    message=_("Impossibile scaricare '{}'").format(artifact_name_from_api),
+                                    details=error_details,
+                                    suggestions=_("Verifica la connessione e riprova il download.")
+                                )
+                                
                             except IOError as e_io:
-                                self.output_text_ctrl.AppendText(_("Errore salvataggio artefatto: {}\n").format(e_io))
-                        else:
-                            self.output_text_ctrl.AppendText(_("Salvataggio artefatto annullato.\n"))
+                                # Mostra errore nella dialog
+                                error_details = _("💾 ERRORE SALVATAGGIO ARTIFACT\n\n")
+                                error_details += _("📁 Artifact: {}\n").format(artifact_name_from_api)
+                                error_details += _("📂 Destinazione: {}\n").format(save_path)
+                                error_details += _("📝 Errore: {}\n").format(e_io)
+                                error_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                                error_details += _("❌ PROBLEMA:\n")
+                                error_details += _("• Impossibile scrivere il file nel percorso specificato\n")
+                                error_details += _("• Permessi insufficienti sulla directory\n")
+                                error_details += _("• Spazio su disco insufficiente\n")
+                                error_details += _("• File già aperto in un'altra applicazione\n\n")
+                                error_details += _("🔧 SOLUZIONI:\n")
+                                error_details += _("• Verifica i permessi della directory di destinazione\n")
+                                error_details += _("• Controlla lo spazio disponibile su disco\n")
+                                error_details += _("• Scegli una diversa posizione di salvataggio\n")
+                                error_details += _("• Chiudi eventuali applicazioni che usano il file")
+                                
+                                self.ShowErrorNotification(
+                                    title=_("❌ Errore Salvataggio Artifact"),
+                                    message=_("Impossibile salvare '{}'").format(artifact_name_from_api),
+                                    details=error_details,
+                                    suggestions=_("Verifica i permessi e lo spazio su disco, poi riprova.")
+                                )
                         save_dialog.Destroy()
-                else:
-                    self.output_text_ctrl.AppendText(_("Selezione artefatto annullata.\n"))
                 choice_dlg.Destroy()
-            except requests.exceptions.HTTPError as e:
-                self.output_text_ctrl.AppendText(_("Errore HTTP API GitHub: {} - {}\n").format(e.response.status_code, e.response.text[:500]))
-                if e.response.status_code == 404:
-                    self.output_text_ctrl.AppendText(_("Causa: Esecuzione/artefatti scaduti o ID non valido.\n"))
-                elif e.response.status_code == 410:
-                    self.output_text_ctrl.AppendText(_("Errore 410: Artefatti scaduti.\n"))
+
             except requests.exceptions.RequestException as e:
-                self.output_text_ctrl.AppendText(_("Errore API GitHub: {}\n").format(e))
-            except Exception as e_generic:
-                self.output_text_ctrl.AppendText(_("Errore imprevisto recupero artefatti: {}\n").format(e_generic))
+                self.ShowErrorNotification(
+                    title=_("❌ Errore Recupero Artifacts"),
+                    message=_("Impossibile recuperare la lista degli artifacts"),
+                    details=_("🌐 ERRORE API GITHUB:\n\n📝 Errore: {}\n🆔 Run ID: {}\n🏢 Repository: {}/{}\n⏰ Timestamp: {}\n\nImpossibile contattare l'API di GitHub per recuperare gli artifacts.").format(e, self.selected_run_id, self.github_owner, self.github_repo, datetime.now().strftime('%H:%M:%S')),
+                    suggestions=_("Verifica la connessione internet e i permessi del token GitHub.")
+                )
+             
+
+            except requests.exceptions.RequestException as e:
+                self.ShowErrorNotification(
+                    title=_("❌ Errore Recupero Artifacts"),
+                    message=_("Impossibile recuperare la lista degli artifacts"),
+                    details=_("🌐 ERRORE API GITHUB:\n\n📝 Errore: {}\n🔗 URL: {}\n🆔 Run ID: {}\n🏢 Repository: {}/{}\n⏰ Timestamp: {}\n\nImpossibile contattare l'API di GitHub per recuperare gli artifacts.").format(e, artifacts_api_url, self.selected_run_id, self.github_owner, self.github_repo, datetime.now().strftime('%H:%M:%S')),
+                    suggestions=_("Verifica la connessione internet e i permessi del token GitHub.")
+                )
+             
 
     def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description="Comando Git"):
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
