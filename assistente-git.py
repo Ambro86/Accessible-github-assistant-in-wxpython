@@ -525,11 +525,15 @@ class WorkflowInputDialog(wx.Dialog):
                 return
             
             parsed = json.loads(json_text)
-            wx.MessageBox(f"✅ JSON valido!\nParsed: {len(parsed)} parametri", "Validazione", wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(
+            _("✅ JSON valido!\nParsed: %(count)d parametri") % {"count": len(parsed)},
+            _("Validazione"),
+            wx.OK | wx.ICON_INFORMATION
+        )
         except json.JSONDecodeError as e:
-            wx.MessageBox(f"❌ JSON non valido:\n{e}", "Errore Validazione", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(_("❌ JSON non valido:\n%(error)s") % {"error": e}, _("Errore Validazione"), wx.OK | wx.ICON_ERROR)
         except Exception as e:
-            wx.MessageBox(f"❌ Errore imprevisto:\n{e}", "Errore", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(_("❌ Errore imprevisto:\n%(error)s") % {"error": e}, _("Errore"), wx.OK | wx.ICON_ERROR)
     
     def OnOK(self, event):
         """Valida e chiude il dialog."""
@@ -546,7 +550,7 @@ class WorkflowInputDialog(wx.Dialog):
             else:
                 self.inputs_data = {}
         except json.JSONDecodeError as e:
-            wx.MessageBox(f"JSON non valido:\n{e}", "Errore", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(_("JSON non valido:\n%(error)s") % {"error": e}, _("Errore"), wx.OK | wx.ICON_ERROR)
             return
         
         self.EndModal(wx.ID_OK)
@@ -1321,7 +1325,7 @@ class EditReleaseDialog(wx.Dialog):
                         size_kb = file_size // 1024
                         display_name = f"{filename} ({size_kb} KB)"
                     except OSError:
-                        display_name = f"{filename} (dimensione sconosciuta)"
+                        display_name = _("%(filename)s (dimensione sconosciuta)") % {"filename": filename}
                     
                     self.new_assets_list_ctrl.Append(display_name)
                     added_count += 1
@@ -1427,7 +1431,7 @@ class EditReleaseDialog(wx.Dialog):
                 self.assets_to_delete.append(asset)
                 # Cambia il colore dell'item per indicare che sarà eliminato
                 current_text = self.existing_assets_list_ctrl.GetString(selected_index)
-                new_text = f"🗑️ [DA ELIMINARE] {current_text[2:]}"  # Rimuove l'emoji originale
+                new_text = _("🗑️ [DA ELIMINARE] %(text)s") % {"text": current_text[2:]}
                 self.existing_assets_list_ctrl.SetString(selected_index, new_text)
                 
                 self.UpdateExistingButtonStates()
@@ -1491,7 +1495,7 @@ class EditReleaseDialog(wx.Dialog):
 
 class IssueManagementDialog(wx.Dialog):
     def __init__(self, parent, issue_data, github_owner, github_repo, github_token):
-        super().__init__(parent, title=f"Gestione Issue #{issue_data['number']}: {issue_data['title'][:50]}...", size=(850, 750))
+        super().__init__(parent, title= _("Gestione Issue #%(_number)s: %(_title)s...") % {"_number": issue_data['number'], "_title": issue_data['title'][:50]}, size=(850, 750))
         
         self.issue_data = issue_data
         self.github_owner = github_owner
@@ -1513,7 +1517,7 @@ class IssueManagementDialog(wx.Dialog):
         
         # Titolo e stato
         title_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        title_text = f"#{self.issue_data['number']}: {self.issue_data['title']}"
+        title_text = _("#%(number)s: %(title)s") % {"number": self.issue_data['number'], "title": self.issue_data['title']}
         title_label = wx.StaticText(panel, label=title_text)
         title_font = title_label.GetFont()
         title_font.SetWeight(wx.FONTWEIGHT_BOLD)
@@ -1693,7 +1697,7 @@ class IssueManagementDialog(wx.Dialog):
             self.comments_data = response.json()
             
             comment_count = len(self.comments_data)
-            self.comments_count_label.SetLabel(f"📊 {comment_count} commenti totali")
+            self.comments_count_label.SetLabel(_("📊 %(count)d commenti totali") % {"count": comment_count})
             
             if not self.comments_data:
                 self.comments_ctrl.SetValue(_("📭 Nessun commento ancora presente.\n\n💡 Scrivi il primo commento usando il campo qui sotto!"))
@@ -1707,10 +1711,14 @@ class IssueManagementDialog(wx.Dialog):
                     
                     # Header del commento
                     comments_text += f"{'='*80}\n"
-                    comments_text += f"💬 Commento #{i+1} - {author} - {created_at}"
+                    comments_text += _("💬 Commento #%(_index)d - %(_author)s - %(_date)s") % {
+                    "_index": i + 1,
+                    "_author": author,
+                    "_date": created_at
+                    }
                     
                     if updated_at and updated_at != comment['created_at']:
-                        comments_text += f" (modificato: {updated_at[:16].replace('T', ' ')})"
+                        comments_text += _(" (modificato: %(date)s)") % {"date": updated_at[:16].replace('T', ' ')}
                     
                     comments_text += f"\n{'='*80}\n"
                     comments_text += f"{body}\n\n"
@@ -1720,7 +1728,7 @@ class IssueManagementDialog(wx.Dialog):
                 self.comments_ctrl.SetInsertionPoint(0)
         
         except requests.exceptions.RequestException as e:
-            error_msg = f"❌ Errore nel caricare i commenti: {e}"
+            error_msg = _("❌ Errore nel caricare i commenti: %(error)s") % {"error": e}
             self.comments_ctrl.SetValue(error_msg)
             self.send_comment_btn.Enable(False)
             self.comments_count_label.SetLabel(_("Errore caricamento"))
@@ -1733,7 +1741,7 @@ class IssueManagementDialog(wx.Dialog):
         """Aggiorna il contatore caratteri."""
         text = self.new_comment_ctrl.GetValue()
         char_count = len(text)
-        self.char_count_label.SetLabel(f"{char_count} caratteri")
+        self.char_count_label.SetLabel(_("%(count)d caratteri") % {"count": char_count})
         
         # Cambia colore se troppo lungo
         if char_count > 65536:  # Limite GitHub
@@ -1801,7 +1809,7 @@ class IssueManagementDialog(wx.Dialog):
             self.load_comments()  # Ricarica i commenti
             
         except requests.exceptions.RequestException as e:
-            wx.MessageBox(f"❌ Errore nell'inviare il commento: {e}", _("Errore Invio"), 
+            wx.MessageBox(_("❌ Errore nell'inviare il commento: %(error)s") % {"error": e}, _("Errore Invio"), 
                          wx.OK | wx.ICON_ERROR, self)
         finally:
             # Riabilita pulsante
@@ -1813,7 +1821,7 @@ class IssueManagementDialog(wx.Dialog):
         try:
             webbrowser.open(self.issue_data['html_url'])
         except Exception as e:
-            wx.MessageBox(f"Errore nell'aprire il browser: {e}", "Errore", wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(_("Errore nell'aprire il browser: %(error)s") % {"error": e}, _("Errore"), wx.OK | wx.ICON_ERROR, self)
     
     def OnClose(self, event):
         """Chiude il dialog."""
@@ -1831,7 +1839,12 @@ class IssueManagementDialog(wx.Dialog):
 
 class PullRequestManagementDialog(wx.Dialog):
     def __init__(self, parent, pr_data, github_owner, github_repo, github_token):
-        super().__init__(parent, title=f"Gestione PR #{pr_data['number']}: {pr_data['title'][:50]}...", size=(850, 750))
+        super().__init__(parent, title=_("Gestione PR #%(_number)s: %(_title)s...") % {
+        "_number": pr_data['number'],
+        "_title": pr_data['title'][:50]
+        }, size=(850, 750))
+
+
         
         self.pr_data = pr_data
         self.github_owner = github_owner
@@ -2054,7 +2067,7 @@ class PullRequestManagementDialog(wx.Dialog):
         final_buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
         # Info URL
-        url_label = wx.StaticText(panel, label=f"🔗 {self.pr_data['html_url']}")
+        url_label = wx.StaticText(panel, label=_("🔗 %(url)s") % {"url": self.pr_data['html_url']})
         url_label.SetForegroundColour(wx.Colour(0, 0, 255))
         
         # Pulsanti
@@ -2095,7 +2108,7 @@ class PullRequestManagementDialog(wx.Dialog):
             self.comments_data = response.json()
             
             comment_count = len(self.comments_data)
-            self.comments_count_label.SetLabel(f"📊 {comment_count} commenti totali")
+            self.comments_count_label.SetLabel(_("📊 %(count)d commenti totali") % {"count": comment_count})
             
             if not self.comments_data:
                 self.comments_ctrl.SetValue(_("📭 Nessun commento ancora presente.\n\n💡 Scrivi il primo commento usando il campo qui sotto!"))
@@ -2109,10 +2122,10 @@ class PullRequestManagementDialog(wx.Dialog):
                     
                     # Header del commento
                     comments_text += f"{'='*80}\n"
-                    comments_text += f"💬 Commento #{i+1} - {author} - {created_at}"
+                    comments_text += _("💬 Commento #%(num)d - %(author)s - %(date)s") % {"num": i+1, "author": author, "date": created_at}
                     
                     if updated_at and updated_at != comment['created_at']:
-                        comments_text += f" (modificato: {updated_at[:16].replace('T', ' ')})"
+                        comments_text += _(" (modificato: %(date)s)") % {"date": updated_at[:16].replace('T', ' ')}
                     
                     comments_text += f"\n{'='*80}\n"
                     comments_text += f"{body}\n\n"
@@ -2122,7 +2135,7 @@ class PullRequestManagementDialog(wx.Dialog):
                 self.comments_ctrl.SetInsertionPoint(0)
         
         except requests.exceptions.RequestException as e:
-            error_msg = f"❌ Errore nel caricare i commenti: {e}"
+            error_msg = _("❌ Errore nel caricare i commenti: %(error)s") % {"error": str(e)}
             self.comments_ctrl.SetValue(error_msg)
             self.send_comment_btn.Enable(False)
             self.comments_count_label.SetLabel(_("Errore caricamento"))
@@ -2135,7 +2148,7 @@ class PullRequestManagementDialog(wx.Dialog):
         """Aggiorna il contatore caratteri."""
         text = self.new_comment_ctrl.GetValue()
         char_count = len(text)
-        self.char_count_label.SetLabel(f"{char_count} caratteri")
+        self.char_count_label.SetLabel(_("%(count)d caratteri") % {"count": char_count})
         
         # Cambia colore se troppo lungo
         if char_count > 65536:  # Limite GitHub
@@ -2204,7 +2217,7 @@ class PullRequestManagementDialog(wx.Dialog):
             self.load_comments()  # Ricarica i commenti
             
         except requests.exceptions.RequestException as e:
-            wx.MessageBox(f"❌ Errore nell'inviare il commento: {e}", _("Errore Invio"), 
+            wx.MessageBox(_("❌ Errore nell'inviare il commento: %(error)s") % {"error": str(e)}, _("Errore Invio"),
                          wx.OK | wx.ICON_ERROR, self)
         finally:
             # Riabilita pulsante
@@ -2216,7 +2229,7 @@ class PullRequestManagementDialog(wx.Dialog):
         try:
             webbrowser.open(self.pr_data['html_url'])
         except Exception as e:
-            wx.MessageBox(f"Errore nell'aprire il browser: {e}", "Errore", wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(_("Errore nell'aprire il browser: %(error)s") % {"error": str(e)}, _("Errore"), wx.OK | wx.ICON_ERROR, self)
     
     def OnClose(self, event):
         """Chiude il dialog."""
@@ -2628,18 +2641,17 @@ class GitFrame(wx.Frame):
         # Tutti gli altri comandi - formattazione generica intelligente
         else:
             return self._format_smart_generic_output(command_name, stdout, stderr, success)
-
-    def _format_status_output(self, stdout, stderr, success):
+    def format_status_output(self, stdout, stderr, success):
         """Formatta l'output di git status."""
         if not success:
             return {
                 'title': _("❌ Errore Git Status"),
                 'message': _("Impossibile recuperare lo stato del repository"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
-        if not stdout.strip():
+        if not stdout.strip():  # <-- Questo deve essere su una nuova riga
             return {
                 'title': _("✅ Repository Pulito"),
                 'message': _("Il repository è in uno stato pulito"),
@@ -2669,16 +2681,23 @@ class GitFrame(wx.Frame):
             elif in_untracked_section and line.startswith('\t'):
                 untracked_files += 1
         
-        summary = f"📊 RIEPILOGO MODIFICHE:\n"
-        summary += f"• File modificati: {modified_files}\n"
-        summary += f"• File in stage: {staged_files}\n"
-        summary += f"• File non tracciati: {untracked_files}\n\n"
+        summary = _("📊 RIEPILOGO MODIFICHE:\n")
+        summary += _("• File modificati: %(count)d\n") % {"count": modified_files}
+        summary += _("• File in stage: %(count)d\n") % {"count": staged_files}
+        summary += _("• File non tracciati: %(count)d\n\n") % {"count": untracked_files}
         
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         suggestions = None
         if modified_files > 0 or untracked_files > 0:
-            suggestions = f"Usa '{CMD_ADD_ALL}' per aggiungere modifiche, poi '{CMD_COMMIT}' per committare."
+            suggestions = _("Usa '%(add_cmd)s' per aggiungere modifiche, poi '%(commit_cmd)s' per committare.") % {
+            "add_cmd": CMD_ADD_ALL,
+            "commit_cmd": CMD_COMMIT
+            }
         
         return {
             'title': _("📋 Stato Repository"),
@@ -2693,7 +2712,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Diff"),
                 'message': _("Impossibile recuperare le differenze"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
@@ -2724,16 +2743,20 @@ class GitFrame(wx.Frame):
         
         files_changed = files_changed // 2  # Ogni file ha sia +++ che ---
         
-        summary = f"📊 STATISTICHE DIFF ({diff_type}):\n"
-        summary += f"• File modificati: {files_changed}\n"
-        summary += f"• Righe aggiunte: {additions}\n"
-        summary += f"• Righe rimosse: {deletions}\n\n"
+        summary = _("📊 STATISTICHE DIFF (%(type)s):\n") % {"type": diff_type}
+        summary += _("• File modificati: %(count)d\n") % {"count": files_changed}
+        summary += _("• Righe aggiunte: %(count)d\n") % {"count": additions}
+        summary += _("• Righe rimosse: %(count)d\n\n") % {"count": deletions}
         
-        formatted_details = f"{summary}🔍 DIFFERENZE COMPLETE:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s🔍 DIFFERENZE COMPLETE:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
-            'title': _(f"🔍 Differenze - {diff_type.title()}"),
-            'message': _(f"Differenze {diff_type} recuperate con successo"),
+            'title': _("🔍 Differenze - %(type)s") % {"type": diff_type.title()},
+            'message': _("Differenze %(type)s recuperate con successo") % {"type": diff_type},
             'details': formatted_details,
             'suggestions': _("Usa i marker +/- per identificare aggiunte e rimozioni.")
         }
@@ -2744,7 +2767,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Log"),
                 'message': _("Impossibile recuperare la cronologia"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida con commit.")
             }
         
@@ -2759,15 +2782,19 @@ class GitFrame(wx.Frame):
         # Conta i commit
         commit_count = len([line for line in stdout.split('\n') if line.strip() and not line.startswith(' ')])
         
-        summary = f"📅 CRONOLOGIA COMMIT:\n"
-        summary += f"• Commit mostrati: {commit_count}\n"
+        summary = _("📅 CRONOLOGIA COMMIT:\n")
+        summary += _("• Commit mostrati: %(count)d\n") % {"count": commit_count}
         summary += f"• Ordinati dal più recente al più vecchio\n\n"
         
-        formatted_details = f"{summary}📋 DETTAGLIO COMMIT:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMMIT:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
             'title': _("📅 Cronologia Commit"),
-            'message': _(f"Recuperati {commit_count} commit dalla cronologia"),
+            'message': _("Recuperati %(count)d commit dalla cronologia") % {"count": commit_count},
             'details': formatted_details,
             'suggestions': _("Usa gli hash per riferimenti specifici ai commit.")
         }
@@ -2778,7 +2805,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Grep"),
                 'message': _("Errore durante la ricerca"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica la sintassi del pattern di ricerca.")
             }
         
@@ -2795,15 +2822,19 @@ class GitFrame(wx.Frame):
         results_count = len(lines)
         files_with_matches = len(set(line.split(':')[0] for line in lines if ':' in line))
         
-        summary = f"🔍 RISULTATI RICERCA:\n"
-        summary += f"• Corrispondenze trovate: {results_count}\n"
-        summary += f"• File con corrispondenze: {files_with_matches}\n\n"
+        summary = _("🔍 RISULTATI RICERCA:\n")
+        summary += _("• Corrispondenze trovate: %(count)d\n") % {"count": results_count}
+        summary += _("• File con corrispondenze: %(count)d\n\n") % {"count": files_with_matches}
         
-        formatted_details = f"{summary}📋 DETTAGLIO RISULTATI:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO RISULTATI:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
             'title': _("🔍 Risultati Ricerca"),
-            'message': _(f"Trovate {results_count} corrispondenze in {files_with_matches} file"),
+            'message': _("Trovate %(results)d corrispondenze in %(files)d file") % {"results": results_count, "files": files_with_matches},
             'details': formatted_details,
             'suggestions': _("I risultati mostrano 'file:riga:contenuto' per ogni corrispondenza.")
         }
@@ -2814,7 +2845,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Ls-Files"),
                 'message': _("Impossibile elencare i file"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
@@ -2836,21 +2867,25 @@ class GitFrame(wx.Frame):
                 ext = file.split('.')[-1].lower()
                 extensions[ext] = extensions.get(ext, 0) + 1
         
-        summary = f"📄 FILE TRACCIATI DA GIT:\n"
-        summary += f"• Totale file: {file_count}\n"
+        summary = _("📄 FILE TRACCIATI DA GIT:\n")
+        summary += _("• Totale file: %(count)d\n") % {"count": file_count}
         
         if extensions:
-            summary += f"• Tipi di file principali:\n"
+            summary += _("• Tipi di file principali:\n")
             for ext, count in sorted(extensions.items(), key=lambda x: x[1], reverse=True)[:5]:
                 summary += f"  - .{ext}: {count} file\n"
         
         summary += "\n"
         
-        formatted_details = f"{summary}📋 ELENCO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 ELENCO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
             'title': _("📄 File Tracciati"),
-            'message': _(f"Trovati {file_count} file tracciati da Git"),
+            'message': _("Trovati %(count)d file tracciati da Git") % {"count": file_count},
             'details': formatted_details,
             'suggestions': None
         }
@@ -2861,7 +2896,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Branch"),
                 'message': _("Impossibile elencare i branch"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
@@ -2882,19 +2917,23 @@ class GitFrame(wx.Frame):
                 local_branches.append(line)
         
         summary = f"🌿 BRANCH REPOSITORY:\n"
-        summary += f"• Branch corrente: {current_branch}\n"
-        summary += f"• Branch locali: {len(local_branches)}\n"
-        summary += f"• Branch remoti: {len(remote_branches)}\n\n"
+        summary += _("• Branch corrente: %(branch)s\n") % {"branch": current_branch}
+        summary += _("• Branch locali: %(count)d\n") % {"count": len(local_branches)}
+        summary += _("• Branch remoti: %(count)d\n\n") % {"count": len(remote_branches)}
         
-        formatted_details = f"{summary}📋 ELENCO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 ELENCO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         suggestions = None
         if len(local_branches) > 1:
-            suggestions = f"Usa '{CMD_CHECKOUT_EXISTING}' per cambiare branch."
+            suggestions = _("Usa '%(cmd)s' per cambiare branch.") % {"cmd": CMD_CHECKOUT_EXISTING}
         
         return {
             'title': _("🌿 Branch Repository"),
-            'message': _(f"Trovati {len(local_branches)} branch locali e {len(remote_branches)} remoti"),
+            'message': _("Trovati %(local)d branch locali e %(remote)d remoti") % {"local": len(local_branches), "remote": len(remote_branches)},
             'details': formatted_details,
             'suggestions': suggestions
         }
@@ -2905,7 +2944,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Remote"),
                 'message': _("Impossibile elencare i remote"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica di essere in una directory Git valida.")
             }
         
@@ -2914,7 +2953,7 @@ class GitFrame(wx.Frame):
                 'title': _("ℹ️ Nessun Remote"),
                 'message': _("Nessun repository remoto configurato"),
                 'details': _("🌐 REPOSITORY REMOTI\n\n❌ Nessun remote configurato\n\nPer aggiungere un remote:\n• Usa il comando per aggiungere origin\n• Configura manualmente con git remote add"),
-                'suggestions': f"Usa '{CMD_REMOTE_ADD_ORIGIN}' per configurare un remote."
+                'suggestions': _("Usa '%(cmd)s' per configurare un remote.") % {"cmd": CMD_REMOTE_ADD_ORIGIN}
             }
         
         lines = stdout.strip().split('\n')
@@ -2930,19 +2969,23 @@ class GitFrame(wx.Frame):
                 if name not in remotes:
                     remotes[name] = url
         
-        summary = f"🌐 REPOSITORY REMOTI:\n"
-        summary += f"• Remoti configurati: {len(remotes)}\n"
+        summary = _("🌐 REPOSITORY REMOTI:\n")
+        summary += _("• Remoti configurati: %(count)d\n") % {"count": len(remotes)}
         
         for name, url in remotes.items():
             summary += f"• {name}: {url}\n"
         
         summary += "\n"
         
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
             'title': _("🌐 Repository Remoti"),
-            'message': _(f"Configurati {len(remotes)} repository remoti"),
+            'message': _("Configurati %(count)d repository remoti") % {"count": len(remotes)},
             'details': formatted_details,
             'suggestions': None
         }
@@ -2953,7 +2996,7 @@ class GitFrame(wx.Frame):
             return {
                 'title': _("❌ Errore Git Show"),
                 'message': _("Impossibile mostrare il commit"),
-                'details': f"ERRORE:\n{stderr}\n\nOUTPUT:\n{stdout}",
+                'details': _("ERRORE:\n%(stderr)s\n\nOUTPUT:\n%(stdout)s") % {"stderr": stderr, "stdout": stdout},
                 'suggestions': _("Verifica che l'hash o il riferimento del commit sia valido.")
             }
         
@@ -2983,18 +3026,22 @@ class GitFrame(wx.Frame):
                 if not message:
                     message = line.strip()
         
-        summary = f"📄 DETTAGLI COMMIT:\n"
+        summary = _("📄 DETTAGLI COMMIT:\n")
         if commit_hash:
             summary += f"• Hash: {commit_hash}\n"
         if author:
-            summary += f"• Autore: {author}\n"
+            summary += _("• Autore: %(author)s\n") % {"author": author}
         if date:
-            summary += f"• Data: {date}\n"
+            summary += _("• Data: %(date)s\n") % {"date": date}
         if message:
-            summary += f"• Messaggio: {message}\n"
+            summary += _("• Messaggio: %(message)s\n") % {"message": message}
         summary += "\n"
         
-        formatted_details = f"{summary}📋 INFORMAZIONI COMPLETE:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 INFORMAZIONI COMPLETE:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         return {
             'title': _("📄 Dettagli Commit"),
@@ -3020,14 +3067,22 @@ class GitFrame(wx.Frame):
         
         if not success:
             return {
-                'title': f"❌ {action_name} Fallito",
-                'message': f"Il comando {action_name.lower()} ha riscontrato un errore",
-                'details': f"🚨 ERRORE {action_name.upper()}:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'title': _("❌ %(action)s Fallito") % {"action": action_name},
+                'message': _("Il comando %(action)s ha riscontrato un errore") % {"action": action_name.lower()},
+                'details': _("🚨 ERRORE %(action)s:\n%(separator1)s\n%(stderr)s\n\n📋 OUTPUT:\n%(separator2)s\n%(stdout)s") % {
+                "action": action_name.upper(),
+                "separator1": '-'*50,
+                "stderr": stderr,
+                "separator2": '-'*50,
+                "stdout": stdout
+                },
                 'suggestions': self._get_error_suggestions(command_name, stderr)
             }
         
         # Analizza l'output per successo
-        summary = f"{icon} OPERAZIONE {action_name.upper()} COMPLETATA\n\n"
+        summary = _("%(icon)s OPERAZIONE %(action)s COMPLETATA\n\n") % {
+        "icon": icon,
+        "action": action_name.upper()}
         
         if command_name == CMD_COMMIT:
             # Estrai hash commit se presente
@@ -3035,7 +3090,7 @@ class GitFrame(wx.Frame):
                 lines = stdout.split('\n')
                 for line in lines:
                     if 'commit' in line.lower() and len(line.split()) > 1:
-                        summary += f"📋 Commit creato: {line}\n"
+                        summary += _("📋 Commit creato: %(commit)s\n") % {"commit": line}
                         break
             summary += _("✅ Modifiche salvate nel repository\n")
             
@@ -3058,14 +3113,21 @@ class GitFrame(wx.Frame):
             summary += _("✅ Informazioni remote aggiornate\n")
         
         summary += "\n"
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         if stderr and stderr.strip():
-            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+            formatted_details += _("\n\n⚠️ MESSAGGI AGGIUNTIVI:\n%(separator)s\n%(stderr)s") % {
+            "separator": '-'*50,
+            "stderr": stderr
+            }
         
         return {
-            'title': f"{icon} {action_name} Completato",
-            'message': f"Operazione {action_name.lower()} eseguita con successo",
+            'title': _("%(icon)s %(action)s Completato") % {"icon": icon, "action": action_name},
+            'message': _("Operazione %(action)s eseguita con successo") % {"action": action_name.lower()},
             'details': formatted_details,
             'suggestions': self._get_success_suggestions(command_name)
         }
@@ -3086,13 +3148,19 @@ class GitFrame(wx.Frame):
         
         if not success:
             return {
-                'title': f"❌ {action_name} Fallito",
-                'message': f"Impossibile completare l'operazione {action_name.lower()}",
-                'details': f"🚨 ERRORE {action_name.upper()}:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'title': _("❌ %(action)s Fallito") % {"action": action_name},
+                'message': _("Impossibile completare l'operazione %(action)s") % {"action": action_name.lower()},
+                'details': _("🚨 ERRORE %(action)s:\n%(separator1)s\n%(stderr)s\n\n📋 OUTPUT:\n%(separator2)s\n%(stdout)s") % {
+                "action": action_name.upper(),
+                "separator1": '-'*50,
+                "stderr": stderr,
+                "separator2": '-'*50,
+                "stdout": stdout
+                },
                 'suggestions': self._get_error_suggestions(command_name, stderr)
             }
         
-        summary = f"{icon} MODIFICA REPOSITORY COMPLETATA\n\n"
+        summary = _("%(icon)s MODIFICA REPOSITORY COMPLETATA\n\n") % {"icon": icon}
         
         if command_name == CMD_CHECKOUT_B:
             summary += _("✅ Nuovo branch creato e attivato\n")
@@ -3104,14 +3172,21 @@ class GitFrame(wx.Frame):
             summary += _("✅ Branch eliminato dal repository\n")
         
         summary += "\n"
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         if stderr and stderr.strip():
-            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+            formatted_details += _("\n\n⚠️ MESSAGGI AGGIUNTIVI:\n%(separator)s\n%(stderr)s") % {
+            "separator": '-'*50,
+            "stderr": stderr
+            }
         
         return {
-            'title': f"{icon} {action_name} Completato",
-            'message': f"Modifica repository eseguita con successo",
+            'title': _("%(icon)s %(action)s Completato") % {"icon": icon, "action": action_name},
+            'message': _("Modifica repository eseguita con successo"),
             'details': formatted_details,
             'suggestions': self._get_success_suggestions(command_name)
         }
@@ -3131,13 +3206,18 @@ class GitFrame(wx.Frame):
         
         if not success:
             return {
-                'title': f"❌ {action_name} Fallito",
-                'message': f"Impossibile completare la configurazione",
-                'details': f"🚨 ERRORE CONFIGURAZIONE:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'title': _("❌ %(action)s Fallito") % {"action": action_name},
+                'message': _("Impossibile completare la configurazione"),
+                'details': _("🚨 ERRORE CONFIGURAZIONE:\n%(separator1)s\n%(stderr)s\n\n📋 OUTPUT:\n%(separator2)s\n%(stdout)s") % {
+                "separator1": '-'*50,
+                "stderr": stderr,
+                "separator2": '-'*50,
+                "stdout": stdout
+                },
                 'suggestions': self._get_error_suggestions(command_name, stderr)
             }
         
-        summary = f"{icon} CONFIGURAZIONE COMPLETATA\n\n"
+        summary = _("%(icon)s CONFIGURAZIONE COMPLETATA\n\n") % {"icon": icon}
         
         if command_name == CMD_INIT_REPO:
             summary += _("✅ Repository Git inizializzato\n")
@@ -3149,14 +3229,21 @@ class GitFrame(wx.Frame):
             summary += _("✅ Tag creato nel repository\n")
         
         summary += "\n"
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+    }
         
         if stderr and stderr.strip():
-            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+            formatted_details += _("\n\n⚠️ MESSAGGI AGGIUNTIVI:\n%(separator)s\n%(stderr)s") % {
+            "separator": '-'*50,
+            "stderr": stderr
+            }
         
         return {
-            'title': f"{icon} {action_name} Completato",
-            'message': f"Configurazione eseguita con successo",
+            'title': _("%(icon)s %(action)s Completato") % {"icon": icon, "action": action_name},
+            'message': _("Configurazione eseguita con successo"),
             'details': formatted_details,
             'suggestions': self._get_success_suggestions(command_name)
         }
@@ -3168,9 +3255,14 @@ class GitFrame(wx.Frame):
         
         if not success:
             return {
-                'title': f"❌ {action_name} Fallito",
-                'message': f"Il comando ha riscontrato un errore",
-                'details': f"🚨 ERRORE:\n{'-'*50}\n{stderr}\n\n📋 OUTPUT:\n{'-'*50}\n{stdout}",
+                'title': _("❌ %(action)s Fallito") % {"action": action_name},
+                'message': _("Il comando ha riscontrato un errore"),
+                'details': _("🚨 ERRORE:\n%(separator1)s\n%(stderr)s\n\n📋 OUTPUT:\n%(separator2)s\n%(stdout)s") % {
+                "separator1": '-'*50,
+                "stderr": stderr,
+                "separator2": '-'*50,
+                "stdout": stdout
+                },
                 'suggestions': _("Verifica i parametri del comando e lo stato del repository.")
             }
         
@@ -3185,17 +3277,24 @@ class GitFrame(wx.Frame):
         elif any(word in action_name.lower() for word in ['clone', 'clona']):
             icon = "📦"
         
-        summary = f"{icon} OPERAZIONE COMPLETATA\n\n"
-        summary += f"✅ {action_name} eseguito con successo\n\n"
+        summary = _("%(icon)s OPERAZIONE COMPLETATA\n\n") % {"icon": icon}
+        summary += _("✅ %(action)s eseguito con successo\n\n") % {"action": action_name}
         
-        formatted_details = f"{summary}📋 DETTAGLIO COMPLETO:\n{'-'*50}\n{stdout}"
+        formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
+        "summary": summary,
+        "separator": '-'*50,
+        "stdout": stdout
+        }
         
         if stderr and stderr.strip():
-            formatted_details += f"\n\n⚠️ MESSAGGI AGGIUNTIVI:\n{'-'*50}\n{stderr}"
+            formatted_details += _("\n\n⚠️ MESSAGGI AGGIUNTIVI:\n%(separator)s\n%(stderr)s") % {
+            "separator": '-'*50,
+            "stderr": stderr
+            }
         
         return {
-            'title': f"{icon} {action_name} Completato",
-            'message': f"Comando eseguito con successo",
+            'title': _("%(icon)s %(action)s Completato") % {"icon": icon, "action": action_name},
+            'message': _("Comando eseguito con successo"),
             'details': formatted_details,
             'suggestions': None
         }
@@ -3210,7 +3309,7 @@ class GitFrame(wx.Frame):
         
         # Suggerimenti per errori comuni
         if "not a git repository" in stderr_lower:
-            return f"Inizializza un repository Git con '{CMD_INIT_REPO}' o verifica di essere nella directory corretta."
+            return _("Inizializza un repository Git con '%(cmd)s' o verifica di essere nella directory corretta.") % {"cmd": CMD_INIT_REPO}
         elif "no upstream branch" in stderr_lower:
             return "Imposta un upstream branch prima di fare push."
         elif "conflict" in stderr_lower:
@@ -3228,12 +3327,12 @@ class GitFrame(wx.Frame):
         """Fornisce suggerimenti per azioni successive dopo il successo."""
         
         suggestions_map = {
-            CMD_ADD_ALL: f"Ora puoi creare un commit con '{CMD_COMMIT}'.",
-            CMD_COMMIT: f"Invia le modifiche al server con '{CMD_PUSH}'.",
-            CMD_PULL: f"Se necessario, risolvi eventuali conflitti e crea un commit.",
-            CMD_CHECKOUT_B: f"Inizia a lavorare nel nuovo branch e crea commit.",
-            CMD_INIT_REPO: f"Aggiungi file con '{CMD_ADD_ALL}' e crea il primo commit.",
-            CMD_REMOTE_ADD_ORIGIN: f"Ora puoi fare push con '{CMD_PUSH}'.",
+            CMD_ADD_ALL: _("Ora puoi creare un commit con '%(cmd)s'.") % {"cmd": CMD_COMMIT},
+            CMD_COMMIT: _("Invia le modifiche al server con '%(cmd)s'.") % {"cmd": CMD_PUSH},
+            CMD_PULL: _("Se necessario, risolvi eventuali conflitti e crea un commit."),
+            CMD_CHECKOUT_B: _("Inizia a lavorare nel nuovo branch e crea commit."),
+            CMD_INIT_REPO: _("Aggiungi file con '%(cmd)s' e crea il primo commit.") % {"cmd": CMD_ADD_ALL},
+            CMD_REMOTE_ADD_ORIGIN: _("Ora puoi fare push con '%(cmd)s'.") % {"cmd": CMD_PUSH},
         }
         
         return suggestions_map.get(command_name, None)
@@ -3381,7 +3480,7 @@ class GitFrame(wx.Frame):
             for file_path in conflicting_files[:10]:  # Mostra primi 10
                 self.output_text_ctrl.AppendText(f"  📝 {file_path}\n")
             if len(conflicting_files) > 10:
-                self.output_text_ctrl.AppendText(f"  ... e altri {len(conflicting_files) - 10} file\n")
+                self.output_text_ctrl.AppendText(_("  ... e altri %(count)d file\n") % {"count": len(conflicting_files) - 10})
             self.output_text_ctrl.AppendText("\n")
         
         # Opzioni per risolvere il problema
