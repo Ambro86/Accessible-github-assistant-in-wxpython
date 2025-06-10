@@ -9058,7 +9058,555 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         )
         
         wx.MessageBox(about_text, _("Informazioni - Assistente Git"), wx.OK | wx.ICON_INFORMATION, self)
+        
+
+import wx
+import platform
+
+class MacVoiceOverPlugin:
+    """Plugin che rende l'app accessibile VoiceOver solo su Mac"""
+    
+    @staticmethod
+    def is_mac():
+        """Verifica se siamo su Mac"""
+        return platform.system() == 'Darwin' or wx.Platform == '__WXMAC__'
+    
+    @staticmethod
+    def apply_and_run(app, frame):
+        """Applica patch accessibilità e avvia app"""
+        if MacVoiceOverPlugin.is_mac():
+            print("🍎 Applicazione patch accessibilità VoiceOver per Mac...")
+            MacVoiceOverPlugin._apply_accessibility_patches(frame)
+        else:
+            print("🖥️ Sistema non-Mac rilevato, nessuna modifica applicata.")
+        
+        # Avvia l'app normalmente
+        app.MainLoop()
+    
+    @staticmethod
+    def _apply_accessibility_patches(frame):
+        """Applica tutte le patch di accessibilità"""
+        try:
+            # 1. Patch controlli principali
+            MacVoiceOverPlugin._patch_main_controls(frame)
+            
+            # 2. Patch menu bar
+            MacVoiceOverPlugin._patch_menu_bar(frame)
+            
+            # 3. Patch eventi
+            MacVoiceOverPlugin._patch_events(frame)
+            
+            # 4. Setup focus management
+            MacVoiceOverPlugin._setup_focus_management(frame)
+            
+            print("✅ Patch accessibilità applicate con successo!")
+            
+        except Exception as e:
+            print(f"⚠️ Errore nell'applicazione patch accessibilità: {e}")
+    
+    @staticmethod
+    def _patch_main_controls(frame):
+        """Patch per i controlli principali"""
+        
+        # === PATCH CAMPO PERCORSO REPOSITORY ===
+        if hasattr(frame, 'repo_path_ctrl'):
+            frame.repo_path_ctrl.SetName("Campo Percorso Repository")
+            frame.repo_path_ctrl.SetToolTip(
+                "Campo percorso repository Git. Digita il percorso della cartella o usa il pulsante Sfoglia. "
+                "Percorso attuale: " + frame.repo_path_ctrl.GetValue()
+            )
+            
+            # Aggiorna tooltip quando cambia il contenuto
+            original_on_text = getattr(frame, 'OnRepoPathManuallyChanged', None)
+            if original_on_text:
+                def enhanced_on_text(event):
+                    original_on_text(event)
+                    new_path = frame.repo_path_ctrl.GetValue()
+                    frame.repo_path_ctrl.SetToolTip(
+                        f"Campo percorso repository Git. Percorso attuale: {new_path}. "
+                        "Usa Tab per andare al pulsante Sfoglia."
+                    )
+                frame.OnRepoPathManuallyChanged = enhanced_on_text
+        
+        # === PATCH ALBERO COMANDI ===
+        if hasattr(frame, 'command_tree_ctrl'):
+            tree = frame.command_tree_ctrl
+            tree.SetName("Albero Comandi Git")
+            tree.SetToolTip(
+                "Albero di navigazione comandi Git. "
+                "Usa frecce su/giù per navigare, frecce sinistra/destra per aprire/chiudere categorie, "
+                "Invio per eseguire comando, Spazio per informazioni dettagliate."
+            )
+            
+            # Patch eventi albero per VoiceOver
+            MacVoiceOverPlugin._patch_tree_events(frame, tree)
+        
+        # === PATCH AREA OUTPUT ===
+        if hasattr(frame, 'output_text_ctrl'):
+            output = frame.output_text_ctrl
+            output.SetName("Area Output Comandi")
+            output.SetToolTip(
+                "Area di output che mostra i risultati dei comandi Git. "
+                "Contiene informazioni sui comandi eseguiti e messaggi di stato. "
+                "Usa Cmd+A per selezionare tutto, Cmd+C per copiare."
+            )
+            
+            # Migliora annunci per contenuto lungo
+            original_append = output.AppendText
+            def enhanced_append(text):
+                original_append(text)
+                # Per VoiceOver, aggiorna il tooltip con un riassunto
+                if len(text) > 50:
+                    preview = text[:100] + "..." if len(text) > 100 else text
+                    output.SetToolTip(f"Nuovo output: {preview}")
+                # Focus momentaneo per attirare attenzione VoiceOver
+                wx.CallLater(50, lambda: output.SetFocus() if output else None)
+                wx.CallLater(150, lambda: tree.SetFocus() if hasattr(frame, 'command_tree_ctrl') else None)
+            
+            output.AppendText = enhanced_append
+        
+        # === PATCH BARRA DI STATO ===
+        if hasattr(frame, 'statusBar'):
+            frame.statusBar.SetName("Barra di Stato")
+            original_status_text = frame.statusBar.SetStatusText
+            def enhanced_status_text(text, number=0):
+                original_status_text(text, number)
+                # VoiceOver leggerà automaticamente i cambiamenti della status bar
+                frame.statusBar.SetToolTip(f"Stato: {text}")
+            frame.statusBar.SetStatusText = enhanced_status_text
+    
+    @staticmethod
+    def _patch_menu_bar(frame):
+        """Patch specifica per la barra dei menu"""
+        if not hasattr(frame, 'GetMenuBar'):
+            return
+        
+        menu_bar = frame.GetMenuBar()
+        if not menu_bar:
+            return
+        
+        # === TITOLI MENU ACCESSIBILI ===
+        menu_titles = {
+            0: ("File", "Menu File: operazioni su repository e applicazione"),
+            1: ("Visualizza", "Menu Visualizza: controlli per la visualizzazione dell'interfaccia"),
+            2: ("Git", "Menu Git: comandi Git più comuni"),
+            3: ("GitHub", "Menu GitHub: configurazione e dashboard GitHub"),
+            4: ("Aiuto", "Menu Aiuto: informazioni e scorciatoie")
+        }
+        
+        for i, (title, description) in menu_titles.items():
+            if i < menu_bar.GetMenuCount():
+                menu = menu_bar.GetMenu(i)
+                if menu:
+                    menu.SetTitle(title)
+                    # Su Mac, usa SetHelpString per VoiceOver
+                    if hasattr(menu, 'SetHelpString'):
+                        menu.SetHelpString(description)
+        
+        # === VOCI MENU ACCESSIBILI ===
+        menu_items_accessibility = {
+            # Menu File
+            wx.ID_OPEN: "Cambia Repository - Apre browser cartelle per selezionare repository diverso",
+            wx.ID_REFRESH: "Aggiorna Repository - Ricarica informazioni repository corrente",
+            wx.ID_EXIT: "Esci - Chiude l'applicazione",
+            
+            # Menu Visualizza  
+            ID_EXPAND_ALL: "Espandi Tutto - Espande tutte le categorie di comandi nell'albero",
+            ID_COLLAPSE_ALL: "Comprimi Tutto - Comprime tutte le categorie di comandi",
+            ID_REFRESH_TREE: "Aggiorna Lista - Ricarica l'albero dei comandi",
+            
+            # Menu Git
+            3001: "Git Status - Mostra lo stato attuale del repository",
+            3002: "Git Add All - Aggiunge tutte le modifiche all'area di stage", 
+            3003: "Git Commit - Crea un nuovo commit con le modifiche",
+            3004: "Git Pull - Scarica e unisce modifiche dal server remoto",
+            3005: "Git Push - Invia le modifiche locali al server remoto",
+            
+            # Menu GitHub
+            ID_GITHUB_CONFIG_QUICK: "Configurazione GitHub - Imposta repository e token GitHub",
+            ID_GITHUB_DASHBOARD: "Dashboard GitHub - Apre il repository GitHub nel browser",
+            
+            # Menu Aiuto
+            ID_COMMAND_HELP: "Info Comando - Mostra informazioni sul comando selezionato",
+            ID_SHORTCUTS_HELP: "Scorciatoie Tastiera - Mostra elenco completo scorciatoie",
+            wx.ID_ABOUT: "Informazioni - Informazioni sull'applicazione"
+        }
+        
+        # Applica descrizioni accessibili alle voci menu
+        for menu_id, description in menu_items_accessibility.items():
+            menu_item = menu_bar.FindItemById(menu_id)
+            if menu_item:
+                # Su Mac, VoiceOver legge l'help string
+                menu_item.SetHelp(description)
+                
+                # Aggiungi acceleratori visibili per VoiceOver
+                current_text = menu_item.GetItemLabelText()
+                if menu_id == wx.ID_OPEN and "Ctrl+O" not in current_text:
+                    menu_item.SetItemLabel(current_text + "\tCtrl+O")
+                elif menu_id == 3001 and "Ctrl+S" not in current_text:  # Git Status
+                    menu_item.SetItemLabel(current_text + "\tCtrl+S")
+                elif menu_id == 3002 and "Ctrl+A" not in current_text:  # Git Add
+                    menu_item.SetItemLabel(current_text + "\tCtrl+A")
+                elif menu_id == 3003 and "Ctrl+M" not in current_text:  # Git Commit
+                    menu_item.SetItemLabel(current_text + "\tCtrl+M")
+                elif menu_id == ID_GITHUB_CONFIG_QUICK and "Ctrl+G" not in current_text:
+                    menu_item.SetItemLabel(current_text + "\tCtrl+G")
+        
+        # === MENU CONTESTUALE AGGIUNTIVO ===
+        # Aggiungi voce menu per attivare/disattivare VoiceOver
+        help_menu = None
+        if menu_bar.GetMenuCount() > 4:
+            help_menu = menu_bar.GetMenu(4)  # Menu Aiuto
+        
+        if help_menu:
+            help_menu.AppendSeparator()
+            voiceover_item = help_menu.Append(
+                wx.ID_ANY, 
+                "Attiva VoiceOver\tCmd+F5",
+                "Attiva o disattiva VoiceOver di macOS per l'accessibilità"
+            )
+            
+            def on_toggle_voiceover(event):
+                import subprocess
+                try:
+                    # Comando per attivare/disattivare VoiceOver su Mac
+                    subprocess.run(['osascript', '-e', 
+                                  'tell application "System Events" to key code 96 using {command down, function down}'])
+                    if hasattr(frame, 'output_text_ctrl'):
+                        frame.output_text_ctrl.AppendText("🎙️ Comando VoiceOver inviato (Cmd+F5)\n")
+                except:
+                    if hasattr(frame, 'output_text_ctrl'):
+                        frame.output_text_ctrl.AppendText("⚠️ Impossibile controllare VoiceOver. Usa manualmente Cmd+F5\n")
+            
+            frame.Bind(wx.EVT_MENU, on_toggle_voiceover, voiceover_item)
+    
+    @staticmethod
+    def _patch_tree_events(frame, tree):
+        """Patch eventi specifici per l'albero comandi"""
+        
+        # Salva i metodi originali
+        original_selection_changed = getattr(frame, 'OnTreeItemSelectionChanged', None)
+        original_item_activated = getattr(frame, 'OnTreeItemActivated', None)
+        
+        def enhanced_selection_changed(event):
+            """Versione VoiceOver-friendly della selezione albero"""
+            if original_selection_changed:
+                original_selection_changed(event)
+            
+            # Aggiungi annunci specifici VoiceOver
+            if event:
+                item = event.GetItem()
+                if item.IsOk():
+                    text = tree.GetItemText(item)
+                    item_data = tree.GetItemData(item)
+                    
+                    # Crea annuncio dettagliato
+                    if item_data and len(item_data) > 0:
+                        if item_data[0] == "category":
+                            announcement = f"Categoria: {text}"
+                            if tree.ItemHasChildren(item):
+                                if tree.IsExpanded(item):
+                                    announcement += " - Espansa. Usa freccia sinistra per comprimere."
+                                else:
+                                    announcement += " - Compressa. Usa freccia destra per espandere."
+                            
+                            # Aggiungi info categoria se disponibile
+                            category_info = CATEGORIZED_COMMANDS.get(item_data[1], {}).get("info", "")
+                            if category_info:
+                                announcement += f" - {category_info}"
+                                
+                        elif item_data[0] == "command":
+                            announcement = f"Comando: {text}"
+                            cmd_details = ORIGINAL_COMMANDS.get(text)
+                            if cmd_details:
+                                cmd_info = cmd_details.get("info", "")
+                                if cmd_info:
+                                    announcement += f" - {cmd_info}"
+                            announcement += " - Premi Invio per eseguire, Spazio per maggiori informazioni."
+                    else:
+                        announcement = text
+                    
+                    # Aggiorna tooltip per VoiceOver
+                    tree.SetToolTip(announcement)
+                    
+                    # Aggiorna anche la status bar
+                    if hasattr(frame, 'statusBar'):
+                        frame.statusBar.SetStatusText(announcement)
+        
+        def enhanced_item_activated(event):
+            """Versione VoiceOver-friendly dell'attivazione comando"""
+            if event:
+                item = event.GetItem()
+                if item.IsOk():
+                    text = tree.GetItemText(item)
+                    item_data = tree.GetItemData(item)
+                    
+                    if item_data and len(item_data) > 0 and item_data[0] == "command":
+                        # Annuncia inizio esecuzione
+                        announcement = f"Esecuzione comando: {text}"
+                        tree.SetToolTip(announcement)
+                        if hasattr(frame, 'statusBar'):
+                            frame.statusBar.SetStatusText(announcement)
+                        
+                        # Feedback sonoro
+                        wx.Bell()
+                        
+                        # Sposta temporaneamente focus su output
+                        if hasattr(frame, 'output_text_ctrl'):
+                            wx.CallAfter(lambda: frame.output_text_ctrl.SetFocus())
+                            wx.CallAfter(lambda: tree.SetFocus(), 200)
+            
+            # Chiama il metodo originale
+            if original_item_activated:
+                original_item_activated(event)
+        
+        # Sostituisci i metodi
+        if original_selection_changed:
+            frame.OnTreeItemSelectionChanged = enhanced_selection_changed
+        if original_item_activated:
+            frame.OnTreeItemActivated = enhanced_item_activated
+        
+        # Bind diretto se i metodi non esistevano
+        tree.Bind(wx.EVT_TREE_SEL_CHANGED, enhanced_selection_changed)
+        tree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, enhanced_item_activated)
+        
+        # === EVENTI ESPANSIONE/COMPRESSIONE ===
+        def on_item_expanded(event):
+            if event:
+                item = event.GetItem()
+                if item.IsOk():
+                    text = tree.GetItemText(item)
+                    tree.SetToolTip(f"Categoria '{text}' espansa. Contiene {tree.GetChildrenCount(item, False)} comandi.")
+                    wx.Bell()  # Feedback sonoro
+            event.Skip()
+        
+        def on_item_collapsed(event):
+            if event:
+                item = event.GetItem()
+                if item.IsOk():
+                    text = tree.GetItemText(item)
+                    tree.SetToolTip(f"Categoria '{text}' compressa.")
+                    wx.Bell()  # Feedback sonoro
+            event.Skip()
+        
+        tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, on_item_expanded)
+        tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, on_item_collapsed)
+    
+    @staticmethod
+    def _patch_events(frame):
+        """Patch eventi globali per accessibilità"""
+        
+        # Salva il metodo originale di gestione tasti
+        original_char_hook = getattr(frame, 'OnCharHook', None)
+        
+        def enhanced_char_hook(event):
+            """Gestione tasti migliorata per VoiceOver"""
+            keycode = event.GetKeyCode()
+            ctrl_down = event.ControlDown()
+            cmd_down = event.CmdDown()  # Su Mac è il tasto Cmd
+            
+            focused_widget = frame.FindFocus()
+            
+            # === SCORCIATOIE SPECIFICHE VOICEOVER ===
+            if cmd_down and keycode == ord('I'):  # Cmd+I per info rapide
+                if hasattr(frame, 'command_tree_ctrl') and focused_widget == frame.command_tree_ctrl:
+                    MacVoiceOverPlugin._show_quick_item_info(frame)
+                    return
+            
+            elif keycode == wx.WXK_F1:  # F1 per aiuto contestuale
+                MacVoiceOverPlugin._show_contextual_help(frame, focused_widget)
+                return
+            
+            elif keycode == wx.WXK_F2:  # F2 per annunciare posizione corrente
+                MacVoiceOverPlugin._announce_current_position(frame, focused_widget)
+                return
+            
+            # === NAVIGAZIONE MIGLIORATA ===
+            elif keycode == wx.WXK_TAB and not (ctrl_down or cmd_down):
+                # Tab migliorato con annunci
+                MacVoiceOverPlugin._announce_tab_navigation(frame, event.ShiftDown())
+            
+            # Chiama il gestore originale
+            if original_char_hook:
+                original_char_hook(event)
+            else:
+                event.Skip()
+        
+        # Sostituisci il gestore
+        frame.OnCharHook = enhanced_char_hook
+        frame.Bind(wx.EVT_CHAR_HOOK, enhanced_char_hook)
+    
+    @staticmethod
+    def _show_quick_item_info(frame):
+        """Mostra info rapide sull'elemento selezionato"""
+        if not hasattr(frame, 'command_tree_ctrl'):
+            return
+        
+        tree = frame.command_tree_ctrl
+        selected = tree.GetSelection()
+        if not selected.IsOk():
+            tree.SetToolTip("Nessun comando selezionato")
+            wx.Bell()
+            return
+        
+        text = tree.GetItemText(selected)
+        item_data = tree.GetItemData(selected)
+        
+        if item_data and len(item_data) > 0:
+            if item_data[0] == "command":
+                cmd_details = ORIGINAL_COMMANDS.get(text)
+                if cmd_details:
+                    info = cmd_details.get("info", "Nessuna informazione disponibile")
+                    tree.SetToolTip(f"Info rapida: {info}")
+                    wx.Bell()
+                    return
+        
+        tree.SetToolTip(f"Elemento: {text}")
+        wx.Bell()
+    
+    @staticmethod
+    def _show_contextual_help(frame, focused_widget):
+        """Mostra aiuto contestuale per il widget con focus"""
+        help_text = "Aiuto contestuale:\n\n"
+        
+        if hasattr(frame, 'command_tree_ctrl') and focused_widget == frame.command_tree_ctrl:
+            help_text += (
+                "ALBERO COMANDI:\n"
+                "• Frecce ↑↓: Naviga tra elementi\n"
+                "• Frecce ←→: Espandi/comprimi categorie\n"
+                "• Invio: Esegui comando selezionato\n"
+                "• Spazio: Informazioni dettagliate\n"
+                "• Cmd+I: Info rapide\n"
+                "• Tab: Vai all'area output"
+            )
+        elif hasattr(frame, 'repo_path_ctrl') and focused_widget == frame.repo_path_ctrl:
+            help_text += (
+                "CAMPO PERCORSO REPOSITORY:\n"
+                "• Digita il percorso della cartella repository\n"
+                "• Tab: Vai al pulsante Sfoglia\n"
+                "• Il percorso viene aggiornato automaticamente"
+            )
+        elif hasattr(frame, 'output_text_ctrl') and focused_widget == frame.output_text_ctrl:
+            help_text += (
+                "AREA OUTPUT:\n"
+                "• Mostra risultati comandi Git\n"
+                "• Cmd+A: Seleziona tutto il testo\n"
+                "• Cmd+C: Copia testo selezionato\n"
+                "• Aggiornata automaticamente dopo ogni comando"
+            )
+        else:
+            help_text += "Usa Tab per navigare tra i controlli principali dell'applicazione."
+        
+        # Mostra in un dialog accessibile
+        dlg = wx.MessageDialog(frame, help_text, "Aiuto Contestuale (F1)", wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+        
+        # Rimetti focus dove era
+        if focused_widget:
+            wx.CallAfter(focused_widget.SetFocus)
+    
+    @staticmethod
+    def _announce_current_position(frame, focused_widget):
+        """Annuncia la posizione corrente nell'interfaccia"""
+        position_text = "Posizione corrente: "
+        
+        if hasattr(frame, 'command_tree_ctrl') and focused_widget == frame.command_tree_ctrl:
+            tree = frame.command_tree_ctrl
+            selected = tree.GetSelection()
+            if selected.IsOk():
+                text = tree.GetItemText(selected)
+                item_data = tree.GetItemData(selected)
+                if item_data and len(item_data) > 0:
+                    if item_data[0] == "category":
+                        position_text += f"Categoria '{text}'"
+                    elif item_data[0] == "command":
+                        position_text += f"Comando '{text}'"
+                else:
+                    position_text += f"Elemento '{text}'"
+            else:
+                position_text += "Albero comandi, nessun elemento selezionato"
+        elif hasattr(frame, 'repo_path_ctrl') and focused_widget == frame.repo_path_ctrl:
+            position_text += "Campo percorso repository"
+        elif hasattr(frame, 'output_text_ctrl') and focused_widget == frame.output_text_ctrl:
+            position_text += "Area output comandi"
+        else:
+            control_name = getattr(focused_widget, 'GetName', lambda: "Controllo sconosciuto")()
+            position_text += f"Controllo: {control_name}"
+        
+        # Aggiorna status bar e tooltip
+        if hasattr(frame, 'statusBar'):
+            frame.statusBar.SetStatusText(position_text)
+        
+        if focused_widget and hasattr(focused_widget, 'SetToolTip'):
+            focused_widget.SetToolTip(position_text)
+        
+        wx.Bell()
+    
+    @staticmethod
+    def _announce_tab_navigation(frame, shift_pressed):
+        """Annuncia la navigazione con Tab"""
+        direction = "precedente" if shift_pressed else "successivo"
+        announcement = f"Navigazione verso controllo {direction}"
+        
+        if hasattr(frame, 'statusBar'):
+            frame.statusBar.SetStatusText(announcement)
+    
+    @staticmethod
+    def _setup_focus_management(frame):
+        """Configura gestione focus per VoiceOver"""
+        
+        # === ORDINE TABULAZIONE OTTIMALE ===
+        controls_in_order = []
+        
+        # Aggiungi controlli nell'ordine logico
+        if hasattr(frame, 'repo_path_ctrl'):
+            controls_in_order.append(frame.repo_path_ctrl)
+        
+        # Trova il pulsante sfoglia (dovrebbe essere accanto al campo percorso)
+        browse_button = None
+        if hasattr(frame, 'panel'):
+            for child in frame.panel.GetChildren():
+                if isinstance(child, wx.Button) and "sfoglia" in child.GetLabel().lower():
+                    browse_button = child
+                    break
+        
+        if browse_button:
+            controls_in_order.append(browse_button)
+        
+        if hasattr(frame, 'command_tree_ctrl'):
+            controls_in_order.append(frame.command_tree_ctrl)
+        
+        if hasattr(frame, 'output_text_ctrl'):
+            controls_in_order.append(frame.output_text_ctrl)
+        
+        # Imposta ordine di tabulazione
+        for i in range(len(controls_in_order) - 1):
+            current = controls_in_order[i]
+            next_control = controls_in_order[i + 1]
+            current.MoveBeforeInTabOrder(next_control)
+        
+        # === FOCUS INIZIALE ===
+        # Imposta focus iniziale sull'albero comandi (più utile per VoiceOver)
+        if hasattr(frame, 'command_tree_ctrl'):
+            wx.CallAfter(frame.command_tree_ctrl.SetFocus)
+        
+        # === EVENTI FOCUS GLOBALI ===
+        def on_focus_changed(event):
+            """Gestisce cambiamenti di focus per VoiceOver"""
+            focused_widget = frame.FindFocus()
+            if focused_widget:
+                widget_name = getattr(focused_widget, 'GetName', lambda: 'Controllo')()
+                if hasattr(frame, 'statusBar'):
+                    frame.statusBar.SetStatusText(f"Focus su: {widget_name}")
+            event.Skip()
+        
+        # Bind eventi focus
+        for control in controls_in_order:
+            if control:
+                control.Bind(wx.EVT_SET_FOCUS, on_focus_changed)
+
 if __name__ == '__main__':
     app = wx.App(False)
     frame = GitFrame(None)
-    app.MainLoop()
+    MacVoiceOverPlugin.apply_and_run(app, frame)
