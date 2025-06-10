@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-10 15:41+0200\n"
+"POT-Creation-Date: 2025-06-10 22:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4647,6 +4647,83 @@ msgstr ""
 msgid "🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n"
 msgstr ""
 
+#: assistente-git.py:6670
+msgid "⏱️ MONITORAGGIO WORKFLOW AVVIATO"
+msgstr ""
+
+#: assistente-git.py:6671
+msgid "📋 Nome"
+msgstr ""
+
+#: assistente-git.py:6672
+msgid "🆔 Run ID"
+msgstr ""
+
+#: assistente-git.py:6673
+msgid "📊 Status"
+msgstr ""
+
+#: assistente-git.py:6674 assistente-git.py:6759 assistente-git.py:6783
+#: assistente-git.py:7309 assistente-git.py:7347
+msgid "🏢 Repository"
+msgstr ""
+
+#: assistente-git.py:6675 assistente-git.py:7311
+msgid "⏰ Avviato"
+msgstr ""
+
+#: assistente-git.py:6676
+msgid "🔄 CONFIGURAZIONE MONITORAGGIO"
+msgstr ""
+
+#: assistente-git.py:6677
+msgid "Polling ogni 10 secondi"
+msgstr ""
+
+#: assistente-git.py:6678
+msgid "Durata massima: 30 minuti"
+msgstr ""
+
+#: assistente-git.py:6679
+msgid "Notifica automatica al completamento"
+msgstr ""
+
+#: assistente-git.py:6680
+msgid "Beep sonoro durante l'esecuzione (se abilitato)"
+msgstr ""
+
+#: assistente-git.py:6681
+msgid "✅ STATO ATTUALE"
+msgstr ""
+
+#: assistente-git.py:6682
+msgid "Monitoraggio attivo e funzionante"
+msgstr ""
+
+#: assistente-git.py:6683
+msgid "Il workflow verrà seguito automaticamente"
+msgstr ""
+
+#: assistente-git.py:6684
+msgid "Riceverai una notifica quando terminerà"
+msgstr ""
+
+#: assistente-git.py:6685
+msgid "💡 INFORMAZIONI"
+msgstr ""
+
+#: assistente-git.py:6686
+msgid "Puoi continuare a usare l'applicazione normalmente"
+msgstr ""
+
+#: assistente-git.py:6687
+msgid "Il monitoraggio continua in background"
+msgstr ""
+
+#: assistente-git.py:6688
+msgid "La notifica finale includerà i risultati completi"
+msgstr ""
+
 #: assistente-git.py:6699
 msgid "⏱️ Monitoraggio Avviato"
 msgstr ""
@@ -4813,6 +4890,58 @@ msgstr ""
 msgid "Verifica che il workflow sia stato avviato correttamente su GitHub."
 msgstr ""
 
+#: assistente-git.py:6758
+msgid "🌐 ERRORE CONNESSIONE"
+msgstr ""
+
+#: assistente-git.py:6760 assistente-git.py:6784
+msgid "📝 Dettagli"
+msgstr ""
+
+#: assistente-git.py:6761 assistente-git.py:6785
+msgid "⏰ Timestamp"
+msgstr ""
+
+#: assistente-git.py:6762 assistente-git.py:6786
+msgid "❌ PROBLEMA"
+msgstr ""
+
+#: assistente-git.py:6763
+msgid "Errore di rete durante la ricerca delle esecuzioni"
+msgstr ""
+
+#: assistente-git.py:6764 assistente-git.py:7365
+msgid "Server GitHub temporaneamente non disponibile"
+msgstr ""
+
+#: assistente-git.py:6765
+msgid "Problemi di connessione internet"
+msgstr ""
+
+#: assistente-git.py:6766
+msgid "Timeout della richiesta"
+msgstr ""
+
+#: assistente-git.py:6767
+msgid "🔧 SOLUZIONI"
+msgstr ""
+
+#: assistente-git.py:6768
+msgid "Verifica la connessione internet"
+msgstr ""
+
+#: assistente-git.py:6769
+msgid "Riprova il monitoraggio tra qualche minuto"
+msgstr ""
+
+#: assistente-git.py:6770
+msgid "Controlla lo stato dei servizi GitHub"
+msgstr ""
+
+#: assistente-git.py:6771
+msgid "Verifica i permessi del token GitHub"
+msgstr ""
+
 #: assistente-git.py:6774 assistente-git.py:7371 assistente-git.py:7901
 msgid "❌ Errore di Rete"
 msgstr ""
@@ -4823,6 +4952,42 @@ msgstr ""
 
 #: assistente-git.py:6777
 msgid "Controlla la connessione e riprova tra qualche minuto."
+msgstr ""
+
+#: assistente-git.py:6782
+msgid "⚠️ ERRORE IMPREVISTO"
+msgstr ""
+
+#: assistente-git.py:6787
+msgid "Errore sconosciuto durante la ricerca automatica"
+msgstr ""
+
+#: assistente-git.py:6788
+msgid "Possibile problema interno dell'applicazione"
+msgstr ""
+
+#: assistente-git.py:6789
+msgid "Risposta inattesa dall'API GitHub"
+msgstr ""
+
+#: assistente-git.py:6790
+msgid "🔧 AZIONI"
+msgstr ""
+
+#: assistente-git.py:6791
+msgid "Riprova l'operazione di monitoraggio"
+msgstr ""
+
+#: assistente-git.py:6792
+msgid "Verifica la configurazione GitHub"
+msgstr ""
+
+#: assistente-git.py:6793
+msgid "Controlla i log per dettagli aggiuntivi"
+msgstr ""
+
+#: assistente-git.py:6794
+msgid "Segnala il problema se persiste"
 msgstr ""
 
 #: assistente-git.py:6797 assistente-git.py:7374 assistente-git.py:7907
@@ -5203,6 +5368,30 @@ msgstr ""
 msgid "🚀 Avvio workflow '{}' sul branch '{}' con {} input...\n"
 msgstr ""
 
+#: assistente-git.py:7306
+msgid "🚀 WORKFLOW AVVIATO CON SUCCESSO"
+msgstr ""
+
+#: assistente-git.py:7307
+msgid "📋 Nome Workflow"
+msgstr ""
+
+#: assistente-git.py:7308 assistente-git.py:7346
+msgid "🌿 Branch"
+msgstr ""
+
+#: assistente-git.py:7310
+msgid "📝 Input Parametri"
+msgstr ""
+
+#: assistente-git.py:7310
+msgid "parametri"
+msgstr ""
+
+#: assistente-git.py:7314
+msgid "🔧 PARAMETRI FORNITI"
+msgstr ""
+
 #: assistente-git.py:7329
 msgid "🚀 Workflow Avviato"
 msgstr ""
@@ -5226,6 +5415,74 @@ msgstr ""
 
 #: assistente-git.py:7341
 msgid "⏳ Monitoraggio automatico attivato - attesa nuova esecuzione...\n"
+msgstr ""
+
+#: assistente-git.py:7344
+msgid "🚨 ERRORE HTTP DURANTE TRIGGER"
+msgstr ""
+
+#: assistente-git.py:7345
+msgid "📋 Workflow"
+msgstr ""
+
+#: assistente-git.py:7348
+msgid "📊 Codice Errore"
+msgstr ""
+
+#: assistente-git.py:7349
+msgid "📝 Risposta Server"
+msgstr ""
+
+#: assistente-git.py:7352
+msgid "❌ ERRORE 422 - PARAMETRI NON VALIDI"
+msgstr ""
+
+#: assistente-git.py:7353
+msgid "Il workflow potrebbe non supportare il dispatch manuale"
+msgstr ""
+
+#: assistente-git.py:7354
+msgid "I parametri forniti potrebbero essere incorretti"
+msgstr ""
+
+#: assistente-git.py:7355
+msgid "La configurazione del workflow potrebbe essere errata"
+msgstr ""
+
+#: assistente-git.py:7356
+msgid "🔧 VERIFICA"
+msgstr ""
+
+#: assistente-git.py:7357
+msgid "Controlla che il workflow abbia 'workflow_dispatch' abilitato"
+msgstr ""
+
+#: assistente-git.py:7358
+msgid "Verifica i parametri di input richiesti"
+msgstr ""
+
+#: assistente-git.py:7359
+msgid "Controlla la configurazione YAML del workflow"
+msgstr ""
+
+#: assistente-git.py:7360
+msgid "Verifica la configurazione del workflow e i parametri richiesti."
+msgstr ""
+
+#: assistente-git.py:7362
+msgid "❌ ERRORE HTTP"
+msgstr ""
+
+#: assistente-git.py:7363
+msgid "Problema di comunicazione con GitHub"
+msgstr ""
+
+#: assistente-git.py:7364
+msgid "Possibili problemi di permessi o autenticazione"
+msgstr ""
+
+#: assistente-git.py:7366
+msgid "Verifica i permessi del token GitHub e riprova."
 msgstr ""
 
 #: assistente-git.py:7368
