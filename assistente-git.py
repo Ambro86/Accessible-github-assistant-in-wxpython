@@ -5077,8 +5077,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             # 9) Mostra nella tua dialog invece del MessageBox
             if current_conclusion == "success":
                 self.ShowSuccessNotification(
-                    title=f"🎉 Workflow Completato con Successo",
-                    message=f"'{workflow_name_local}' eseguito correttamente",
+                    title=_("🎉 Workflow Completato con Successo"),
+                    message=_("'%(workflow)s' eseguito correttamente") % {"workflow": workflow_name_local},
                     details=workflow_details
                 )
             else:

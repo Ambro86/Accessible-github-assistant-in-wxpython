@@ -508,16 +508,17 @@ msgstr ""
 "❌ Invalid JSON:\n"
 "%(error)s"
 #: assistente-git.py:534
-#, fuzzy
 msgid "Errore Validazione"
 msgstr "Removal Error"
 
 #: assistente-git.py:536
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "❌ Errore imprevisto:\n"
-"%(error)s"
-msgstr "❌ Unexpected error: {}\n"
+"%(error)"
+msgstr ""
+"❌ Unexpected error:\n"
+"%(error)"
 
 #: assistente-git.py:536 assistente-git.py:542 assistente-git.py:553
 #: assistente-git.py:1824 assistente-git.py:2232 assistente-git.py:2410
@@ -1651,19 +1652,17 @@ msgid " (modificato: %(date)s)"
 msgstr " (modified: %(date)s)"
 
 #: assistente-git.py:1731 assistente-git.py:2138
-#, fuzzy, python-format
+#, python-format
 msgid "❌ Errore nel caricare i commenti: %(error)s"
-msgstr "❌ Loading error"
-
+msgstr "❌ Error loading comments: %(error)s"
 #: assistente-git.py:1734 assistente-git.py:2141
 msgid "Errore caricamento"
 msgstr "Loading error"
 
 #: assistente-git.py:1744 assistente-git.py:2151
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d caratteri"
-msgstr "0 characters"
-
+msgstr "%(count)d characters"
 #: assistente-git.py:1757 assistente-git.py:2164
 msgid "Sei sicuro di voler cancellare il commento che stai scrivendo?"
 msgstr "Are you sure you want to delete the comment you are writing?"
@@ -1723,22 +1722,18 @@ msgid "Commento Inviato"
 msgstr "Comment Sent"
 
 #: assistente-git.py:1812 assistente-git.py:2220
-#, fuzzy, python-format
+#, python-format
 msgid "❌ Errore nell'inviare il commento: %(error)s"
-msgstr "❌ Error saving file: {}"
+msgstr "❌ Error sending comment: %(error)s"
 
 #: assistente-git.py:1812 assistente-git.py:2220
 msgid "Errore Invio"
 msgstr "Sending Error"
 
 #: assistente-git.py:1824 assistente-git.py:2232
-#, fuzzy, python-format
+#, python-format
 msgid "Errore nell'aprire il browser: %(error)s"
-msgstr ""
-"Error opening browser:\n"
-"{}\n"
-"\n"
-"URL: {}"
+msgstr "Error opening browser: %(error)s"
 
 #: assistente-git.py:1831 assistente-git.py:2239
 msgid "Hai un commento non inviato. Sei sicuro di voler chiudere?"
@@ -1978,16 +1973,12 @@ msgstr ""
 "✅ Everything synchronized"
 
 #: assistente-git.py:2684
-#, fuzzy
 msgid "📊 RIEPILOGO MODIFICHE:\n"
-msgstr ""
-"📝 === FILE CHANGES SUMMARY ===\n"
-"\n"
-
+msgstr "📊 CHANGES SUMMARY:\n"
 #: assistente-git.py:2685 assistente-git.py:2747
-#, fuzzy, python-format
+#, python-format
 msgid "• File modificati: %(count)d\n"
-msgstr "Modified files:"
+msgstr "• Modified files: %(count)d\n"
 
 #: assistente-git.py:2686
 #, python-format
@@ -2101,9 +2092,9 @@ msgid "🔍 Differenze - %(type)s"
 msgstr "🔍 Differences - %(type)s"
 
 #: assistente-git.py:2759
-#, fuzzy, python-format
+#, python-format
 msgid "Differenze %(type)s recuperate con successo"
-msgstr "Repository information retrieved successfully!"
+msgstr "%(type)s differences retrieved successfully"
 
 #: assistente-git.py:2761
 msgid "Usa i marker +/- per identificare aggiunte e rimozioni."
@@ -2331,9 +2322,9 @@ msgid "📄 File Tracciati"
 msgstr "📄 Tracked Files"
 
 #: assistente-git.py:2888
-#, fuzzy, python-format
+#, python-format
 msgid "Trovati %(count)d file tracciati da Git"
-msgstr "List files tracked by Git..."
+msgstr "Found %(count)d files tracked by Git"
 
 #: assistente-git.py:2897
 msgid "❌ Errore Git Branch"
@@ -2411,10 +2402,9 @@ msgstr ""
 "• Configure manually with git remote add"
 
 #: assistente-git.py:2956
-#, fuzzy, python-format
+#, python-format
 msgid "Usa '%(cmd)s' per configurare un remote."
-msgstr "Use '{cmd}' to configure the GitHub repository."
-
+msgstr "Use '%(cmd)s' to configure a remote."
 #: assistente-git.py:2972
 msgid "🌐 REPOSITORY REMOTI:\n"
 msgstr "🌐 REMOTE REPOSITORIES:\n"
@@ -2429,10 +2419,9 @@ msgid "🌐 Repository Remoti"
 msgstr "🌐 Remote Repositories"
 
 #: assistente-git.py:2988
-#, fuzzy, python-format
+#, python-format
 msgid "Configurati %(count)d repository remoti"
-msgstr "Configure repository and GitHub token"
-
+msgstr "%(count)d remote repositories configured"
 #: assistente-git.py:2997
 msgid "❌ Errore Git Show"
 msgstr "❌ Git Show Error"
@@ -2548,10 +2537,9 @@ msgstr ""
 "%(icon)s %(action)s OPERATION COMPLETED\n"
 
 #: assistente-git.py:3093
-#, fuzzy, python-format
+#, python-format
 msgid "📋 Commit creato: %(commit)s\n"
-msgstr "✅ Commit created successfully.\n"
-
+msgstr "📋 Commit created: %(commit)s\n"
 #: assistente-git.py:3095
 msgid "✅ Modifiche salvate nel repository\n"
 msgstr "✅ Changes saved in repository\n"
@@ -2594,20 +2582,19 @@ msgstr ""
 
 #: assistente-git.py:3129 assistente-git.py:3188 assistente-git.py:3245
 #: assistente-git.py:3296
-#, fuzzy, python-format
+#, python-format
 msgid "%(icon)s %(action)s Completato"
-msgstr "Restore Completed"
+msgstr "%(icon)s %(action)s Completed"
 
 #: assistente-git.py:3130
-#, fuzzy, python-format
+#, python-format
 msgid "Operazione %(action)s eseguita con successo"
 msgstr "Operation completed successfully!"
 
 #: assistente-git.py:3152
-#, fuzzy, python-format
+#, python-format
 msgid "Impossibile completare l'operazione %(action)s"
-msgstr "Unable to retrieve history"
-
+msgstr "Unable to complete operation %(action)s"
 #: assistente-git.py:3163
 #, python-format
 msgid ""
@@ -2634,15 +2621,11 @@ msgid "✅ Branch eliminato dal repository\n"
 msgstr "✅ Branch deleted from repository\n"
 
 #: assistente-git.py:3189
-#, fuzzy
 msgid "Modifica repository eseguita con successo"
-msgstr "Repository status retrieved successfully"
-
+msgstr "Repository modification completed successfully"
 #: assistente-git.py:3210
-#, fuzzy
 msgid "Impossibile completare la configurazione"
-msgstr "Unable to retrieve history"
-
+msgstr "Unable to complete configuration"
 #: assistente-git.py:3211
 #, python-format
 msgid ""
@@ -2689,10 +2672,8 @@ msgid "✅ Tag creato nel repository\n"
 msgstr "✅ Tag created in repository\n"
 
 #: assistente-git.py:3246
-#, fuzzy
 msgid "Configurazione eseguita con successo"
-msgstr "GitHub configuration deleted successfully."
-
+msgstr "Configuration completed successfully"
 #: assistente-git.py:3259
 msgid "Il comando ha riscontrato un errore"
 msgstr "The command encountered an error"
@@ -2730,17 +2711,16 @@ msgstr ""
 "\n"
 
 #: assistente-git.py:3281
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "✅ %(action)s eseguito con successo\n"
 "\n"
-msgstr "✅ Branches merged successfully\n"
-
+msgstr ""
+"✅ %(action)s completed successfully\n"
+"\n"
 #: assistente-git.py:3297
-#, fuzzy
 msgid "Comando eseguito con successo"
-msgstr "Commit created successfully!"
-
+msgstr "Command executed successfully"
 #: assistente-git.py:3312
 #, python-format
 msgid ""
@@ -2756,10 +2736,9 @@ msgid "Ora puoi creare un commit con '%(cmd)s'."
 msgstr "Now you can create a commit with '%(cmd)s'."
 
 #: assistente-git.py:3331
-#, fuzzy, python-format
+#, python-format
 msgid "Invia le modifiche al server con '%(cmd)s'."
-msgstr "Send changes to server (push)"
-
+msgstr "Send changes to server with '%(cmd)s'."
 #: assistente-git.py:3332
 msgid "Se necessario, risolvi eventuali conflitti e crea un commit."
 msgstr "If necessary, resolve any conflicts and create a commit."
