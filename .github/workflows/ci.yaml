@@ -103,19 +103,30 @@ jobs:
         python -c "import winsound; print('winsound module available on Windows')" || echo "Warning: winsound not available"
         echo "Windows-specific dependencies verified."
 
-    - name: Build executable with PyInstaller
+- name: Build executable with PyInstaller
       shell: bash 
       run: |
         echo "Starting PyInstaller build..."
-        pyinstaller --onefile --windowed --noconsole \
-          --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
-          --name AssistenteGit \
-          assistente-git.py
+        
+        if [[ "${{ matrix.os_name }}" == "macOS" ]]; then
+          echo "Building macOS .app bundle..."
+          pyinstaller --windowed \
+            --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+            --name AssistenteGit \
+            assistente-git.py
+        else
+          echo "Building single executable for ${{ matrix.os_name }}..."
+          pyinstaller --onefile --windowed --noconsole \
+            --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+            --name AssistenteGit \
+            assistente-git.py
+        fi
+        
         echo "PyInstaller build finished."
-
     - name: Upload application artifact
       uses: actions/upload-artifact@v4
       with:
         name: AssistenteGit-${{ matrix.os_name }} 
-        path: dist/AssistenteGit${{ matrix.asset_name_suffix }} 
+        path: |
+          ${{ matrix.os_name == 'macOS' && 'dist/AssistenteGit.app/' || format('dist/AssistenteGit{0}', matrix.asset_name_suffix) }}
         if-no-files-found: error
