@@ -103,7 +103,7 @@ jobs:
         python -c "import winsound; print('winsound module available on Windows')" || echo "Warning: winsound not available"
         echo "Windows-specific dependencies verified."
 
-- name: Build executable with PyInstaller
+    - name: Build executable with PyInstaller
       shell: bash 
       run: |
         echo "Starting PyInstaller build..."
