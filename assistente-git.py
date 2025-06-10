@@ -3931,7 +3931,7 @@ class GitFrame(wx.Frame):
         """Mostra una finestra di dettagli espandibile."""
         
         # Crea dialog personalizzato
-        dlg = wx.Dialog(self, title=f"{'🎉' if is_success else '💥'} {title} - Dettagli", size=(600, 450))
+        dlg = wx.Dialog(self, title=f"{'🎉' if is_success else '💥'} {title} - {_('Dettagli')}", size=(600, 450))
         panel = wx.Panel(dlg)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -5091,7 +5091,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
             # 10) Breve messaggio nel terminale per tracking
             self.output_text_ctrl.AppendText(
-                f"🎯 Workflow '{workflow_name_local}' {result} (ID: {run_id_local}) - Dettagli mostrati in finestra\n"
+                f"🎯 Workflow '{workflow_name_local}' {result} (ID: {run_id_local}) - {_('Dettagli mostrati in finestra')}\n"
             )
 
 

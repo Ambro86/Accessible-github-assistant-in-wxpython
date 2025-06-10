@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-10 12:29+0200\n"
+"POT-Creation-Date: 2025-06-10 15:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2871,6 +2871,10 @@ msgstr ""
 msgid "❌ Errore durante il recupero delle PR: {}\n"
 msgstr ""
 
+#: assistente-git.py:3934
+msgid "Dettagli"
+msgstr ""
+
 #: assistente-git.py:3964
 msgid "📋 Dettagli tecnici:"
 msgstr ""
@@ -3587,8 +3591,21 @@ msgstr ""
 msgid "Creazione PR annullata.\n"
 msgstr ""
 
+#: assistente-git.py:5080
+msgid "🎉 Workflow Completato con Successo"
+msgstr ""
+
+#: assistente-git.py:5081
+#, python-format
+msgid "'%(workflow)s' eseguito correttamente"
+msgstr ""
+
 #: assistente-git.py:5089
 msgid "Controlla i log del workflow per maggiori dettagli sul problema."
+msgstr ""
+
+#: assistente-git.py:5094
+msgid "Dettagli mostrati in finestra"
 msgstr ""
 
 #: assistente-git.py:5141

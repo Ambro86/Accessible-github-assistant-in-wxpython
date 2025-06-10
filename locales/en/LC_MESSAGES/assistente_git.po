@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AssistenteGit 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-10 12:29+0200\n"
+"POT-Creation-Date: 2025-06-10 15:41+0200\n"
 "PO-Revision-Date: 2025-06-09 18:00+0200\n"
 "Last-Translator: Ambrogio Riili <ambro86@gmail.com>\n"
 "Language-Team: English\n"
@@ -507,6 +507,7 @@ msgid ""
 msgstr ""
 "❌ Invalid JSON:\n"
 "%(error)s"
+
 #: assistente-git.py:534
 msgid "Errore Validazione"
 msgstr "Removal Error"
@@ -515,7 +516,7 @@ msgstr "Removal Error"
 #, python-format
 msgid ""
 "❌ Errore imprevisto:\n"
-"%(error)"
+"%(error)s"
 msgstr ""
 "❌ Unexpected error:\n"
 "%(error)"
@@ -1655,6 +1656,7 @@ msgstr " (modified: %(date)s)"
 #, python-format
 msgid "❌ Errore nel caricare i commenti: %(error)s"
 msgstr "❌ Error loading comments: %(error)s"
+
 #: assistente-git.py:1734 assistente-git.py:2141
 msgid "Errore caricamento"
 msgstr "Loading error"
@@ -1663,6 +1665,7 @@ msgstr "Loading error"
 #, python-format
 msgid "%(count)d caratteri"
 msgstr "%(count)d characters"
+
 #: assistente-git.py:1757 assistente-git.py:2164
 msgid "Sei sicuro di voler cancellare il commento che stai scrivendo?"
 msgstr "Are you sure you want to delete the comment you are writing?"
@@ -1975,6 +1978,7 @@ msgstr ""
 #: assistente-git.py:2684
 msgid "📊 RIEPILOGO MODIFICHE:\n"
 msgstr "📊 CHANGES SUMMARY:\n"
+
 #: assistente-git.py:2685 assistente-git.py:2747
 #, python-format
 msgid "• File modificati: %(count)d\n"
@@ -2011,8 +2015,7 @@ msgstr ""
 msgid ""
 "Usa '%(add_cmd)s' per aggiungere modifiche, poi '%(commit_cmd)s' per "
 "committare."
-msgstr ""
-"Use '%(add_cmd)s' to add changes, then '%(commit_cmd)s' to commit."
+msgstr "Use '%(add_cmd)s' to add changes, then '%(commit_cmd)s' to commit."
 
 #: assistente-git.py:2703
 msgid "📋 Stato Repository"
@@ -2405,6 +2408,7 @@ msgstr ""
 #, python-format
 msgid "Usa '%(cmd)s' per configurare un remote."
 msgstr "Use '%(cmd)s' to configure a remote."
+
 #: assistente-git.py:2972
 msgid "🌐 REPOSITORY REMOTI:\n"
 msgstr "🌐 REMOTE REPOSITORIES:\n"
@@ -2422,6 +2426,7 @@ msgstr "🌐 Remote Repositories"
 #, python-format
 msgid "Configurati %(count)d repository remoti"
 msgstr "%(count)d remote repositories configured"
+
 #: assistente-git.py:2997
 msgid "❌ Errore Git Show"
 msgstr "❌ Git Show Error"
@@ -2533,13 +2538,13 @@ msgstr ""
 msgid ""
 "%(icon)s OPERAZIONE %(action)s COMPLETATA\n"
 "\n"
-msgstr ""
-"%(icon)s %(action)s OPERATION COMPLETED\n"
+msgstr "%(icon)s %(action)s OPERATION COMPLETED\n"
 
 #: assistente-git.py:3093
 #, python-format
 msgid "📋 Commit creato: %(commit)s\n"
 msgstr "📋 Commit created: %(commit)s\n"
+
 #: assistente-git.py:3095
 msgid "✅ Modifiche salvate nel repository\n"
 msgstr "✅ Changes saved in repository\n"
@@ -2595,6 +2600,7 @@ msgstr "Operation completed successfully!"
 #, python-format
 msgid "Impossibile completare l'operazione %(action)s"
 msgstr "Unable to complete operation %(action)s"
+
 #: assistente-git.py:3163
 #, python-format
 msgid ""
@@ -2623,9 +2629,11 @@ msgstr "✅ Branch deleted from repository\n"
 #: assistente-git.py:3189
 msgid "Modifica repository eseguita con successo"
 msgstr "Repository modification completed successfully"
+
 #: assistente-git.py:3210
 msgid "Impossibile completare la configurazione"
 msgstr "Unable to complete configuration"
+
 #: assistente-git.py:3211
 #, python-format
 msgid ""
@@ -2644,7 +2652,6 @@ msgstr ""
 "📋 OUTPUT:\n"
 "%(separator2)s\n"
 "%(stdout)s"
-
 
 #: assistente-git.py:3220
 #, python-format
@@ -2674,6 +2681,7 @@ msgstr "✅ Tag created in repository\n"
 #: assistente-git.py:3246
 msgid "Configurazione eseguita con successo"
 msgstr "Configuration completed successfully"
+
 #: assistente-git.py:3259
 msgid "Il comando ha riscontrato un errore"
 msgstr "The command encountered an error"
@@ -2718,17 +2726,19 @@ msgid ""
 msgstr ""
 "✅ %(action)s completed successfully\n"
 "\n"
+
 #: assistente-git.py:3297
 msgid "Comando eseguito con successo"
 msgstr "Command executed successfully"
+
 #: assistente-git.py:3312
 #, python-format
 msgid ""
 "Inizializza un repository Git con '%(cmd)s' o verifica di essere nella "
 "directory corretta."
 msgstr ""
-"Initialize a Git repository with '%(cmd)s' or verify you are in the "
-"correct directory."
+"Initialize a Git repository with '%(cmd)s' or verify you are in the correct "
+"directory."
 
 #: assistente-git.py:3330
 #, python-format
@@ -2739,6 +2749,7 @@ msgstr "Now you can create a commit with '%(cmd)s'."
 #, python-format
 msgid "Invia le modifiche al server con '%(cmd)s'."
 msgstr "Send changes to server with '%(cmd)s'."
+
 #: assistente-git.py:3332
 msgid "Se necessario, risolvi eventuali conflitti e crea un commit."
 msgstr "If necessary, resolve any conflicts and create a commit."
@@ -3160,6 +3171,10 @@ msgstr "No PR selected.\n"
 #: assistente-git.py:3896
 msgid "❌ Errore durante il recupero delle PR: {}\n"
 msgstr "❌ Error retrieving PRs: {}\n"
+
+#: assistente-git.py:3934
+msgid "Dettagli"
+msgstr "Details: {}"
 
 #: assistente-git.py:3964
 msgid "📋 Dettagli tecnici:"
@@ -4019,9 +4034,22 @@ msgstr "Unable to create Pull Request on GitHub"
 msgid "Creazione PR annullata.\n"
 msgstr "PR creation cancelled.\n"
 
+#: assistente-git.py:5080
+msgid "🎉 Workflow Completato con Successo"
+msgstr "🎉 Workflow Completed Successfully"
+
+#: assistente-git.py:5081
+#, python-format
+msgid "'%(workflow)s' eseguito correttamente"
+msgstr ""
+
 #: assistente-git.py:5089
 msgid "Controlla i log del workflow per maggiori dettagli sul problema."
 msgstr "Check workflow logs for more details about the problem."
+
+#: assistente-git.py:5094
+msgid "Dettagli mostrati in finestra"
+msgstr "Details shown in window"
 
 #: assistente-git.py:5141
 msgid "🚫 Workflow Cancellato/Rimosso"
