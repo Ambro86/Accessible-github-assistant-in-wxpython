@@ -32,7 +32,7 @@ jobs:
       id: setup_python # Aggiunto un id per referenziare l'output della versione Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' 
+        python-version: '3.13' 
 
     - name: Get pip cache directory
       id: pip_cache # id per referenziare l'output
