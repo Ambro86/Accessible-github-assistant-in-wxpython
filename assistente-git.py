@@ -6667,25 +6667,25 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     self.start_monitoring_run(run_id, self.github_owner, self.github_repo)
                     
                     # Mostra stato monitoraggio nella dialog invece della console
-                    monitoring_details = f"⏱️ MONITORAGGIO WORKFLOW AVVIATO\n\n"
-                    monitoring_details += f"📋 Nome: {actual_workflow_name_to_monitor}\n"
-                    monitoring_details += f"🆔 Run ID: {run_id}\n"
-                    monitoring_details += f"📊 Status: {status}\n"
-                    monitoring_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                    monitoring_details += f"⏰ Avviato: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                    monitoring_details += "🔄 CONFIGURAZIONE MONITORAGGIO:\n"
-                    monitoring_details += "• Polling ogni 10 secondi\n"
-                    monitoring_details += "• Durata massima: 30 minuti\n"
-                    monitoring_details += "• Notifica automatica al completamento\n"
-                    monitoring_details += "• Beep sonoro durante l'esecuzione (se abilitato)\n\n"
-                    monitoring_details += "✅ STATO ATTUALE:\n"
-                    monitoring_details += "• Monitoraggio attivo e funzionante\n"
-                    monitoring_details += "• Il workflow verrà seguito automaticamente\n"
-                    monitoring_details += "• Riceverai una notifica quando terminerà\n\n"
-                    monitoring_details += "💡 INFORMAZIONI:\n"
-                    monitoring_details += "• Puoi continuare a usare l'applicazione normalmente\n"
-                    monitoring_details += "• Il monitoraggio continua in background\n"
-                    monitoring_details += "• La notifica finale includerà i risultati completi"
+                    monitoring_details = f"{_('⏱️ MONITORAGGIO WORKFLOW AVVIATO')}\n\n"
+                    monitoring_details += f"{_('📋 Nome')}: {actual_workflow_name_to_monitor}\n"
+                    monitoring_details += f"{_('🆔 Run ID')}: {run_id}\n"
+                    monitoring_details += f"{_('📊 Status')}: {status}\n"
+                    monitoring_details += f"{_('🏢 Repository')}: {self.github_owner}/{self.github_repo}\n"
+                    monitoring_details += f"{_('⏰ Avviato')}: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    monitoring_details += f"{_('🔄 CONFIGURAZIONE MONITORAGGIO')}:\n"
+                    monitoring_details += f"• {_('Polling ogni 10 secondi')}\n"
+                    monitoring_details += f"• {_('Durata massima: 30 minuti')}\n"
+                    monitoring_details += f"• {_('Notifica automatica al completamento')}\n"
+                    monitoring_details += f"• {_('Beep sonoro durante l\'esecuzione (se abilitato)')}\n\n"
+                    monitoring_details += f"{_('✅ STATO ATTUALE')}:\n"
+                    monitoring_details += f"• {_('Monitoraggio attivo e funzionante')}\n"
+                    monitoring_details += f"• {_('Il workflow verrà seguito automaticamente')}\n"
+                    monitoring_details += f"• {_('Riceverai una notifica quando terminerà')}\n\n"
+                    monitoring_details += f"{_('💡 INFORMAZIONI')}:\n"
+                    monitoring_details += f"• {_('Puoi continuare a usare l\'applicazione normalmente')}\n"
+                    monitoring_details += f"• {_('Il monitoraggio continua in background')}\n"
+                    monitoring_details += f"• {_('La notifica finale includerà i risultati completi')}"
                     if self.monitoring_dialog:
                         try:
                             self.monitoring_dialog.EndModal(wx.ID_CLOSE)
@@ -6755,20 +6755,20 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
         except requests.exceptions.RequestException as e_req:
             # Gestisce errori di rete/HTTP
-            error_details = f"🌐 ERRORE CONNESSIONE\n\n"
-            error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-            error_details += f"📝 Dettagli: {e_req}\n"
-            error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-            error_details += "❌ PROBLEMA:\n"
-            error_details += "• Errore di rete durante la ricerca delle esecuzioni\n"
-            error_details += "• Server GitHub temporaneamente non disponibile\n"
-            error_details += "• Problemi di connessione internet\n"
-            error_details += "• Timeout della richiesta\n\n"
-            error_details += "🔧 SOLUZIONI:\n"
-            error_details += "• Verifica la connessione internet\n"
-            error_details += "• Riprova il monitoraggio tra qualche minuto\n"
-            error_details += "• Controlla lo stato dei servizi GitHub\n"
-            error_details += "• Verifica i permessi del token GitHub"
+            error_details = f"{_('🌐 ERRORE CONNESSIONE')}\n\n"
+            error_details += f"{_('🏢 Repository')}: {self.github_owner}/{self.github_repo}\n"
+            error_details += f"{_('📝 Dettagli')}: {e_req}\n"
+            error_details += f"{_('⏰ Timestamp')}: {datetime.now().strftime('%H:%M:%S')}\n\n"
+            error_details += f"{_('❌ PROBLEMA')}:\n"
+            error_details += f"• {_('Errore di rete durante la ricerca delle esecuzioni')}\n"
+            error_details += f"• {_('Server GitHub temporaneamente non disponibile')}\n"
+            error_details += f"• {_('Problemi di connessione internet')}\n"
+            error_details += f"• {_('Timeout della richiesta')}\n\n"
+            error_details += f"{_('🔧 SOLUZIONI')}:\n"
+            error_details += f"• {_('Verifica la connessione internet')}\n"
+            error_details += f"• {_('Riprova il monitoraggio tra qualche minuto')}\n"
+            error_details += f"• {_('Controlla lo stato dei servizi GitHub')}\n"
+            error_details += f"• {_('Verifica i permessi del token GitHub')}"
             
             self.ShowErrorNotification(
                 title=_("❌ Errore di Rete"),
@@ -6779,19 +6779,19 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             
         except Exception as e:
             # Gestisce altre eccezioni impreviste
-            error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
-            error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-            error_details += f"📝 Dettagli: {e}\n"
-            error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-            error_details += "❌ PROBLEMA:\n"
-            error_details += "• Errore sconosciuto durante la ricerca automatica\n"
-            error_details += "• Possibile problema interno dell'applicazione\n"
-            error_details += "• Risposta inattesa dall'API GitHub\n\n"
-            error_details += "🔧 AZIONI:\n"
-            error_details += "• Riprova l'operazione di monitoraggio\n"
-            error_details += "• Verifica la configurazione GitHub\n"
-            error_details += "• Controlla i log per dettagli aggiuntivi\n"
-            error_details += "• Segnala il problema se persiste"
+            error_details = f"{_('⚠️ ERRORE IMPREVISTO')}\n\n"
+            error_details += f"{_('🏢 Repository')}: {self.github_owner}/{self.github_repo}\n"
+            error_details += f"{_('📝 Dettagli')}: {e}\n"
+            error_details += f"{_('⏰ Timestamp')}: {datetime.now().strftime('%H:%M:%S')}\n\n"
+            error_details += f"{_('❌ PROBLEMA')}:\n"
+            error_details += f"• {_('Errore sconosciuto durante la ricerca automatica')}\n"
+            error_details += f"• {_('Possibile problema interno dell\'applicazione')}\n"
+            error_details += f"• {_('Risposta inattesa dall\'API GitHub')}\n\n"
+            error_details += f"{_('🔧 AZIONI')}:\n"
+            error_details += f"• {_('Riprova l\'operazione di monitoraggio')}\n"
+            error_details += f"• {_('Verifica la configurazione GitHub')}\n"
+            error_details += f"• {_('Controlla i log per dettagli aggiuntivi')}\n"
+            error_details += f"• {_('Segnala il problema se persiste')}"
             
             self.ShowErrorNotification(
                 title=_("❌ Errore Imprevisto"),
@@ -7303,15 +7303,15 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 response.raise_for_status()
                 
                 # Formatta i dettagli del successo per la dialog
-                success_details = f"🚀 WORKFLOW AVVIATO CON SUCCESSO\n\n"
-                success_details += f"📋 Nome Workflow: {selected_workflow['name']}\n"
-                success_details += f"🌿 Branch: {values['branch']}\n"
-                success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                success_details += f"📝 Input Parametri: {len(values['inputs'])} parametri\n"
-                success_details += f"⏰ Avviato: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                success_details = f"{_('🚀 WORKFLOW AVVIATO CON SUCCESSO')}\n\n"
+                success_details += f"{_('📋 Nome Workflow')}: {selected_workflow['name']}\n"
+                success_details += f"{_('🌿 Branch')}: {values['branch']}\n"
+                success_details += f"{_('🏢 Repository')}: {self.github_owner}/{self.github_repo}\n"
+                success_details += f"{_('📝 Input Parametri')}: {len(values['inputs'])} {_('parametri')}\n"
+                success_details += f"{_('⏰ Avviato')}: {datetime.now().strftime('%H:%M:%S')}\n\n"
                 
                 if values['inputs']:
-                    success_details += "🔧 PARAMETRI FORNITI:\n"
+                    success_details += f"{_('🔧 PARAMETRI FORNITI')}:\n"
                     for key, value in values['inputs'].items():
                         success_details += f"  • {key}: {value}\n"
                     success_details += "\n"
@@ -7341,31 +7341,31 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     self.output_text_ctrl.AppendText(_("⏳ Monitoraggio automatico attivato - attesa nuova esecuzione...\n"))
                     wx.CallLater(5000, lambda: self.auto_find_and_monitor_latest_run(selected_workflow['name']))
             except requests.exceptions.HTTPError as e:
-                error_details = f"🚨 ERRORE HTTP DURANTE TRIGGER\n\n"
-                error_details += f"📋 Workflow: {selected_workflow['name']}\n"
-                error_details += f"🌿 Branch: {values['branch']}\n"
-                error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                error_details += f"📊 Codice Errore: {e.response.status_code}\n"
-                error_details += f"📝 Risposta Server: {e.response.text[:300]}\n\n"
+                error_details = f"{_('🚨 ERRORE HTTP DURANTE TRIGGER')}\n\n"
+                error_details += f"{_('📋 Workflow')}: {selected_workflow['name']}\n"
+                error_details += f"{_('🌿 Branch')}: {values['branch']}\n"
+                error_details += f"{_('🏢 Repository')}: {self.github_owner}/{self.github_repo}\n"
+                error_details += f"{_('📊 Codice Errore')}: {e.response.status_code}\n"
+                error_details += f"{_('📝 Risposta Server')}: {e.response.text[:300]}\n\n"
                 
                 if e.response.status_code == 422:
-                    error_details += "❌ ERRORE 422 - PARAMETRI NON VALIDI:\n"
-                    error_details += "• Il workflow potrebbe non supportare il dispatch manuale\n"
-                    error_details += "• I parametri forniti potrebbero essere incorretti\n"
-                    error_details += "• La configurazione del workflow potrebbe essere errata\n\n"
-                    error_details += "🔧 VERIFICA:\n"
-                    error_details += "• Controlla che il workflow abbia 'workflow_dispatch' abilitato\n"
-                    error_details += "• Verifica i parametri di input richiesti\n"
-                    error_details += "• Controlla la configurazione YAML del workflow"
-                    suggestions = "Verifica la configurazione del workflow e i parametri richiesti."
+                    error_details += f"{_('❌ ERRORE 422 - PARAMETRI NON VALIDI')}:\n"
+                    error_details += f"• {_('Il workflow potrebbe non supportare il dispatch manuale')}\n"
+                    error_details += f"• {_('I parametri forniti potrebbero essere incorretti')}\n"
+                    error_details += f"• {_('La configurazione del workflow potrebbe essere errata')}\n\n"
+                    error_details += f"{_('🔧 VERIFICA')}:\n"
+                    error_details += f"• {_('Controlla che il workflow abbia \'workflow_dispatch\' abilitato')}\n"
+                    error_details += f"• {_('Verifica i parametri di input richiesti')}\n"
+                    error_details += f"• {_('Controlla la configurazione YAML del workflow')}"
+                    suggestions = _("Verifica la configurazione del workflow e i parametri richiesti.")
                 else:
-                    error_details += f"❌ ERRORE HTTP {e.response.status_code}:\n"
-                    error_details += "• Problema di comunicazione con GitHub\n"
-                    error_details += "• Possibili problemi di permessi o autenticazione\n"
-                    error_details += "• Server GitHub temporaneamente non disponibile"
-                    suggestions = "Verifica i permessi del token GitHub e riprova."
+                    error_details += f"{_('❌ ERRORE HTTP')} {e.response.status_code}:\n"
+                    error_details += f"• {_('Problema di comunicazione con GitHub')}\n"
+                    error_details += f"• {_('Possibili problemi di permessi o autenticazione')}\n"
+                    error_details += f"• {_('Server GitHub temporaneamente non disponibile')}"
+                    suggestions = _("Verifica i permessi del token GitHub e riprova.")
                 
-                self.ShowErrorNotification(title=_("❌ Errore Trigger Workflow"), message=_("Impossibile avviare '{}'").format(selected_workflow['name']), details=error_details, suggestions=suggestions)           
+                self.ShowErrorNotification(title=_  ("❌ Errore Trigger Workflow"), message=_("Impossibile avviare '{}'").format(selected_workflow['name']), details=error_details, suggestions=suggestions)           
             except requests.exceptions.RequestException as e:
                 error_details = _("🌐 ERRORE DI RETE\n\n📋 Workflow: {}\n🏢 Repository: {}/{}\n📝 Dettagli: {}\n\n❌ PROBLEMA:\n• Problemi di connessione internet\n• Server GitHub temporaneamente non disponibile\n• Timeout della richiesta\n\n🔧 SOLUZIONI:\n• Verifica la connessione internet\n• Riprova tra qualche minuto\n• Controlla lo stato di GitHub Actions").format(selected_workflow['name'], self.github_owner, self.github_repo, e)
                 self.ShowErrorNotification(title=_("❌ Errore di Rete"), message=_("Problema di connessione durante l'avvio del workflow"), details=error_details, suggestions=_("Controlla la connessione internet e riprova."))

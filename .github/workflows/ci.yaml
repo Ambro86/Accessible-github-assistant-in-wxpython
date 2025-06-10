@@ -47,8 +47,9 @@ jobs:
       with:
         path: ${{ steps.pip_cache.outputs.dir }}
         # Chiave della cache: OS, versione Python installata, un identificatore per i pacchetti principali e una versione manuale della cache
-        key: ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-v1 
+        key: ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-crypto-v3
         restore-keys: |
+          ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-crypto-
           ${{ runner.os }}-pip-${{ steps.setup_python.outputs.python-version }}-wxpython-pyinstaller-
 
     - name: Install Linux system dependencies for wxPython
@@ -89,13 +90,24 @@ jobs:
         pip install --verbose wxPython  # --verbose per output dettagliato
         echo "Installing PyInstaller..."
         pip install pyinstaller
-        echo "Python dependencies installed."
+        echo "Installing core dependencies..."
+        pip install requests urllib3 certifi cryptography
+        echo "All Python dependencies installed successfully."
+
+    - name: Install Windows-specific dependencies  
+      if: matrix.os_runner == 'windows-latest'
+      shell: bash
+      run: |
+        echo "Verifying Windows-specific modules..."
+        # winsound è built-in su Windows, verifichiamo che sia disponibile
+        python -c "import winsound; print('winsound module available on Windows')" || echo "Warning: winsound not available"
+        echo "Windows-specific dependencies verified."
 
     - name: Build executable with PyInstaller
       shell: bash 
       run: |
         echo "Starting PyInstaller build..."
-        pyinstaller --onefile --windowed \
+        pyinstaller --onefile --windowed --noconsole \
           --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
           --name AssistenteGit \
           assistente-git.py
@@ -106,4 +118,4 @@ jobs:
       with:
         name: AssistenteGit-${{ matrix.os_name }} 
         path: dist/AssistenteGit${{ matrix.asset_name_suffix }} 
-        if-no-files-found: error 
+        if-no-files-found: error
