@@ -20,31 +20,53 @@ jobs:
     - name: Convert Python 3.13 syntax to 3.9 compatible
       run: |
         echo "Converting Python 3.13 union syntax to 3.9 compatible..."
-        # Backup dei file originali
         find . -name "*.py" -exec cp {} {}.backup \;
         
-        # Converti Union syntax (str | None -> Union[str, None])
-        find . -name "*.py" -exec sed -i '' 's/: *\([^|]*\) *| *None/: Union[\1, None]/g' {} \;
-        find . -name "*.py" -exec sed -i '' 's/-> *\([^|]*\) *| *None/-> Union[\1, None]/g' {} \;
-        find . -name "*.py" -exec sed -i '' 's/: *None *| *\([^:]*\)/: Union[None, \1]/g' {} \;
-        find . -name "*.py" -exec sed -i '' 's/-> *None *| *\([^:]*\)/-> Union[None, \1]/g' {} \;
+        python3 << 'EOF'
+        import os
+        import re
         
-        # Converti Union di più tipi (str | int | None -> Union[str, int, None])
-        find . -name "*.py" -exec sed -i '' 's/: *\([^|]*\) *| *\([^|]*\) *| *None/: Union[\1, \2, None]/g' {} \;
-        find . -name "*.py" -exec sed -i '' 's/-> *\([^|]*\) *| *\([^|]*\) *| *None/-> Union[\1, \2, None]/g' {} \;
+        def convert_union_syntax(content):
+            patterns = [
+                (r': *([^|:\s]+) *\| *None', r': Union[\1, None]'),
+                (r'-> *([^|:\s]+) *\| *None', r'-> Union[\1, None]'),
+                (r': *None *\| *([^|:\s]+)', r': Union[None, \1]'),
+                (r'-> *None *\| *([^|:\s]+)', r'-> Union[None, \1]'),
+                (r': *([^|:\s]+) *\| *([^|:\s]+) *\| *None', r': Union[\1, \2, None]'),
+                (r'-> *([^|:\s]+) *\| *([^|:\s]+) *\| *None', r'-> Union[\1, \2, None]'),
+                (r': *([^|:\s]+) *\| *([^|:\s]+)', r': Union[\1, \2]'),
+                (r'-> *([^|:\s]+) *\| *([^|:\s]+)', r'-> Union[\1, \2]')
+            ]
+            
+            for pattern, replacement in patterns:
+                content = re.sub(pattern, replacement, content)
+            
+            return content
         
-        # Aggiungi import Union dove manca
-        find . -name "*.py" -exec grep -l "Union\[" {} \; | while read file; do
-          if ! grep -q "from typing import.*Union" "$file"; then
-            if grep -q "from typing import" "$file"; then
-              sed -i '' 's/from typing import \(.*\)/from typing import \1, Union/' "$file"
-            else
-              sed -i '' '1i\
-from typing import Union
-' "$file"
-            fi
-          fi
-        done
+        def add_union_import(content):
+            if 'Union[' in content:
+                if 'from typing import' in content:
+                    if 'Union' not in content.split('from typing import')[1].split('\n')[0]:
+                        content = re.sub(r'from typing import ([^\n]*)', r'from typing import \1, Union', content)
+                else:
+                    content = 'from typing import Union\n' + content
+            return content
+        
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                if file.endswith('.py'):
+                    filepath = os.path.join(root, file)
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    new_content = convert_union_syntax(content)
+                    new_content = add_union_import(new_content)
+                    
+                    if new_content != content:
+                        with open(filepath, 'w', encoding='utf-8') as f:
+                            f.write(new_content)
+                        print(f'Converted: {filepath}')
+        EOF
         
         echo "Syntax conversion completed."
 
@@ -52,9 +74,9 @@ from typing import Union
       run: |
         python -m pip install --upgrade pip setuptools wheel
         echo "Installing wxPython for older macOS..."
-        pip install wxPython==4.2.1  # Versione compatibile con macOS più vecchi
+        pip install wxPython==4.2.1
         echo "Installing PyInstaller..."
-        pip install pyinstaller==5.13.2  # Versione stabile
+        pip install pyinstaller==5.13.2
         echo "Installing core dependencies..."
         pip install requests urllib3 certifi cryptography
         echo "All Python dependencies installed successfully."
