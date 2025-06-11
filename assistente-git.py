@@ -4844,20 +4844,20 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         suggestions = _("Verifica di avere accesso in scrittura al repository.")
                     elif e.response.status_code == 404:
                         error_details += _("❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato")
-                        suggestions = "Verifica la configurazione del repository GitHub."
+                        suggestions = _("Verifica la configurazione del repository GitHub.")
                     elif e.response.status_code == 422:
-                        error_details += "❌ DATI NON VALIDI:\n• I branch specificati potrebbero non esistere\n• Non ci sono differenze tra i branch\n• Parametri della PR non validi"
+                        error_details += _("❌ DATI NON VALIDI:\n• I branch specificati potrebbero non esistere\n• Non ci sono differenze tra i branch\n• Parametri della PR non validi")
                         if "No commits between" in e.response.text:
-                            suggestions = f"Non ci sono commit nel branch '{values['head']}' che non sono già in '{values['base']}'. Verifica che ci siano effettivamente delle modifiche da unire."
+                            suggestions = _("Non ci sono commit nel branch '{}' che non sono già in '{}'. Verifica che ci siano effettivamente delle modifiche da unire.").format(values['head'], values['base'])
                         elif "A pull request already exists" in e.response.text:
-                            suggestions = f"Una Pull Request tra questi branch potrebbe già esistere. Verifica su GitHub."
+                            suggestions = _("Una Pull Request tra questi branch potrebbe già esistere. Verifica su GitHub.")
                         else:
-                            suggestions = "Verifica che i branch selezionati esistano e abbiano delle differenze."
+                            suggestions = _("Verifica che i branch selezionati esistano e abbiano delle differenze.")
                     else:
-                        suggestions = "Controlla la connessione e i permessi del token GitHub."
+                        suggestions = _("Controlla la connessione e i permessi del token GitHub.")
                 else:
-                    error_details += "❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
-                    suggestions = "Verifica la connessione internet e riprova."
+                    error_details += _("❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta")
+                    suggestions = _("Verifica la connessione internet e riprova.")
                 
                 self.ShowErrorNotification(
                     title=_("❌ Errore Creazione Pull Request"),
@@ -5009,70 +5009,69 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             # 8) Preparo il testo da mostrare in base alla conclusione
             if current_conclusion == "success":
                 icon = "✅"
-                result = "completato con SUCCESSO"
+                result = _("completato con SUCCESSO")
             elif current_conclusion == "failure":
                 icon = "❌"
-                result = "FALLITO"
+                result = _("FALLITO")
             elif current_conclusion == "cancelled":
                 icon = "🚫"
-                result = "CANCELLATO"
+                result = _("CANCELLATO")
             elif current_conclusion == "skipped":
                 icon = "⏭️"
-                result = "SALTATO"
+                result = _("SALTATO")
             elif current_conclusion == "timed_out":
                 icon = "⏰"
-                result = "SCADUTO (timeout)"
+                result = _("SCADUTO (timeout)")
             else:
                 icon = "🏁"
-                result = f"terminato (conclusione: {current_conclusion or 'N/D'})"
+                result = _("terminato (conclusione: {})").format(current_conclusion or _('N/D'))
 
             # Formatta i dettagli completi per la dialog
-            workflow_details = f"🎯 WORKFLOW COMPLETATO\n\n"
-            workflow_details += f"📋 Nome: {workflow_name_local}\n"
-            workflow_details += f"🆔 Run ID: {run_id_local}\n"
-            workflow_details += f"🏢 Repository: {owner_local}/{repo_local}\n"
-            workflow_details += f"📊 Risultato: {result}\n"
-            workflow_details += f"⏱️ Durata monitoraggio: {duration_local/60:.1f} minuti\n"
-            workflow_details += f"📅 Completato: {datetime.now().strftime('%H:%M:%S')}\n\n"
-
+            workflow_details = _("🎯 WORKFLOW COMPLETATO") + "\n\n"
+            workflow_details += _("📋 Nome: {}").format(workflow_name_local) + "\n"
+            workflow_details += _("🆔 Run ID: {}").format(run_id_local) + "\n"
+            workflow_details += _("🏢 Repository: {}/{}").format(owner_local, repo_local) + "\n"
+            workflow_details += _("📊 Risultato: {}").format(result) + "\n"
+            workflow_details += _("⏱️ Durata monitoraggio: {:.1f} minuti").format(duration_local/60) + "\n"
+            workflow_details += _("📅 Completato: {}").format(datetime.now().strftime('%H:%M:%S')) + "\n\n"
             # Aggiungi informazioni specifiche in base al risultato
             if current_conclusion == "success":
-                workflow_details += "✅ SUCCESSO:\n"
-                workflow_details += "• Il workflow è stato completato con successo\n"
-                workflow_details += "• Tutti i job sono stati eseguiti correttamente\n"
-                workflow_details += "• Eventuali artifact potrebbero essere disponibili per il download\n\n"
-                workflow_details += "💡 AZIONI DISPONIBILI:\n"
-                workflow_details += "• Visualizza i log dettagliati dell'esecuzione\n"
-                workflow_details += "• Scarica gli artifact generati (se presenti)\n"
-                workflow_details += "• Controlla i risultati nei comandi GitHub Actions"
+                workflow_details += _("✅ SUCCESSO:") + "\n"
+                workflow_details += _("• Il workflow è stato completato con successo") + "\n"
+                workflow_details += _("• Tutti i job sono stati eseguiti correttamente") + "\n"
+                workflow_details += _("• Eventuali artifact potrebbero essere disponibili per il download") + "\n\n"
+                workflow_details += _("💡 AZIONI DISPONIBILI:") + "\n"
+                workflow_details += _("• Visualizza i log dettagliati dell'esecuzione") + "\n"
+                workflow_details += _("• Scarica gli artifact generati (se presenti)") + "\n"
+                workflow_details += _("• Controlla i risultati nei comandi GitHub Actions")
                 
             elif current_conclusion == "failure":
-                workflow_details += "❌ FALLIMENTO:\n"
-                workflow_details += "• Il workflow è fallito durante l'esecuzione\n"
-                workflow_details += "• Uno o più job hanno riscontrato errori\n"
-                workflow_details += "• Controlla i log per identificare il problema\n\n"
-                workflow_details += "🔍 DEBUGGING CONSIGLIATO:\n"
-                workflow_details += "• Visualizza i log per vedere l'errore specifico\n"
-                workflow_details += "• Verifica la configurazione del workflow\n"
-                workflow_details += "• Controlla eventuali dipendenze o permessi mancanti"
+                workflow_details += _("❌ FALLIMENTO:") + "\n"
+                workflow_details += _("• Il workflow è fallito durante l'esecuzione") + "\n"
+                workflow_details += _("• Uno o più job hanno riscontrato errori") + "\n"
+                workflow_details += _("• Controlla i log per identificare il problema") + "\n\n"
+                workflow_details += _("🔍 DEBUGGING CONSIGLIATO:") + "\n"
+                workflow_details += _("• Visualizza i log per vedere l'errore specifico") + "\n"
+                workflow_details += _("• Verifica la configurazione del workflow") + "\n"
+                workflow_details += _("• Controlla eventuali dipendenze o permessi mancanti")
                 
             elif current_conclusion == "cancelled":
-                workflow_details += "🚫 CANCELLATO:\n"
-                workflow_details += "• Il workflow è stato cancellato manualmente\n"
-                workflow_details += "• L'esecuzione è stata interrotta prima del completamento\n"
-                workflow_details += "• Nessun risultato finale disponibile\n\n"
-                workflow_details += "ℹ️ INFORMAZIONI:\n"
-                workflow_details += "• La cancellazione può richiedere qualche secondo\n"
-                workflow_details += "• Eventuali job in corso sono stati terminati\n"
-                workflow_details += "• Puoi riavviare il workflow se necessario"
+                workflow_details += _("🚫 CANCELLATO:") + "\n"
+                workflow_details += _("• Il workflow è stato cancellato manualmente") + "\n"
+                workflow_details += _("• L'esecuzione è stata interrotta prima del completamento") + "\n"
+                workflow_details += _("• Nessun risultato finale disponibile") + "\n\n"
+                workflow_details += _("ℹ️ INFORMAZIONI:") + "\n"
+                workflow_details += _("• La cancellazione può richiedere qualche secondo") + "\n"
+                workflow_details += _("• Eventuali job in corso sono stati terminati") + "\n"
+                workflow_details += _("• Puoi riavviare il workflow se necessario")
                 
             else:
-                workflow_details += f"ℹ️ STATO: {current_conclusion or 'Non specificato'}\n"
-                workflow_details += "• Il workflow ha terminato l'esecuzione\n"
-                workflow_details += "• Controlla i dettagli per maggiori informazioni\n\n"
-                workflow_details += "🔍 VERIFICA:\n"
-                workflow_details += "• Visualizza i log per dettagli completi\n"
-                workflow_details += "• Controlla lo stato su GitHub Actions"
+                workflow_details += _("ℹ️ STATO: {}").format(current_conclusion or _('Non specificato')) + "\n"
+                workflow_details += _("• Il workflow ha terminato l'esecuzione") + "\n"
+                workflow_details += _("• Controlla i dettagli per maggiori informazioni") + "\n\n"
+                workflow_details += _("🔍 VERIFICA:") + "\n"
+                workflow_details += _("• Visualizza i log per dettagli completi") + "\n"
+                workflow_details += _("• Controlla lo stato su GitHub Actions")
 
             # 9) Mostra nella tua dialog invece del MessageBox
             if current_conclusion == "success":
@@ -5126,15 +5125,15 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 cancel_details += f"🏢 Repository: {owner_local}/{repo_local}\n"
                 cancel_details += f"⏱️ Durata monitoraggio: {duration_local/60:.1f} minuti\n"
                 cancel_details += f"📅 Rilevato: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                cancel_details += "❌ STATO:\n"
-                cancel_details += "• Il workflow è stato cancellato o rimosso da GitHub\n"
-                cancel_details += "• L'esecuzione non è più accessibile tramite API\n"
-                cancel_details += "• Possibile cancellazione manuale o automatica\n\n"
-                cancel_details += "ℹ️ POSSIBILI CAUSE:\n"
-                cancel_details += "• Cancellazione manuale dell'esecuzione\n"
-                cancel_details += "• Timeout del workflow\n"
-                cancel_details += "• Eliminazione del workflow stesso\n"
-                cancel_details += "• Problemi di accesso o permessi"
+                cancel_details += _("❌ STATO:\n")
+                cancel_details += _("• Il workflow è stato cancellato o rimosso da GitHub\n")
+                cancel_details += _("• L'esecuzione non è più accessibile tramite API\n")
+                cancel_details += _("• Possibile cancellazione manuale o automatica\n\n")
+                cancel_details += _("ℹ️ POSSIBILI CAUSE:\n")
+                cancel_details += _("• Cancellazione manuale dell'esecuzione\n")
+                cancel_details += _("• Timeout del workflow\n")
+                cancel_details += _("• Eliminazione del workflow stesso\n")
+                cancel_details += _("• Problemi di accesso o permessi")
 
                 # Mostra nella dialog
                 self.ShowErrorNotification(
@@ -7316,14 +7315,14 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         success_details += f"  • {key}: {value}\n"
                     success_details += "\n"
                 
-                success_details += "✅ STATO:\n"
-                success_details += "• Il workflow è stato accodato per l'esecuzione\n"
-                success_details += "• GitHub Actions lo avvierà nei prossimi secondi\n"
-                success_details += "• Puoi monitorare il progresso in tempo reale\n\n"
-                success_details += "💡 PROSSIMI PASSI:\n"
-                success_details += "• Attiva il monitoraggio automatico per seguire l'esecuzione\n"
-                success_details += "• Visualizza i log quando l'esecuzione sarà completata\n"
-                success_details += "• Scarica eventuali artifact generati"
+                success_details += _("✅ STATO:\n")
+                success_details += _("• Il workflow è stato accodato per l'esecuzione\n")
+                success_details += _("• GitHub Actions lo avvierà nei prossimi secondi\n")
+                success_details += _("• Puoi monitorare il progresso in tempo reale\n\n")
+                success_details += _("💡 PROSSIMI PASSI:\n")
+                success_details += _("• Attiva il monitoraggio automatico per seguire l'esecuzione\n")
+                success_details += _("• Visualizza i log quando l'esecuzione sarà completata\n")
+                success_details += _("• Scarica eventuali artifact generati")
                 
                 # Mostra successo nella dialog
                 self.ShowSuccessNotification(title=_("🚀 Workflow Avviato"), message=_("'{}' avviato con successo").format(selected_workflow['name']), details=success_details)
@@ -7668,7 +7667,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     created_at_display = created_at_raw.replace('T', ' ').replace('Z', '') if created_at_raw != 'N/D' else 'N/D'
                 
                 # Aggiungi indicatore se è la run attualmente selezionata
-                current_indicator = " ⭐ [ATTUALMENTE SELEZIONATA]" if run['id'] == self.selected_run_id else ""
+                current_indicator = _(" ⭐ [ATTUALMENTE SELEZIONATA]") if run['id'] == self.selected_run_id else ""
                 
                 choice_str = f"ID: {run['id']} - {run.get('name', _('Workflow Sconosciuto'))} ({conclusion_val}, {status_val}) - {created_at_display}{current_indicator}"
                 run_choices.append(choice_str)
@@ -8352,7 +8351,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     if len(status_lines) > 5:
                         details += f"   ... e altri {len(status_lines) - 5} file\n"
                 else:
-                    details += "✅ Working directory pulita\n"
+                    details += _("✅ Working directory pulita\n")
             
             # Ultimo commit
             result = subprocess.run(["git", "log", "-1", "--pretty=format:%h - %s (%cr) <%an>"], 
@@ -8378,13 +8377,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 if result.returncode == 0:
                     status_line = result.stdout.split('\n')[0] if result.stdout else ""
                     if 'ahead' in status_line:
-                        details += "📤 Repository ha commit non inviati al remote\n"
+                        details += _("📤 Repository ha commit non inviati al remote\n")
                     elif 'behind' in status_line:
-                        details += "📥 Repository non aggiornato con il remote\n"
+                        details += _("📥 Repository non aggiornato con il remote\n")
                     else:
-                        details += "🔄 Repository sincronizzato con remote\n"
+                        details += _("🔄 Repository sincronizzato con remote\n")
             except:
-                details += "❓ Stato sync con remote: non determinabile\n"
+                details += _("❓ Stato sync con remote: non determinabile\n")
             
             details += _("\n✨ Panoramica completata con successo!")
             
@@ -8422,7 +8421,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 
                 # Top 5 contributori
                 if contributors:
-                    details += "🏆 Top contributori:\n"
+                    details += _("🏆 Top contributori:\n")
                     for i, contributor in enumerate(contributors[:5]):
                         if contributor.strip():
                             parts = contributor.strip().split('\t')
@@ -8565,7 +8564,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                                   creationflags=process_flags)
             
             if result.returncode == 0:
-                details += "📋 Branch locali con ultimo commit:\n"
+                details += _("📋 Branch locali con ultimo commit:\n")
                 branch_count = 0
                 
                 for line in result.stdout.split('\n'):
@@ -8588,7 +8587,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 details += f"🌐 Branch remoti: {len(remote_branches)}\n"
                 
                 if remote_branches:
-                    details += "\n🔗 Branch remoti:\n"
+                    details += _("\n🔗 Branch remoti:\n")
                     for branch in remote_branches[:10]:  # Primi 10
                         details += f"    {branch}\n"
                     if len(remote_branches) > 10:
@@ -8604,13 +8603,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     details += f"\n🔄 Stato sync branch '{current_branch}':\n"
                     
                     if 'ahead' in status_line and 'behind' in status_line:
-                        details += "   ⚠️ Branch divergente (ahead e behind)\n"
+                        details += _("   ⚠️ Branch divergente (ahead e behind)\n")
                     elif 'ahead' in status_line:
-                        details += "   📤 Branch avanti rispetto al remote\n"
+                        details += _("   📤 Branch avanti rispetto al remote\n")
                     elif 'behind' in status_line:
-                        details += "   📥 Branch indietro rispetto al remote\n"
+                        details += _("   📥 Branch indietro rispetto al remote\n")
                     else:
-                        details += "   ✅ Branch sincronizzato con remote\n"
+                        details += _("   ✅ Branch sincronizzato con remote\n")
             except:
                 details += f"\n❓ Stato sync per '{current_branch}': non determinabile\n"
             
@@ -8639,7 +8638,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             
             if result.returncode == 0:
                 if not result.stdout.strip():
-                    details += "✅ Nessuna modifica pending - working directory pulita!\n"
+                    details += _("✅ Nessuna modifica pending - working directory pulita!\n")
                     details += _("\n🎉 Il repository è in uno stato pulito e sincronizzato.")
                     return {
                         'success': True,
@@ -8725,13 +8724,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     details += "\n"
                 
                 # Suggerimenti azioni
-                details += "💡 Azioni suggerite:\n"
+                details += _("💡 Azioni suggerite:\n")
                 if modified or deleted:
                     details += f"   • Usa '{CMD_ADD_ALL}' per mettere in stage tutte le modifiche\n"
                 if added or modified or deleted:
                     details += f"   • Usa '{CMD_COMMIT}' per creare un commit dopo staging\n"
                 if untracked:
-                    details += "   • Aggiungi file importanti o usa .gitignore per escludere quelli non necessari\n"
+                    details += _("   • Aggiungi file importanti o usa .gitignore per escludere quelli non necessari\n")
             
             details += _("\n✨ Riepilogo modifiche completato con successo!")
             
@@ -9439,7 +9438,7 @@ class MacVoiceOverPlugin:
     @staticmethod
     def _show_contextual_help(frame, focused_widget):
         """Mostra aiuto contestuale per il widget con focus"""
-        help_text = "Aiuto contestuale:\n\n"
+        help_text = _("Aiuto contestuale:\n\n")
         
         if hasattr(frame, 'command_tree_ctrl') and focused_widget == frame.command_tree_ctrl:
             help_text += (
@@ -9467,7 +9466,7 @@ class MacVoiceOverPlugin:
                 "• Aggiornata automaticamente dopo ogni comando"
             )
         else:
-            help_text += "Usa Tab per navigare tra i controlli principali dell'applicazione."
+            help_text += _("Usa Tab per navigare tra i controlli principali dell'applicazione.")
         
         # Mostra in un dialog accessibile
         dlg = wx.MessageDialog(frame, help_text, "Aiuto Contestuale (F1)", wx.OK | wx.ICON_INFORMATION)
@@ -9481,7 +9480,7 @@ class MacVoiceOverPlugin:
     @staticmethod
     def _announce_current_position(frame, focused_widget):
         """Annuncia la posizione corrente nell'interfaccia"""
-        position_text = "Posizione corrente: "
+        position_text = _("Posizione corrente: ")
         
         if hasattr(frame, 'command_tree_ctrl') and focused_widget == frame.command_tree_ctrl:
             tree = frame.command_tree_ctrl
@@ -9497,11 +9496,11 @@ class MacVoiceOverPlugin:
                 else:
                     position_text += f"Elemento '{text}'"
             else:
-                position_text += "Albero comandi, nessun elemento selezionato"
+                position_text += _("Albero comandi, nessun elemento selezionato")
         elif hasattr(frame, 'repo_path_ctrl') and focused_widget == frame.repo_path_ctrl:
-            position_text += "Campo percorso repository"
+            position_text += _("Campo percorso repository")
         elif hasattr(frame, 'output_text_ctrl') and focused_widget == frame.output_text_ctrl:
-            position_text += "Area output comandi"
+            position_text += _("Area output comandi")
         else:
             control_name = getattr(focused_widget, 'GetName', lambda: "Controllo sconosciuto")()
             position_text += f"Controllo: {control_name}"
@@ -9518,7 +9517,7 @@ class MacVoiceOverPlugin:
     @staticmethod
     def _announce_tab_navigation(frame, shift_pressed):
         """Annuncia la navigazione con Tab"""
-        direction = "precedente" if shift_pressed else "successivo"
+        direction = _("precedente") if shift_pressed else "successivo"
         announcement = f"Navigazione verso controllo {direction}"
         
         if hasattr(frame, 'statusBar'):
