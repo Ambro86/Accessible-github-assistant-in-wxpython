@@ -9112,6 +9112,7 @@ class AccessibleMenuBarReplacer:
                 old_control.Hide()
 
             # Crea nuova menu bar
+            AccessibleMenuBarReplacer._patch_shortcuts_help_for_mac(frame)
             AccessibleMenuBarReplacer._create_accessible_menu_bar(frame)
 
             print("✅ MENU BAR ACCESSIBILE CREATA PER macOS!")
@@ -9128,13 +9129,13 @@ class AccessibleMenuBarReplacer:
 
         # === MENU FILE (con scorciatoie Mac standard) ===
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, _("&Cambia Repository...\tCmd+O"), 
+        file_menu.Append(wx.ID_OPEN, _("&Cambia Repository...\tOption+O"), 
                          _("Seleziona una diversa cartella repository"))
         file_menu.AppendSeparator()
-        file_menu.Append(wx.ID_REFRESH, _("A&ggiorna Repository\tCmd+R"), 
+        file_menu.Append(wx.ID_REFRESH, _("A&ggiorna Repository\tOption+R"), 
                          _("Ricarica informazioni repository corrente"))
         file_menu.AppendSeparator()
-        file_menu.Append(wx.ID_EXIT, _("&Esci\tCmd+Q"), 
+        file_menu.Append(wx.ID_EXIT, _("&Esci\tOption+Q"), 
                          _("Chiudi l'applicazione"))
 
         # === DASHBOARD REPOSITORY (scorciatoie Option+numero) ===
@@ -9152,9 +9153,9 @@ class AccessibleMenuBarReplacer:
 
         # === OPERAZIONI DI BASE (scorciatoie Cmd per operazioni principali) ===
         base_menu = wx.Menu()
-        base_menu.Append(3001, _("&Status\tCmd+S"), _("Controlla lo stato del repository"))
-        base_menu.Append(3002, _("&Add All\tCmd+A"), _("Aggiungi tutte le modifiche all'area di stage"))
-        base_menu.Append(3003, _("&Commit\tCmd+M"), _("Crea un commit (salva modifiche)"))
+        base_menu.Append(3001, _("&Status\tOption+S"), _("Controlla lo stato del repository"))
+        base_menu.Append(3002, _("&Add All\tOption+A"), _("Aggiungi tutte le modifiche all'area di stage"))
+        base_menu.Append(3003, _("&Commit\tOption+M"), _("Crea un commit (salva modifiche)"))
         base_menu.AppendSeparator()
         base_menu.Append(3010, _("&Clona Repository\tOption+C"), _("Clona un repository nella cartella corrente"))
         base_menu.Append(3011, _("&Inizializza Repository\tOption+I"), _("Inizializza un nuovo repository qui"))
@@ -9165,28 +9166,28 @@ class AccessibleMenuBarReplacer:
         changes_menu.Append(3020, _("&Diff Working Directory\tOption+D"), _("Visualizza modifiche non in stage"))
         changes_menu.Append(3021, _("Diff &Staged\tOption+Shift+D"), _("Visualizza modifiche in stage"))
         changes_menu.AppendSeparator()
-        changes_menu.Append(3022, _("&Amend Ultimo Commit\tCmd+Shift+M"), _("Rinomina ultimo commit"))
+        changes_menu.Append(3022, _("&Amend Ultimo Commit\tOption+Shift+M"), _("Rinomina ultimo commit"))
         changes_menu.Append(3023, _("&Mostra Commit Specifico\tOption+Shift+C"), _("Mostra dettagli di un commit specifico"))
-        changes_menu.Append(3024, _("Cronologia &Log\tCmd+L"), _("Visualizza cronologia commit personalizzata"))
+        changes_menu.Append(3024, _("Cronologia &Log\tOption+L"), _("Visualizza cronologia commit personalizzata"))
 
         # === BRANCH E TAG ===
         branch_menu = wx.Menu()
         branch_menu.Append(3030, _("&Visualizza Tutti i Branch\tOption+B"), _("Visualizza tutti i branch (locali e remoti)"))
         branch_menu.Append(3031, _("Branch &Corrente\tOption+Shift+B"), _("Controlla branch corrente"))
         branch_menu.AppendSeparator()
-        branch_menu.Append(3032, _("&Crea Nuovo Branch\tCmd+Shift+B"), _("Crea e passa a un nuovo branch"))
-        branch_menu.Append(3033, _("&Passa a Branch Esistente\tCmd+B"), _("Passa a un branch esistente"))
+        branch_menu.Append(3032, _("&Crea Nuovo Branch\tOption+Shift+B"), _("Crea e passa a un nuovo branch"))
+        branch_menu.Append(3033, _("&Passa a Branch Esistente\tOption+B"), _("Passa a un branch esistente"))
         branch_menu.Append(3034, _("&Merge Branch\tOption+M"), _("Unisci branch specificato nel corrente"))
         branch_menu.AppendSeparator()
         branch_menu.Append(3035, _("&Elimina Branch (sicuro)\tOption+Delete"), _("Elimina branch locale (sicuro, -d)"))
         branch_menu.Append(3036, _("Elimina Branch (&Forzato)\tOption+Shift+Delete"), _("Elimina branch locale (forzato, -D)"))
         branch_menu.AppendSeparator()
-        branch_menu.Append(3037, _("Crea &Tag\tCmd+T"), _("Crea nuovo Tag (leggero)"))
+        branch_menu.Append(3037, _("Crea &Tag\tOption+T"), _("Crea nuovo Tag (leggero)"))
 
         # === OPERAZIONI REMOTE ===
         remote_menu = wx.Menu()
-        remote_menu.Append(3004, _("&Pull\tCmd+Down"), _("Scarica modifiche dal server e unisci"))
-        remote_menu.Append(3005, _("P&ush\tCmd+Up"), _("Invia modifiche al server"))
+        remote_menu.Append(3004, _("&Pull\tOption+Down"), _("Scarica modifiche dal server e unisci"))
+        remote_menu.Append(3005, _("P&ush\tOption+Up"), _("Invia modifiche al server"))
         remote_menu.Append(3040, _("&Fetch Origin\tOption+F"), _("Scarica da remoto 'origin'"))
         remote_menu.AppendSeparator()
         remote_menu.Append(3041, _("Aggiungi Remote &Origin\tOption+Shift+O"), _("Aggiungi repository remoto 'origin'"))
@@ -9197,7 +9198,7 @@ class AccessibleMenuBarReplacer:
 
         # === GITHUB ACTIONS ===
         github_menu = wx.Menu()
-        github_menu.Append(ID_GITHUB_CONFIG_QUICK, _("&Configurazione\tCmd+Shift+G"), 
+        github_menu.Append(ID_GITHUB_CONFIG_QUICK, _("&Configurazione\tOption+Shift+G"), 
                            _("Configura repository e token GitHub"))
         github_menu.AppendSeparator()
         github_menu.Append(3050, _("&Crea Release\tOption+R"), _("Crea Nuova Release GitHub con Asset"))
@@ -9209,7 +9210,7 @@ class AccessibleMenuBarReplacer:
         github_menu.Append(3055, _("&Cancella Workflow\tOption+X"), _("Cancella Workflow in Esecuzione"))
         github_menu.Append(3056, _("Scarica &Artefatti\tOption+Shift+A"), _("Elenca e Scarica Artefatti Esecuzione"))
         github_menu.AppendSeparator()
-        github_menu.Append(ID_GITHUB_DASHBOARD, _("&Dashboard Web\tCmd+D"), 
+        github_menu.Append(ID_GITHUB_DASHBOARD, _("&Dashboard Web\tOption+D"), 
                            _("Apri repository GitHub nel browser"))
 
         # === PULL REQUEST E ISSUE ===
@@ -9238,12 +9239,12 @@ class AccessibleMenuBarReplacer:
 
         # === RICERCA E UTILITÀ ===
         search_menu = wx.Menu()
-        search_menu.Append(3080, _("&Grep - Cerca Testo\tCmd+F"), _("Cerca testo nei file del repository"))
-        search_menu.Append(3081, _("&Lista File Tracciati\tCmd+Shift+F"), _("Cerca file nel progetto tracciati da Git"))
+        search_menu.Append(3080, _("&Grep - Cerca Testo\tOption+F"), _("Cerca testo nei file del repository"))
+        search_menu.Append(3081, _("&Lista File Tracciati\tOption+Shift+F"), _("Cerca file nel progetto tracciati da Git"))
 
         # === RIPRISTINO E RESET ===
         restore_menu = wx.Menu()
-        restore_menu.Append(3090, _("&Ripristina File Specifico\tCmd+Z"), _("Annulla modifiche su file specifico"))
+        restore_menu.Append(3090, _("&Ripristina File Specifico\tOption+Z"), _("Annulla modifiche su file specifico"))
         restore_menu.Append(3091, _("Reset &Hard HEAD\tOption+Cmd+Z"), _("Annulla modifiche locali (reset --hard HEAD)"))
         restore_menu.Append(3092, _("&Annulla Merge\tOption+Escape"), _("Annulla tentativo di merge"))
         restore_menu.AppendSeparator()
@@ -9260,8 +9261,9 @@ class AccessibleMenuBarReplacer:
         help_menu.Append(ID_SHORTCUTS_HELP, _("&Scorciatoie Barra Menu\tF1"), 
                          _("Mostra elenco scorciatoie per navigare la barra dei menu"))
         help_menu.AppendSeparator()
-        help_menu.Append(wx.ID_ABOUT, _("&Informazioni\tCmd+I"), 
-                         _("Informazioni sull'applicazione"))
+        ID_CUSTOM_ABOUT = wx.NewIdRef()
+        help_menu.Append(ID_CUSTOM_ABOUT, _("&Informazioni (Finestra)\tOption+I"), _("Mostra informazioni sull'applicazione"))
+        frame.Bind(wx.EVT_MENU, frame.OnMenuAbout, id=ID_CUSTOM_ABOUT)
 
         # === AGGIUNGI MENU ALLA BARRA ===
         menubar.Append(file_menu, _("&File"))
@@ -9430,6 +9432,161 @@ class AccessibleMenuBarReplacer:
         except Exception as e:
             print(f"❌ Errore dialog input: {e}")
 
+    @staticmethod
+    def _patch_shortcuts_help_for_mac(frame):
+        """Patcha il metodo OnMenuShortcutsHelp per mostrare scorciatoie Mac corrette"""
+        
+        original_shortcuts_help = frame.OnMenuShortcutsHelp
+        
+        def mac_shortcuts_help(event):
+            """Versione Mac del metodo OnMenuShortcutsHelp con scorciatoie Option"""
+            shortcuts_text = _(
+                "🎹 SCORCIATOIE TASTIERA (macOS)\n\n"
+                "=== GENERALI ===\n"
+                "Spazio               - Mostra informazioni sul comando selezionato\n"
+                "Invio                - Esegui comando selezionato dalla barra menu\n"
+                "Option+R             - Aggiorna informazioni repository corrente\n"
+                "F1                   - Mostra questa finestra delle scorciatoie\n"
+                "Option+Q             - Esci dall'applicazione\n"
+                "Esc                  - Chiudi dialog aperti\n\n"
+                "=== NAVIGAZIONE REPOSITORY ===\n"
+                "Option+O             - Cambia cartella repository (Sfoglia...)\n"
+                "Cmd+↑ ↓              - Naviga tra i menu della barra\n"
+                "Cmd+← →              - Naviga all'interno di un menu\n\n"
+                "=== DASHBOARD REPOSITORY ===\n"
+                "Option+1             - Panoramica Stato Repository\n"
+                "Option+2             - Statistiche Repository\n"
+                "Option+3             - Attività Recente\n"
+                "Option+4             - Stato Branch e Remote\n"
+                "Option+5             - Riepilogo Modifiche File\n\n"
+                "=== COMANDI GIT RAPIDI ===\n"
+                "Option+S             - Git Status (mostra stato repository)\n"
+                "Option+A             - Git Add All (aggiungi tutte le modifiche)\n"
+                "Option+M             - Git Commit (crea nuovo commit con messaggio)\n"
+                "Option+↑             - Git Push (invia modifiche al server)\n"
+                "Option+↓             - Git Pull (scarica modifiche dal server)\n\n"
+                "=== OPERAZIONI REPOSITORY ===\n"
+                "Option+C             - Clona Repository\n"
+                "Option+I             - Inizializza Repository\n"
+                "Option+G             - Aggiungi a .gitignore\n\n"
+                "=== MODIFICHE LOCALI ===\n"
+                "Option+D             - Diff Working Directory\n"
+                "Option+Shift+D       - Diff Staged\n"
+                "Option+L             - Cronologia Log\n"
+                "Option+Shift+M       - Amend Ultimo Commit\n\n"
+                "=== BRANCH E TAG ===\n"
+                "Option+B             - Visualizza/Passa a Branch\n"
+                "Option+Shift+B       - Crea Nuovo Branch\n"
+                "Option+T             - Crea Tag\n"
+                "Option+Delete        - Elimina Branch (sicuro)\n"
+                "Option+Shift+Delete  - Elimina Branch (forzato)\n\n"
+                "=== GITHUB ===\n"
+                "Option+Shift+G       - Configurazione GitHub\n"
+                "Option+R             - Crea Release\n"
+                "Option+T             - Trigger Workflow\n"
+                "Option+P             - Crea Pull Request\n"
+                "Option+Shift+I       - Crea Issue\n\n"
+                "=== RICERCA E UTILITÀ ===\n"
+                "Option+F             - Grep - Cerca Testo\n"
+                "Option+Shift+F       - Lista File Tracciati\n\n"
+                "=== RIPRISTINO ===\n"
+                "Option+Z             - Ripristina File Specifico\n"
+                "Option+Cmd+Z         - Reset Hard HEAD\n"
+                "Option+Escape        - Annulla Merge\n\n"
+                "=== SUGGERIMENTI macOS ===\n"
+                "• Usa VoiceOver (Cmd+F5) per navigazione vocale\n"
+                "• I menu sono completamente accessibili con tastiera\n"
+                "• Option+tasti per accesso rapido ai comandi\n"
+                "• Cmd+M per minimizzare la finestra\n"
+                "• Cmd+H per nascondere l'applicazione\n\n"
+                "💡 Tutti i comandi sono accessibili dalla barra menu!"
+            )
+            
+            # Crea finestra personalizzata per le scorciatoie
+            shortcuts_dialog = wx.Dialog(frame, title=_("🎹 Scorciatoie Tastiera - Assistente Git (macOS)"), 
+                                         size=(700, 600))
+            
+            panel = wx.Panel(shortcuts_dialog)
+            main_sizer = wx.BoxSizer(wx.VERTICAL)
+            
+            # Header con icona
+            header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            # Icona grande
+            icon_label = wx.StaticText(panel, label="⌨️")
+            icon_font = icon_label.GetFont()
+            icon_font.SetPointSize(24)
+            icon_label.SetFont(icon_font)
+            
+            # Titolo
+            title_label = wx.StaticText(panel, label=_("Guida Scorciatoie Tastiera (macOS)"))
+            title_font = title_label.GetFont()
+            title_font.SetWeight(wx.FONTWEIGHT_BOLD)
+            title_font.SetPointSize(14)
+            title_label.SetFont(title_font)
+            
+            header_sizer.Add(icon_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
+            header_sizer.Add(title_label, 1, wx.ALIGN_CENTER_VERTICAL)
+            
+            main_sizer.Add(header_sizer, 0, wx.ALL | wx.EXPAND, 15)
+            
+            # Separator line
+            line = wx.StaticLine(panel)
+            main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+            
+            # Campo di testo scrollabile
+            shortcuts_text_ctrl = wx.TextCtrl(panel, 
+                                             value=shortcuts_text,
+                                             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_WORDWRAP)
+            
+            # Font monospazio per migliore allineamento
+            mono_font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+            if mono_font.IsOk():
+                shortcuts_text_ctrl.SetFont(mono_font)
+            
+            # Colore di sfondo leggero
+            shortcuts_text_ctrl.SetBackgroundColour(wx.Colour(248, 248, 248))
+            
+            main_sizer.Add(shortcuts_text_ctrl, 1, wx.EXPAND | wx.ALL, 15)
+            
+            # Separator line
+            line2 = wx.StaticLine(panel)
+            main_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+            
+            # Bottoni
+            btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            # Bottone copia
+            copy_btn = wx.Button(panel, label=_("📋 Copia Tutto"))
+            copy_btn.Bind(wx.EVT_BUTTON, lambda e: frame._copy_shortcuts_to_clipboard(shortcuts_text))
+            
+            # Bottone stampa (opzionale)
+            print_btn = wx.Button(panel, label=_("🖨️ Salva Come File"))
+            print_btn.Bind(wx.EVT_BUTTON, lambda e: frame._save_shortcuts_to_file(shortcuts_text, shortcuts_dialog))
+            
+            # Bottone chiudi
+            close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
+            close_btn.SetDefault()
+            close_btn.Bind(wx.EVT_BUTTON, lambda e: shortcuts_dialog.EndModal(wx.ID_CLOSE))
+            
+            btn_sizer.Add(copy_btn, 0, wx.RIGHT, 10)
+            btn_sizer.Add(print_btn, 0, wx.RIGHT, 20)
+            btn_sizer.AddStretchSpacer()
+            btn_sizer.Add(close_btn, 0)
+            
+            main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 15)
+            
+            panel.SetSizer(main_sizer)
+            
+            # Centra e mostra
+            shortcuts_dialog.Center()
+            shortcuts_text_ctrl.SetInsertionPoint(0)  # Scroll all'inizio
+            shortcuts_dialog.ShowModal()
+            shortcuts_dialog.Destroy()
+        
+        # Sostituisci il metodo originale
+        frame.OnMenuShortcutsHelp = mac_shortcuts_help
+        
 # ============================================================================
 # 🎯 FUNZIONE PRINCIPALE PER APPLICARE LA SOLUZIONE
 # ============================================================================
@@ -9455,11 +9612,13 @@ def apply_accessible_menu_bar():
 if __name__ == "__main__":
     # Applica soluzione accessibile solo se VoiceOver è attivo su Mac
     if is_voiceover_active():
+    #if True:
         print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
         apply_accessible_menu_bar()
     else:
         print("🖥️ VoiceOver non attivo - Usando interfaccia standard")
     
     app = wx.App(False)
+    app.SetAppName(_("Assistente Git"))
     frame = GitFrame(None)
     app.MainLoop()
