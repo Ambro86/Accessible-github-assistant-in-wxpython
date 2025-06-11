@@ -1,0 +1,79 @@
+name: Build AssistenteGit for macOS Catalina
+
+on:
+  workflow_dispatch: # Permette l'avvio manuale dalla tab Azioni di GitHub
+
+jobs:
+  build-catalina:
+    name: Build for macOS Catalina
+    runs-on: macos-12 # macOS 12 per compatibilità con versioni più vecchie
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.9 (compatibile con Catalina)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9.18' # Ultima versione 3.9 stabile
+
+    - name: Convert Python 3.13 syntax to 3.9 compatible
+      run: |
+        echo "Converting Python 3.13 union syntax to 3.9 compatible..."
+        # Backup dei file originali
+        find . -name "*.py" -exec cp {} {}.backup \;
+        
+        # Converti Union syntax (str | None -> Union[str, None])
+        find . -name "*.py" -exec sed -i '' 's/: *\([^|]*\) *| *None/: Union[\1, None]/g' {} \;
+        find . -name "*.py" -exec sed -i '' 's/-> *\([^|]*\) *| *None/-> Union[\1, None]/g' {} \;
+        find . -name "*.py" -exec sed -i '' 's/: *None *| *\([^:]*\)/: Union[None, \1]/g' {} \;
+        find . -name "*.py" -exec sed -i '' 's/-> *None *| *\([^:]*\)/-> Union[None, \1]/g' {} \;
+        
+        # Converti Union di più tipi (str | int | None -> Union[str, int, None])
+        find . -name "*.py" -exec sed -i '' 's/: *\([^|]*\) *| *\([^|]*\) *| *None/: Union[\1, \2, None]/g' {} \;
+        find . -name "*.py" -exec sed -i '' 's/-> *\([^|]*\) *| *\([^|]*\) *| *None/-> Union[\1, \2, None]/g' {} \;
+        
+        # Aggiungi import Union dove manca
+        find . -name "*.py" -exec grep -l "Union\[" {} \; | while read file; do
+          if ! grep -q "from typing import.*Union" "$file"; then
+            if grep -q "from typing import" "$file"; then
+              sed -i '' 's/from typing import \(.*\)/from typing import \1, Union/' "$file"
+            else
+              sed -i '' '1i\
+from typing import Union
+' "$file"
+            fi
+          fi
+        done
+        
+        echo "Syntax conversion completed."
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        echo "Installing wxPython for older macOS..."
+        pip install wxPython==4.2.1  # Versione compatibile con macOS più vecchi
+        echo "Installing PyInstaller..."
+        pip install pyinstaller==5.13.2  # Versione stabile
+        echo "Installing core dependencies..."
+        pip install requests urllib3 certifi cryptography
+        echo "All Python dependencies installed successfully."
+
+    - name: Build macOS app for Catalina
+      run: |
+        echo "Building macOS .app bundle compatible with Catalina..."
+        pyinstaller --windowed \
+          --add-data "locales:locales" \
+          --name AssistenteGit \
+          --target-arch universal2 \
+          --osx-bundle-identifier "com.assistentegit.app" \
+          assistente-git.py
+        
+        echo "PyInstaller build finished."
+
+    - name: Upload Catalina-compatible app
+      uses: actions/upload-artifact@v4
+      with:
+        name: AssistenteGit-macOS-Catalina
+        path: dist/AssistenteGit.app/
+        if-no-files-found: error

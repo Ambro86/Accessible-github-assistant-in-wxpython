@@ -9059,9 +9059,18 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         
         wx.MessageBox(about_text, _("Informazioni - Assistente Git"), wx.OK | wx.ICON_INFORMATION, self)
         
-
 import wx
 import platform
+
+# ============================================================================
+# 🌍 FUNZIONE DI TRADUZIONE PER VOICEOVER
+# ============================================================================
+def _(text):
+    """Usa il sistema di traduzione esistente per messaggi VoiceOver"""
+    try:
+        return lang_translations.gettext(text) if 'lang_translations' in globals() else text
+    except:
+        return text  # Fallback se il sistema di traduzione non è disponibile
 
 class MacVoiceOverPlugin:
     """Plugin che rende l'app accessibile VoiceOver solo su Mac"""
@@ -9110,10 +9119,9 @@ class MacVoiceOverPlugin:
         
         # === PATCH CAMPO PERCORSO REPOSITORY ===
         if hasattr(frame, 'repo_path_ctrl'):
-            frame.repo_path_ctrl.SetName("Campo Percorso Repository")
+            frame.repo_path_ctrl.SetName(_("Campo Percorso Repository"))
             frame.repo_path_ctrl.SetToolTip(
-                "Campo percorso repository Git. Digita il percorso della cartella o usa il pulsante Sfoglia. "
-                "Percorso attuale: " + frame.repo_path_ctrl.GetValue()
+                _("Campo percorso repository Git. Digita il percorso della cartella o usa il pulsante Sfoglia. Percorso attuale: ") + frame.repo_path_ctrl.GetValue()
             )
             
             # Aggiorna tooltip quando cambia il contenuto
@@ -9123,19 +9131,16 @@ class MacVoiceOverPlugin:
                     original_on_text(event)
                     new_path = frame.repo_path_ctrl.GetValue()
                     frame.repo_path_ctrl.SetToolTip(
-                        f"Campo percorso repository Git. Percorso attuale: {new_path}. "
-                        "Usa Tab per andare al pulsante Sfoglia."
+                        _("Campo percorso repository Git. Percorso attuale: ") + new_path + _(". Usa Tab per andare al pulsante Sfoglia.")
                     )
                 frame.OnRepoPathManuallyChanged = enhanced_on_text
         
         # === PATCH ALBERO COMANDI ===
         if hasattr(frame, 'command_tree_ctrl'):
             tree = frame.command_tree_ctrl
-            tree.SetName("Albero Comandi Git")
+            tree.SetName(_("Albero Comandi Git"))
             tree.SetToolTip(
-                "Albero di navigazione comandi Git. "
-                "Usa frecce su/giù per navigare, frecce sinistra/destra per aprire/chiudere categorie, "
-                "Invio per eseguire comando, Spazio per informazioni dettagliate."
+                _("Albero di navigazione comandi Git. Usa frecce su/giù per navigare, frecce sinistra/destra per aprire/chiudere categorie, Invio per eseguire comando, Spazio per informazioni dettagliate.")
             )
             
             # Patch eventi albero per VoiceOver
@@ -9144,11 +9149,9 @@ class MacVoiceOverPlugin:
         # === PATCH AREA OUTPUT ===
         if hasattr(frame, 'output_text_ctrl'):
             output = frame.output_text_ctrl
-            output.SetName("Area Output Comandi")
+            output.SetName(_("Area Output Comandi"))
             output.SetToolTip(
-                "Area di output che mostra i risultati dei comandi Git. "
-                "Contiene informazioni sui comandi eseguiti e messaggi di stato. "
-                "Usa Cmd+A per selezionare tutto, Cmd+C per copiare."
+                _("Area di output che mostra i risultati dei comandi Git. Contiene informazioni sui comandi eseguiti e messaggi di stato. Usa Cmd+A per selezionare tutto, Cmd+C per copiare.")
             )
             
             # Migliora annunci per contenuto lungo
@@ -9158,7 +9161,7 @@ class MacVoiceOverPlugin:
                 # Per VoiceOver, aggiorna il tooltip con un riassunto
                 if len(text) > 50:
                     preview = text[:100] + "..." if len(text) > 100 else text
-                    output.SetToolTip(f"Nuovo output: {preview}")
+                    output.SetToolTip(_("Nuovo output: ") + preview)
                 # Focus momentaneo per attirare attenzione VoiceOver
                 wx.CallLater(50, lambda: output.SetFocus() if output else None)
                 wx.CallLater(150, lambda: tree.SetFocus() if hasattr(frame, 'command_tree_ctrl') else None)
@@ -9167,12 +9170,12 @@ class MacVoiceOverPlugin:
         
         # === PATCH BARRA DI STATO ===
         if hasattr(frame, 'statusBar'):
-            frame.statusBar.SetName("Barra di Stato")
+            frame.statusBar.SetName(_("Barra di Stato"))
             original_status_text = frame.statusBar.SetStatusText
             def enhanced_status_text(text, number=0):
                 original_status_text(text, number)
                 # VoiceOver leggerà automaticamente i cambiamenti della status bar
-                frame.statusBar.SetToolTip(f"Stato: {text}")
+                frame.statusBar.SetToolTip(_("Stato: ") + text)
             frame.statusBar.SetStatusText = enhanced_status_text
     
     @staticmethod
@@ -9187,11 +9190,11 @@ class MacVoiceOverPlugin:
         
         # === TITOLI MENU ACCESSIBILI ===
         menu_titles = {
-            0: ("File", "Menu File: operazioni su repository e applicazione"),
-            1: ("Visualizza", "Menu Visualizza: controlli per la visualizzazione dell'interfaccia"),
-            2: ("Git", "Menu Git: comandi Git più comuni"),
-            3: ("GitHub", "Menu GitHub: configurazione e dashboard GitHub"),
-            4: ("Aiuto", "Menu Aiuto: informazioni e scorciatoie")
+            0: (_("File"), _("Menu File: operazioni su repository e applicazione")),
+            1: (_("Visualizza"), _("Menu Visualizza: controlli per la visualizzazione dell'interfaccia")),
+            2: (_("Git"), _("Menu Git: comandi Git più comuni")),
+            3: (_("GitHub"), _("Menu GitHub: configurazione e dashboard GitHub")),
+            4: (_("Aiuto"), _("Menu Aiuto: informazioni e scorciatoie"))
         }
         
         for i, (title, description) in menu_titles.items():
@@ -9206,30 +9209,30 @@ class MacVoiceOverPlugin:
         # === VOCI MENU ACCESSIBILI ===
         menu_items_accessibility = {
             # Menu File
-            wx.ID_OPEN: "Cambia Repository - Apre browser cartelle per selezionare repository diverso",
-            wx.ID_REFRESH: "Aggiorna Repository - Ricarica informazioni repository corrente",
-            wx.ID_EXIT: "Esci - Chiude l'applicazione",
+            wx.ID_OPEN: _("Cambia Repository - Apre browser cartelle per selezionare repository diverso"),
+            wx.ID_REFRESH: _("Aggiorna Repository - Ricarica informazioni repository corrente"),
+            wx.ID_EXIT: _("Esci - Chiude l'applicazione"),
             
             # Menu Visualizza  
-            ID_EXPAND_ALL: "Espandi Tutto - Espande tutte le categorie di comandi nell'albero",
-            ID_COLLAPSE_ALL: "Comprimi Tutto - Comprime tutte le categorie di comandi",
-            ID_REFRESH_TREE: "Aggiorna Lista - Ricarica l'albero dei comandi",
+            ID_EXPAND_ALL: _("Espandi Tutto - Espande tutte le categorie di comandi nell'albero"),
+            ID_COLLAPSE_ALL: _("Comprimi Tutto - Comprime tutte le categorie di comandi"),
+            ID_REFRESH_TREE: _("Aggiorna Lista - Ricarica l'albero dei comandi"),
             
             # Menu Git
-            3001: "Git Status - Mostra lo stato attuale del repository",
-            3002: "Git Add All - Aggiunge tutte le modifiche all'area di stage", 
-            3003: "Git Commit - Crea un nuovo commit con le modifiche",
-            3004: "Git Pull - Scarica e unisce modifiche dal server remoto",
-            3005: "Git Push - Invia le modifiche locali al server remoto",
+            3001: _("Git Status - Mostra lo stato attuale del repository"),
+            3002: _("Git Add All - Aggiunge tutte le modifiche all'area di stage"), 
+            3003: _("Git Commit - Crea un nuovo commit con le modifiche"),
+            3004: _("Git Pull - Scarica e unisce modifiche dal server remoto"),
+            3005: _("Git Push - Invia le modifiche locali al server remoto"),
             
             # Menu GitHub
-            ID_GITHUB_CONFIG_QUICK: "Configurazione GitHub - Imposta repository e token GitHub",
-            ID_GITHUB_DASHBOARD: "Dashboard GitHub - Apre il repository GitHub nel browser",
+            ID_GITHUB_CONFIG_QUICK: _("Configurazione GitHub - Imposta repository e token GitHub"),
+            ID_GITHUB_DASHBOARD: _("Dashboard GitHub - Apre il repository GitHub nel browser"),
             
             # Menu Aiuto
-            ID_COMMAND_HELP: "Info Comando - Mostra informazioni sul comando selezionato",
-            ID_SHORTCUTS_HELP: "Scorciatoie Tastiera - Mostra elenco completo scorciatoie",
-            wx.ID_ABOUT: "Informazioni - Informazioni sull'applicazione"
+            ID_COMMAND_HELP: _("Info Comando - Mostra informazioni sul comando selezionato"),
+            ID_SHORTCUTS_HELP: _("Scorciatoie Tastiera - Mostra elenco completo scorciatoie"),
+            wx.ID_ABOUT: _("Informazioni - Informazioni sull'applicazione")
         }
         
         # Applica descrizioni accessibili alle voci menu
@@ -9253,32 +9256,6 @@ class MacVoiceOverPlugin:
                     menu_item.SetItemLabel(current_text + "\tCtrl+G")
         
         # === MENU CONTESTUALE AGGIUNTIVO ===
-        # Aggiungi voce menu per attivare/disattivare VoiceOver
-        help_menu = None
-        if menu_bar.GetMenuCount() > 4:
-            help_menu = menu_bar.GetMenu(4)  # Menu Aiuto
-        
-        if help_menu:
-            help_menu.AppendSeparator()
-            voiceover_item = help_menu.Append(
-                wx.ID_ANY, 
-                "Attiva VoiceOver\tCmd+F5",
-                "Attiva o disattiva VoiceOver di macOS per l'accessibilità"
-            )
-            
-            def on_toggle_voiceover(event):
-                import subprocess
-                try:
-                    # Comando per attivare/disattivare VoiceOver su Mac
-                    subprocess.run(['osascript', '-e', 
-                                  'tell application "System Events" to key code 96 using {command down, function down}'])
-                    if hasattr(frame, 'output_text_ctrl'):
-                        frame.output_text_ctrl.AppendText("🎙️ Comando VoiceOver inviato (Cmd+F5)\n")
-                except:
-                    if hasattr(frame, 'output_text_ctrl'):
-                        frame.output_text_ctrl.AppendText("⚠️ Impossibile controllare VoiceOver. Usa manualmente Cmd+F5\n")
-            
-            frame.Bind(wx.EVT_MENU, on_toggle_voiceover, voiceover_item)
     
     @staticmethod
     def _patch_tree_events(frame, tree):
@@ -9303,26 +9280,21 @@ class MacVoiceOverPlugin:
                     # Crea annuncio dettagliato
                     if item_data and len(item_data) > 0:
                         if item_data[0] == "category":
-                            announcement = f"Categoria: {text}"
+                            announcement = _("Categoria: ") + text
                             if tree.ItemHasChildren(item):
                                 if tree.IsExpanded(item):
-                                    announcement += " - Espansa. Usa freccia sinistra per comprimere."
+                                    announcement += _(" - Espansa. Usa freccia sinistra per comprimere.")
                                 else:
-                                    announcement += " - Compressa. Usa freccia destra per espandere."
-                            
-                            # Aggiungi info categoria se disponibile
-                            category_info = CATEGORIZED_COMMANDS.get(item_data[1], {}).get("info", "")
-                            if category_info:
-                                announcement += f" - {category_info}"
+                                    announcement += _(" - Compressa. Usa freccia destra per espandere.")
                                 
                         elif item_data[0] == "command":
-                            announcement = f"Comando: {text}"
+                            announcement = _("Comando: ") + text
                             cmd_details = ORIGINAL_COMMANDS.get(text)
                             if cmd_details:
                                 cmd_info = cmd_details.get("info", "")
                                 if cmd_info:
                                     announcement += f" - {cmd_info}"
-                            announcement += " - Premi Invio per eseguire, Spazio per maggiori informazioni."
+                            announcement += _(" - Premi Invio per eseguire, Spazio per maggiori informazioni.")
                     else:
                         announcement = text
                     
@@ -9343,7 +9315,7 @@ class MacVoiceOverPlugin:
                     
                     if item_data and len(item_data) > 0 and item_data[0] == "command":
                         # Annuncia inizio esecuzione
-                        announcement = f"Esecuzione comando: {text}"
+                        announcement = _("Esecuzione comando: ") + text
                         tree.SetToolTip(announcement)
                         if hasattr(frame, 'statusBar'):
                             frame.statusBar.SetStatusText(announcement)
@@ -9376,7 +9348,7 @@ class MacVoiceOverPlugin:
                 item = event.GetItem()
                 if item.IsOk():
                     text = tree.GetItemText(item)
-                    tree.SetToolTip(f"Categoria '{text}' espansa. Contiene {tree.GetChildrenCount(item, False)} comandi.")
+                    tree.SetToolTip(_("Categoria '") + text + _("' espansa. Contiene ") + str(tree.GetChildrenCount(item, False)) + _(" comandi."))
                     wx.Bell()  # Feedback sonoro
             event.Skip()
         
@@ -9385,7 +9357,7 @@ class MacVoiceOverPlugin:
                 item = event.GetItem()
                 if item.IsOk():
                     text = tree.GetItemText(item)
-                    tree.SetToolTip(f"Categoria '{text}' compressa.")
+                    tree.SetToolTip(_("Categoria '") + text + _("' compressa."))
                     wx.Bell()  # Feedback sonoro
             event.Skip()
         
@@ -9605,7 +9577,6 @@ class MacVoiceOverPlugin:
         for control in controls_in_order:
             if control:
                 control.Bind(wx.EVT_SET_FOCUS, on_focus_changed)
-
 if __name__ == '__main__':
     app = wx.App(False)
     frame = GitFrame(None)
