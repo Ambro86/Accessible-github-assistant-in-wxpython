@@ -4140,11 +4140,11 @@ msgstr "💡 AVAILABLE ACTIONS:"
 
 #: assistente-git.py:5045
 msgid "• Visualizza i log dettagliati dell'esecuzione"
-msgstr "• View execution logs\n"
+msgstr "• View execution logs"
 
 #: assistente-git.py:5046
 msgid "• Scarica gli artifact generati (se presenti)"
-msgstr "• Download any generated artifacts\n"
+msgstr "• Download any generated artifacts"
 
 #: assistente-git.py:5047 assistente-git.py:6721
 msgid "• Controlla i risultati nei comandi GitHub Actions"
@@ -4269,7 +4269,7 @@ msgstr "• The workflow was cancelled or removed from GitHub\n"
 
 #: assistente-git.py:5131
 msgid "• L'esecuzione non è più accessibile tramite API\n"
-msgstr "• the execution is no longer accessible via API \ n"
+msgstr "• the execution is no longer accessible via API \n"
 
 #: assistente-git.py:5132
 msgid ""
@@ -4297,7 +4297,7 @@ msgstr "• Deletion of the workflow itself\n"
 
 #: assistente-git.py:5137
 msgid "• Problemi di accesso o permessi"
-msgstr "• Access or permission problems\n"
+msgstr "• Access or permission problems"
 
 #: assistente-git.py:5141
 msgid "🚫 Workflow Cancellato/Rimosso"
@@ -6281,7 +6281,7 @@ msgstr "• View the logs when the execution is completed\n"
 
 #: assistente-git.py:7326
 msgid "• Scarica eventuali artifact generati"
-msgstr "• Download any generated artifacts\n"
+msgstr "• Download any generated artifacts"
 
 #: assistente-git.py:7329
 msgid "🚀 Workflow Avviato"
@@ -7953,7 +7953,7 @@ msgstr "files"
 
 #: assistente-git.py:8353
 msgid "✅ Working directory pulita\n"
-msgstr "✅ Clean Repository"
+msgstr "✅ Clean Repository\n"
 
 #: assistente-git.py:8360 assistente-git.py:8482
 msgid "Ultimo commit"
