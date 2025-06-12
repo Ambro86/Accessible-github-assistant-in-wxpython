@@ -9691,10 +9691,10 @@ def apply_accessible_menu_bar():
 if __name__ == "__main__":
     if is_voiceover_active():
     #if True:
-        print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
+        #print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
         apply_accessible_menu_bar()
     else:
-        print("🖥️ VoiceOver non attivo - Usando interfaccia standard")
+        pass #print("🖥️ VoiceOver non attivo - Usando interfaccia standard")
     
     app = wx.App(False)
     app.SetAppName(_("Assistente Git"))
