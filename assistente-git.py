@@ -9595,22 +9595,100 @@ def apply_accessible_menu_bar():
     """Applica la soluzione menu bar accessibile ottimizzata per macOS"""
     
     original_init = GitFrame.__init__
-
+    original_initui = GitFrame.InitUI
+    
     def enhanced_init(self, *args, **kwargs):
+        # Crea controlli temporanei per tutti i widget usati prima di InitUI
+        temp_messages = []
+        
+        class TempOutputCtrl:
+            def AppendText(self, text):
+                temp_messages.append(text)
+                print(f"[TEMP] {text.strip()}")
+        
+        class TempTextCtrl:
+            def __init__(self, default_value=""):
+                self.value = default_value
+            def GetValue(self):
+                return self.value
+            def SetValue(self, value):
+                self.value = value
+        
+        # Sostituisci temporaneamente tutti i controlli necessari
+        self.output_text_ctrl = TempOutputCtrl()
+        self.repo_path_ctrl = TempTextCtrl()
+        
+        # Salva i messaggi come attributo dell'istanza
+        self._temp_messages = temp_messages
+        
+        # Chiama l'init originale
         original_init(self, *args, **kwargs)
         
         print("🎯 Sostituendo con Menu Bar Accessibile per macOS...")
         wx.CallAfter(lambda: AccessibleMenuBarReplacer.replace_with_menu_bar(self))
-
+    
+    def enhanced_initui(self):
+        """InitUI modificato per macOS - SUPER NUCLEAR MODE"""
+        
+        print("🍎 MODALITÀ SUPER NUCLEAR ATTIVATA")
+        
+        # PRIMA di InitUI, intercetta tutti i Bind
+        original_bind = self.Bind
+        all_char_hook_handlers = []
+        
+        def detective_bind(event_type, handler, *args, **kwargs):
+            if event_type == wx.EVT_CHAR_HOOK:
+                print(f"🕵️ TROVATO GESTORE EVT_CHAR_HOOK: {handler.__name__ if hasattr(handler, '__name__') else handler}")
+                all_char_hook_handlers.append(handler)
+            return original_bind(event_type, handler, *args, **kwargs)
+        
+        self.Bind = detective_bind
+        
+        # Chiama InitUI originale
+        original_initui(self)
+        
+        # Ripristina Bind originale
+        self.Bind = original_bind
+        
+        print(f"🔍 TROVATI {len(all_char_hook_handlers)} GESTORI EVT_CHAR_HOOK:")
+        for i, handler in enumerate(all_char_hook_handlers):
+            print(f"  {i+1}. {handler}")
+        
+        # SOSTITUISCI TUTTI I GESTORI TROVATI
+        if hasattr(self, 'OnCharHook'):
+            original_on_char_hook = self.OnCharHook
+            
+            def nuclear_on_char_hook(event):
+                keycode = event.GetKeyCode()
+                
+                print(f"🔍 SUPER NUCLEAR DEBUG: KeyCode={keycode}")
+                
+                # BLOCCA TUTTO quello che riguarda frecce - NON chiamare niente!
+                if keycode in [wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT]:
+                    arrow_names = {wx.WXK_UP: "UP", wx.WXK_DOWN: "DOWN", wx.WXK_LEFT: "LEFT", wx.WXK_RIGHT: "RIGHT"}
+                    print(f"🚫💣 FRECCIA {arrow_names[keycode]} COMPLETAMENTE ANNIENTATA!")
+                    # NON chiamare event.Skip() - blocca completamente!
+                    return False  # Blocca tutto!
+                
+                print("⚡ Passando al gestore originale...")
+                original_on_char_hook(event)
+                print("✅ Gestore originale completato")
+            
+            # Sostituisci il metodo
+            self.OnCharHook = nuclear_on_char_hook
+            print("✅ OnCharHook sostituito con versione SUPER NUCLEAR")
+        
+        # CERCA ALTRI POSSIBILI GESTORI NEI CONTROLLI FIGLI
+        print("🔍 CERCANDO GESTORI NEI CONTROLLI FIGLI...")
+        for child in self.GetChildren():
+            if hasattr(child, 'Bind'):
+                print(f"🔍 Controllo figlio: {type(child).__name__}")
+    
     GitFrame.__init__ = enhanced_init
-    print("✅ Soluzione Menu Bar Accessibile per macOS integrata!")
- 
-# ============================================================================
-# 📋 UTILIZZO NEL MAIN
-# ============================================================================
+    GitFrame.InitUI = enhanced_initui
+    print("✅ Soluzione SUPER NUCLEAR per macOS integrata!")
 
 if __name__ == "__main__":
-    # Applica soluzione accessibile solo se VoiceOver è attivo su Mac
     if is_voiceover_active():
     #if True:
         print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
@@ -9621,4 +9699,13 @@ if __name__ == "__main__":
     app = wx.App(False)
     app.SetAppName(_("Assistente Git"))
     frame = GitFrame(None)
+    
+    if hasattr(frame, '_temp_messages'):
+        def restore_messages():
+            if hasattr(frame.output_text_ctrl, 'AppendText'):
+                for msg in frame._temp_messages:
+                    frame.output_text_ctrl.AppendText(msg)
+        wx.CallAfter(restore_messages)
+    
+    frame.Show()
     app.MainLoop()
