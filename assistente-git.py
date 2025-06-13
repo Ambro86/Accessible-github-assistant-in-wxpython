@@ -9822,8 +9822,8 @@ def apply_accessible_menu_bar():
     print("✅ Soluzione Menu Bar Accessibile per macOS integrata!")
 
 if __name__ == "__main__":
-    #if is_voiceover_active():
-    if True:
+    if is_voiceover_active():
+    #if True:
         #print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
         apply_accessible_menu_bar()
     else:
