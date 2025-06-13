@@ -9591,6 +9591,7 @@ class AccessibleMenuBarReplacer:
 # 🎯 FUNZIONE PRINCIPALE PER APPLICARE LA SOLUZIONE
 # ============================================================================
 
+
 def apply_accessible_menu_bar():
     """Applica la soluzione menu bar accessibile ottimizzata per macOS"""
     
@@ -9628,69 +9629,122 @@ def apply_accessible_menu_bar():
         wx.CallAfter(lambda: AccessibleMenuBarReplacer.replace_with_menu_bar(self))
     
     def enhanced_initui(self):
-        """InitUI modificato per macOS - SUPER NUCLEAR MODE"""
+        """InitUI modificato per macOS - blocca completamente le frecce"""
         
-        print("🍎 MODALITÀ SUPER NUCLEAR ATTIVATA")
-        
-        # PRIMA di InitUI, intercetta tutti i Bind
-        original_bind = self.Bind
-        all_char_hook_handlers = []
-        
-        def detective_bind(event_type, handler, *args, **kwargs):
-            if event_type == wx.EVT_CHAR_HOOK:
-                print(f"🕵️ TROVATO GESTORE EVT_CHAR_HOOK: {handler.__name__ if hasattr(handler, '__name__') else handler}")
-                all_char_hook_handlers.append(handler)
-            return original_bind(event_type, handler, *args, **kwargs)
-        
-        self.Bind = detective_bind
+        print("🍎 MODALITÀ MENU BAR ACCESSIBILE ATTIVATA")
         
         # Chiama InitUI originale
         original_initui(self)
         
-        # Ripristina Bind originale
-        self.Bind = original_bind
+        # RIMUOVI COMPLETAMENTE tutti i binding delle frecce
+        # Unbind a livello di finestra
+        self.Unbind(wx.EVT_CHAR_HOOK)
         
-        print(f"🔍 TROVATI {len(all_char_hook_handlers)} GESTORI EVT_CHAR_HOOK:")
-        for i, handler in enumerate(all_char_hook_handlers):
-            print(f"  {i+1}. {handler}")
-        
-        # SOSTITUISCI TUTTI I GESTORI TROVATI
-        if hasattr(self, 'OnCharHook'):
-            original_on_char_hook = self.OnCharHook
+        # Crea nuovo gestore che blocca le frecce
+        def new_char_hook(event):
+            keycode = event.GetKeyCode()
+            modifiers = event.GetModifiers()
             
-            def nuclear_on_char_hook(event):
-                keycode = event.GetKeyCode()
-                
-                print(f"🔍 SUPER NUCLEAR DEBUG: KeyCode={keycode}")
-                
-                # BLOCCA TUTTO quello che riguarda frecce - NON chiamare niente!
-                if keycode in [wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT]:
-                    arrow_names = {wx.WXK_UP: "UP", wx.WXK_DOWN: "DOWN", wx.WXK_LEFT: "LEFT", wx.WXK_RIGHT: "RIGHT"}
-                    print(f"🚫💣 FRECCIA {arrow_names[keycode]} COMPLETAMENTE ANNIENTATA!")
-                    # NON chiamare event.Skip() - blocca completamente!
-                    return False  # Blocca tutto!
-                
-                print("⚡ Passando al gestore originale...")
-                original_on_char_hook(event)
-                print("✅ Gestore originale completato")
+            # Blocca COMPLETAMENTE le frecce senza modificatori
+            if keycode in [wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT] and modifiers == 0:
+                # Non fare NULLA - blocca completamente l'evento
+                return
             
-            # Sostituisci il metodo
-            self.OnCharHook = nuclear_on_char_hook
-            print("✅ OnCharHook sostituito con versione SUPER NUCLEAR")
+            # Per tutti gli altri tasti, lascia passare
+            event.Skip()
         
-        # CERCA ALTRI POSSIBILI GESTORI NEI CONTROLLI FIGLI
-        print("🔍 CERCANDO GESTORI NEI CONTROLLI FIGLI...")
-        for child in self.GetChildren():
-            if hasattr(child, 'Bind'):
-                print(f"🔍 Controllo figlio: {type(child).__name__}")
+        # Bind il nuovo gestore
+        self.Bind(wx.EVT_CHAR_HOOK, new_char_hook)
+        
+        # Aggiungi acceleratori per le scorciatoie Option (Alt su Mac)
+        accelerators = []
+        
+        # Scorciatoie Dashboard (Option+1-5)
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('1'), 5001),
+            (wx.ACCEL_ALT, ord('2'), 5002),
+            (wx.ACCEL_ALT, ord('3'), 5003),
+            (wx.ACCEL_ALT, ord('4'), 5004),
+            (wx.ACCEL_ALT, ord('5'), 5005),
+        ])
+        
+        # Scorciatoie Base
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('S'), 3001),  # Status
+            (wx.ACCEL_ALT, ord('A'), 3002),  # Add All
+            (wx.ACCEL_ALT, ord('M'), 3003),  # Commit
+            (wx.ACCEL_ALT, ord('C'), 3010),  # Clone
+            (wx.ACCEL_ALT, ord('I'), 3011),  # Init
+            (wx.ACCEL_ALT, ord('G'), 3012),  # Gitignore
+            (wx.ACCEL_ALT, ord('O'), wx.ID_OPEN),  # Open/Change repo
+            (wx.ACCEL_ALT, ord('R'), wx.ID_REFRESH),  # Refresh
+            (wx.ACCEL_ALT, ord('Q'), wx.ID_EXIT),  # Quit
+            (wx.ACCEL_ALT, wx.WXK_DOWN, 3004),  # Pull
+            (wx.ACCEL_ALT, wx.WXK_UP, 3005),    # Push
+        ])
+        
+        # Scorciatoie Modifiche
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('D'), 3020),  # Diff
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('D'), 3021),  # Diff Staged
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('M'), 3022),  # Amend
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('C'), 3023),  # Show Commit
+            (wx.ACCEL_ALT, ord('L'), 3024),  # Log
+        ])
+        
+        # Scorciatoie Branch
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('B'), 3030),  # View branches
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('B'), 3031),  # Current branch / Create branch
+            (wx.ACCEL_ALT, ord('T'), 3037),  # Create tag
+        ])
+        
+        # Scorciatoie Remote
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('F'), 3040),  # Fetch
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('O'), 3041),  # Add origin
+            (wx.ACCEL_ALT, ord('U'), 3042),  # Set URL
+            (wx.ACCEL_ALT, ord('V'), 3043),  # View remotes
+        ])
+        
+        # Scorciatoie GitHub
+        accelerators.extend([
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('G'), ID_GITHUB_CONFIG_QUICK),  # Config
+            (wx.ACCEL_ALT, ord('P'), 3064),  # Create PR
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('I'), 3060),  # Create Issue
+        ])
+        
+        # Scorciatoie Ricerca
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('F'), 3080),  # Grep
+            (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('F'), 3081),  # List files
+        ])
+        
+        # Scorciatoie Ripristino
+        accelerators.extend([
+            (wx.ACCEL_ALT, ord('Z'), 3090),  # Restore file
+            (wx.ACCEL_ALT | wx.ACCEL_CMD, ord('Z'), 3091),  # Reset hard
+            (wx.ACCEL_ALT, wx.WXK_ESCAPE, 3092),  # Abort merge
+        ])
+        
+        # Crea e imposta la tabella acceleratori
+        accel_tbl = wx.AcceleratorTable(accelerators)
+        self.SetAcceleratorTable(accel_tbl)
+        
+        print("✅ Menu bar accessibile configurata con scorciatoie Option")
+        
+        # Riporta eventuali messaggi temporanei
+        if hasattr(self, '_temp_messages') and hasattr(self.output_text_ctrl, 'AppendText'):
+            for msg in self._temp_messages:
+                self.output_text_ctrl.AppendText(msg)
     
     GitFrame.__init__ = enhanced_init
     GitFrame.InitUI = enhanced_initui
-    print("✅ Soluzione SUPER NUCLEAR per macOS integrata!")
+    print("✅ Soluzione Menu Bar Accessibile per macOS integrata!")
 
 if __name__ == "__main__":
-    if is_voiceover_active():
-    #if True:
+    #if is_voiceover_active():
+    if True:
         #print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
         apply_accessible_menu_bar()
     else:
