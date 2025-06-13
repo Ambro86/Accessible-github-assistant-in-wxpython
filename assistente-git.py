@@ -20,57 +20,96 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet, InvalidToken # Per la crittografia
 from datetime import datetime, timezone # Aggiungi timezone da datetime
-accessibility_mac = False
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
+print("🔍 === DEBUG TRADUZIONE - INIZIO ===")
 
 try:
     locale.setlocale(locale.LC_ALL, '')
     current_locale_info = locale.getlocale()
+    print(f"🔍 locale.getlocale(): {current_locale_info}")
     
 except locale.Error as e:
-    
+    print(f"❌ Errore locale.setlocale: {e}")
     current_locale_info = (None, None)
 
 lang_code = None
 languages = ['en']
 
+print(f"🔍 current_locale_info: {current_locale_info}")
+print(f"🔍 os.name: {os.name}")
+
 try:
     lang_code = current_locale_info[0]
+    print(f"🔍 lang_code estratto: '{lang_code}'")
     
     if lang_code and lang_code.strip():
+        print(f"🔍 lang_code valido, procedo con analisi...")
         processed_languages = []
+        
         if os.name == 'nt': # Windows specific handling
             lang_lower = lang_code.lower()
-            if lang_lower.startswith('italian'): processed_languages = ['it_IT', 'it']
-            elif lang_lower.startswith('english'): processed_languages = ['en_US', 'en']
-            elif lang_lower.startswith('french'): processed_languages = ['fr_FR', 'fr']
-            elif lang_lower.startswith('german'): processed_languages = ['de_DE', 'de']
-            elif lang_lower.startswith('russian'): processed_languages = ['ru_RU', 'ru']
-            elif lang_lower.startswith('portuguese'): processed_languages = ['pt_BR', 'pt']
+            print(f"🔍 Windows - lang_lower: '{lang_lower}'")
+            
+            if lang_lower.startswith('italian'): 
+                processed_languages = ['it_IT', 'it']
+                print(f"✅ Rilevato ITALIANO: {processed_languages}")
+            elif lang_lower.startswith('english'): 
+                processed_languages = ['en_US', 'en']
+                print(f"✅ Rilevato INGLESE: {processed_languages}")
+            elif lang_lower.startswith('french'): 
+                processed_languages = ['fr_FR', 'fr']
+                print(f"✅ Rilevato FRANCESE: {processed_languages}")
+            elif lang_lower.startswith('german'): 
+                processed_languages = ['de_DE', 'de']
+                print(f"✅ Rilevato TEDESCO: {processed_languages}")
+            elif lang_lower.startswith('russian'): 
+                processed_languages = ['ru_RU', 'ru']
+                print(f"✅ Rilevato RUSSO: {processed_languages}")
+            elif lang_lower.startswith('portuguese'): 
+                processed_languages = ['pt_BR', 'pt']
+                print(f"✅ Rilevato PORTOGHESE: {processed_languages}")
+            elif lang_lower.startswith('spanish'): 
+                processed_languages = ['es_ES', 'es']
+                print(f"✅ Rilevato SPAGNOLO: {processed_languages}")
+            else:
+                print(f"⚠️ Windows - lingua non riconosciuta: '{lang_lower}'")
+
+        print(f"🔍 processed_languages dopo Windows check: {processed_languages}")
 
         if not processed_languages:
+            print("🔍 processed_languages vuoto, provo analisi generica...")
             if '_' in lang_code:
                 processed_languages.append(lang_code)
                 short_code = lang_code.split('_')[0]
-                if short_code not in processed_languages: processed_languages.append(short_code)
+                if short_code not in processed_languages: 
+                    processed_languages.append(short_code)
+                print(f"🔍 Analisi con underscore: {processed_languages}")
             elif lang_code:
                 processed_languages.append(lang_code)
+                print(f"🔍 Aggiunto lang_code diretto: {processed_languages}")
+
+        print(f"🔍 processed_languages finale: {processed_languages}")
 
         if processed_languages and any(pl and pl.strip() for pl in processed_languages):
             languages = [pl for pl in processed_languages if pl and pl.strip()]
+            print(f"✅ LINGUE FINALI IMPOSTATE: {languages}")
         else:
-            
+            print("⚠️ processed_languages vuoto o invalido, uso default 'en'")
             languages = ['en']
 
     else:
-
+        print("⚠️ lang_code vuoto o None, uso default 'en'")
         languages = ['en']
+        
 except Exception as e_detect:
-
+    print(f"❌ ERRORE durante rilevazione lingua: {e_detect}")
     languages = ['en']
 
+print(f"🔍 === LINGUE FINALI: {languages} ===")
+
+# Verifica se esistono i file di localizzazione
 try:
     script_dir = os.path.dirname(os.path.abspath(__file__))
 except NameError:
@@ -78,20 +117,59 @@ except NameError:
     script_dir = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.getcwd()
 
 localedir = os.path.join(script_dir, 'locales')
+print(f"🔍 Directory locales: {localedir}")
 
+# Controlla quali lingue sono effettivamente disponibili
+available_languages = []
+if os.path.exists(localedir):
+    for lang in languages:
+        mo_file = os.path.join(localedir, lang, 'LC_MESSAGES', 'assistente_git.mo')
+        
+        print(f"🔍 Controllo {lang}: {mo_file}")
+        
+        if os.path.exists(mo_file):
+            available_languages.append(lang)
+            print(f"✅ Lingua {lang} disponibile")
+    
+    # Se nessuna delle lingue richieste è disponibile, cerca lingue alternative
+    if not available_languages:
+        print("⚠️ Nessuna delle lingue richieste è disponibile, cerco alternative...")
+        
+        # Lista tutti i file di localizzazione disponibili
+        for item in os.listdir(localedir):
+            item_path = os.path.join(localedir, item)
+            if os.path.isdir(item_path):
+                mo_file = os.path.join(item_path, 'LC_MESSAGES', 'assistente_git.mo')
+                if os.path.exists(mo_file):
+                    available_languages.append(item)
+                    print(f"✅ Lingua alternativa trovata: {item}")
+        
+        # Se ho l'italiano disponibile e ho rilevato spagnolo, usa l'italiano
+        if 'it' in available_languages or 'it_IT' in available_languages:
+            if any('spanish' in lang.lower() for lang in languages):
+                available_languages = ['it']
+                print("🔄 Rilevato spagnolo ma non disponibile, uso italiano come fallback")
+else:
+    print(f"❌ Directory locales non trovata: {localedir}")
+
+# Usa le lingue disponibili o fallback
+final_languages = available_languages if available_languages else ['en']
+print(f"🔍 === LINGUE FINALI DISPONIBILI: {final_languages} ===")
 
 try:
-    lang_translations = gettext.translation('assistente_git', localedir=localedir, languages=languages, fallback=True)
+    lang_translations = gettext.translation('assistente_git', localedir=localedir, languages=final_languages, fallback=True)
+    print(f"✅ Traduzione caricata per: {final_languages}")
 except Exception as e_trans:
-
+    print(f"❌ ERRORE caricamento traduzione: {e_trans}")
     lang_translations = gettext.NullTranslations()
+    
 _ = lang_translations.gettext
 
-
 # --- End setup gettext ---
-
+ 
 
 # --- Costanti per l'archivio di configurazione ---
+accessibility_mac = False
 APP_CONFIG_DIR_NAME = _("AssistenteGit")
 USER_ID_FILE_NAME = "user_id.cfg"
 SECURE_CONFIG_FILE_NAME = "github_settings.agd"
@@ -6560,7 +6638,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 if previous_owner or previous_repo: # Se c'era un contesto prima
                     self.output_text_ctrl.AppendText(
                         _("AVVISO: Il percorso del repository '{}' non è una directory valida.\n"
-                          "Le operazioni GitHub potrebbero riferirsi al contesto precedente ({} hefty{}).\n"
+                          "Le operazioni GitHub potrebbero riferirsi al contesto precedente: {}/{}.\n"
                           "La selezione precedente di un'esecuzione workflow è stata resettata.\n").format(
                             current_repo_dir_from_ctrl, previous_owner, previous_repo
                         )
