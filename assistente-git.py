@@ -20,6 +20,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet, InvalidToken # Per la crittografia
 from datetime import datetime, timezone # Aggiungi timezone da datetime
+accessibility_mac = False
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
@@ -5991,6 +5992,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
     def OnCharHook(self, event):
         """Gestisce scorciatoie da tastiera globali."""
+        global accessibility_mac
+        if accessibility_mac== True:
+            event.Skip()
         if not self.IsTreeCtrlValid(): 
             event.Skip()
             return
@@ -9060,6 +9064,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         
 
 
+
 import wx
 import platform
 
@@ -9102,6 +9107,8 @@ class AccessibleMenuBarReplacer:
     @staticmethod
     def replace_with_menu_bar(frame):
         """Sostituisce dropdown con menu bar completa"""
+        global accessibility_mac
+        accessibility_mac=True
         try:
             print("🔄 CREANDO MENU BAR ACCESSIBILE PER macOS...")
 
@@ -9178,7 +9185,7 @@ class AccessibleMenuBarReplacer:
         branch_menu.AppendSeparator()
         branch_menu.Append(3032, _("&Crea Nuovo Branch\tOption+Shift+B"), _("Crea e passa a un nuovo branch"))
         branch_menu.Append(3033, _("&Passa a Branch Esistente\tOption+B"), _("Passa a un branch esistente"))
-        branch_menu.Append(3034, _("&Merge Branch\tOption+M"), _("Unisci branch specificato nel corrente"))
+        branch_menu.Append(3034, _("&Merge Branch\tOption+Shift+G"), _("Unisci branch specificato nel corrente"))
         branch_menu.AppendSeparator()
         branch_menu.Append(3035, _("&Elimina Branch (sicuro)\tOption+Delete"), _("Elimina branch locale (sicuro, -d)"))
         branch_menu.Append(3036, _("Elimina Branch (&Forzato)\tOption+Shift+Delete"), _("Elimina branch locale (forzato, -D)"))
@@ -9206,7 +9213,7 @@ class AccessibleMenuBarReplacer:
         github_menu.Append(3051, _("&Modifica Release\tOption+Shift+R"), _("Modifica Release GitHub Esistente"))
         github_menu.Append(3052, _("&Elimina Release\tOption+Cmd+Delete"), _("Elimina Release GitHub"))
         github_menu.AppendSeparator()
-        github_menu.Append(3053, _("Visualizza &Log Workflow\tOption+L"), _("Visualizza log Workflow"))
+        github_menu.Append(3053, _("Visualizza &Log Workflow\tOption+Shift+L"), _("Visualizza log Workflow"))
         github_menu.Append(3054, _("&Trigger Workflow\tOption+T"), _("Trigger Workflow Manuale"))
         github_menu.Append(3055, _("&Cancella Workflow\tOption+X"), _("Cancella Workflow in Esecuzione"))
         github_menu.Append(3056, _("Scarica &Artefatti\tOption+Shift+A"), _("Elenca e Scarica Artefatti Esecuzione"))
@@ -9263,7 +9270,7 @@ class AccessibleMenuBarReplacer:
                          _("Mostra elenco scorciatoie per navigare la barra dei menu"))
         help_menu.AppendSeparator()
         ID_CUSTOM_ABOUT = wx.NewIdRef()
-        help_menu.Append(ID_CUSTOM_ABOUT, _("&Informazioni (Finestra)\tOption+I"), _("Mostra informazioni sull'applicazione"))
+        help_menu.Append(ID_CUSTOM_ABOUT, _("&Informazioni (Finestra)\tCmd+I"), _("Mostra informazioni sull'applicazione"))
         frame.Bind(wx.EVT_MENU, frame.OnMenuAbout, id=ID_CUSTOM_ABOUT)
 
         # === AGGIUNGI MENU ALLA BARRA ===
@@ -9637,22 +9644,23 @@ def apply_accessible_menu_bar():
         # Salva riferimenti originali
         original_bind = self.Bind
         original_set_accel = self.SetAcceleratorTable
-        blocked_accels = []
+        
+        # Flag per tracciare se siamo su Mac con accessibilità
+        self._is_mac_accessible = True
         
         # Intercetta SetAcceleratorTable
         def fake_set_accel(table):
             print("🚫 INTERCETTATO SetAcceleratorTable - BLOCCATO!")
-            # NON fare nulla - blocca completamente
+            # Imposta una tabella vuota invece
+            empty_table = wx.AcceleratorTable([])
+            original_set_accel(empty_table)
             return
         
         # Intercetta TUTTI i bind
         def interceptor_bind(event_type, handler, *args, **kwargs):
-            if event_type == wx.EVT_CHAR_HOOK:
-                print(f"🚫 BLOCCATO gestore EVT_CHAR_HOOK: {handler}")
-                return
-            # Blocca anche altri eventi tastiera
-            if event_type in [wx.EVT_KEY_DOWN, wx.EVT_KEY_UP, wx.EVT_CHAR]:
-                print(f"🚫 BLOCCATO gestore tastiera: {event_type}")
+            # Blocca TUTTI gli eventi tastiera durante l'init
+            if event_type in [wx.EVT_CHAR_HOOK, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP, wx.EVT_CHAR]:
+                print(f"🚫 BLOCCATO gestore tastiera durante init: {event_type}")
                 return
             # Per tutti gli altri eventi, bind normale
             return original_bind(event_type, handler, *args, **kwargs)
@@ -9672,6 +9680,12 @@ def apply_accessible_menu_bar():
         empty_accel = wx.AcceleratorTable([])
         self.SetAcceleratorTable(empty_accel)
         
+        # Rimuovi TUTTI i binding esistenti di tastiera
+        self.Unbind(wx.EVT_CHAR_HOOK)
+        self.Unbind(wx.EVT_KEY_DOWN)
+        self.Unbind(wx.EVT_KEY_UP)
+        self.Unbind(wx.EVT_CHAR)
+        
         # Definisci il metodo _setup_mac_keyboard_handling
         def _setup_mac_keyboard_handling(self):
             """Setup keyboard handling dopo che tutto è inizializzato"""
@@ -9687,41 +9701,54 @@ def apply_accessible_menu_bar():
                 keycode = event.GetKeyCode()
                 modifiers = event.GetModifiers()
                 
-                # Debug dettagliato
-                if keycode in [wx.WXK_UP, wx.WXK_DOWN]:
-                    print(f"🎯 EVENTO: {event.GetEventType()}, Key: {keycode}, Mod: {modifiers}")
+                # Debug per frecce
+                if keycode in [wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT]:
+                    print(f"🎯 FRECCIA: Key={keycode}, Mod={modifiers}, Tipo={event.GetEventType()}")
                 
                 # BLOCCA frecce nude SEMPRE
                 if keycode in [wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT]:
                     if modifiers == 0 or modifiers == wx.MOD_NONE:
-                        print(f"💥 FRECCIA NUDA ANNIENTATA! (evento tipo: {event.GetEventType()})")
-                        event.StopPropagation()  # Ferma la propagazione
-                        return  # NON chiamare Skip()
+                        print(f"💥 FRECCIA NUDA BLOCCATA!")
+                        # NON chiamare Skip() - termina qui l'evento
+                        return
+                if keycode == wx.WXK_ESCAPE and (modifiers == 0 or modifiers == wx.MOD_NONE):
+                    print("🚫 ESC premuto da solo - bloccato!")
+                    return
+                # Blocca anche le scorciatoie Windows comuni
+                # Ctrl+tasti su Mac dovrebbero essere bloccati
+                if modifiers & wx.MOD_CONTROL and not (modifiers & wx.MOD_ALT):
+                    print(f"🚫 Bloccata scorciatoia Ctrl: Ctrl+{chr(keycode) if keycode < 256 else keycode}")
+                    return
                 
-                # Lascia passare solo se ha modificatori
+                # Lascia passare solo se ha Option (Alt) o Cmd
                 event.Skip()
             
-            # Bind a TUTTI i possibili eventi tastiera
+            # Bind il gestore universale a TUTTI i livelli
+            self.Bind(wx.EVT_CHAR_HOOK, universal_key_handler)
             self.Bind(wx.EVT_KEY_DOWN, universal_key_handler)
             self.Bind(wx.EVT_KEY_UP, universal_key_handler)
             self.Bind(wx.EVT_CHAR, universal_key_handler)
-            self.Bind(wx.EVT_CHAR_HOOK, universal_key_handler)
             
-            # Bind anche sui controlli figli
-            for child in self.GetChildren():
-                try:
-                    child.Bind(wx.EVT_KEY_DOWN, universal_key_handler)
-                    child.Bind(wx.EVT_KEY_UP, universal_key_handler)
-                    child.Bind(wx.EVT_CHAR, universal_key_handler)
-                    child.Bind(wx.EVT_CHAR_HOOK, universal_key_handler)
-                except:
-                    pass
+            # Bind anche su TUTTI i controlli figli
+            def bind_to_children(parent):
+                for child in parent.GetChildren():
+                    try:
+                        child.Bind(wx.EVT_CHAR_HOOK, universal_key_handler)
+                        child.Bind(wx.EVT_KEY_DOWN, universal_key_handler)
+                        child.Bind(wx.EVT_KEY_UP, universal_key_handler)
+                        child.Bind(wx.EVT_CHAR, universal_key_handler)
+                        # Ricorsivo per i figli dei figli
+                        bind_to_children(child)
+                    except:
+                        pass
             
-            # ORA crea i TUOI acceleratori
-            accelerators = []
+            bind_to_children(self)
+            
+            # ORA crea SOLO gli acceleratori Mac (Option/Alt based)
+            mac_accelerators = []
             
             # Scorciatoie Dashboard (Option+1-5)
-            accelerators.extend([
+            mac_accelerators.extend([
                 (wx.ACCEL_ALT, ord('1'), 5001),
                 (wx.ACCEL_ALT, ord('2'), 5002),
                 (wx.ACCEL_ALT, ord('3'), 5003),
@@ -9729,8 +9756,9 @@ def apply_accessible_menu_bar():
                 (wx.ACCEL_ALT, ord('5'), 5005),
             ])
             
-            # Scorciatoie Base
-            accelerators.extend([
+            # Scorciatoie Base (tutte con Option/Alt)
+            ID_CUSTOM_ABOUT = wx.NewIdRef()
+            mac_accelerators.extend([
                 (wx.ACCEL_ALT, ord('S'), 3001),  # Status
                 (wx.ACCEL_ALT, ord('A'), 3002),  # Add All
                 (wx.ACCEL_ALT, ord('M'), 3003),  # Commit
@@ -9740,21 +9768,23 @@ def apply_accessible_menu_bar():
                 (wx.ACCEL_ALT, ord('O'), wx.ID_OPEN),  # Open/Change repo
                 (wx.ACCEL_ALT, ord('R'), wx.ID_REFRESH),  # Refresh
                 (wx.ACCEL_ALT, ord('Q'), wx.ID_EXIT),  # Quit
+                (wx.ACCEL_CMD, ord('I'), ID_CUSTOM_ABOUT),  # Info app
             ])
             
-            # IMPORTANTE: Per Pull/Push usa SOLO con ALT, NON frecce nude!
-            accelerators.extend([
-                (wx.ACCEL_ALT, wx.WXK_DOWN, 3004),  # Pull - SOLO con Option
-                (wx.ACCEL_ALT, wx.WXK_UP, 3005),    # Push - SOLO con Option
+            # Pull/Push SOLO con Option
+            mac_accelerators.extend([
+                (wx.ACCEL_ALT, wx.WXK_DOWN, 3004),  # Pull
+                (wx.ACCEL_ALT, wx.WXK_UP, 3005),    # Push
             ])
             
-            # Resto delle scorciatoie...
-            accelerators.extend([
+            # Altre scorciatoie Mac...
+            mac_accelerators.extend([
                 (wx.ACCEL_ALT, ord('D'), 3020),  # Diff
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('D'), 3021),  # Diff Staged
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('M'), 3022),  # Amend
+                (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('G'), 3034),  # Merge Branch
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('C'), 3023),  # Show Commit
-                (wx.ACCEL_ALT, ord('L'), 3024),  # Log
+                (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('L'), 3053),  # Log Workflow
                 (wx.ACCEL_ALT, ord('B'), 3030),  # View branches
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('B'), 3031),  # Current branch
                 (wx.ACCEL_ALT, ord('T'), 3037),  # Create tag
@@ -9762,7 +9792,7 @@ def apply_accessible_menu_bar():
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('O'), 3041),  # Add origin
                 (wx.ACCEL_ALT, ord('U'), 3042),  # Set URL
                 (wx.ACCEL_ALT, ord('V'), 3043),  # View remotes
-                (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('G'), ID_GITHUB_CONFIG_QUICK),  # Config
+                (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('G'), ID_GITHUB_CONFIG_QUICK),
                 (wx.ACCEL_ALT, ord('P'), 3064),  # Create PR
                 (wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord('I'), 3060),  # Create Issue
                 (wx.ACCEL_ALT, ord('Z'), 3090),  # Restore file
@@ -9770,17 +9800,17 @@ def apply_accessible_menu_bar():
                 (wx.ACCEL_NORMAL, wx.WXK_F1, ID_SHORTCUTS_HELP),  # F1 per shortcuts
             ])
             
-            # Imposta SOLO i tuoi acceleratori
-            accel_tbl = wx.AcceleratorTable(accelerators)
-            self.SetAcceleratorTable(accel_tbl)
+            # Imposta SOLO gli acceleratori Mac
+            mac_accel_table = wx.AcceleratorTable(mac_accelerators)
+            self.SetAcceleratorTable(mac_accel_table)
             
-            print("✅ Keyboard handling configurato - frecce nude BLOCCATE!")
+            print("✅ Keyboard handling Mac configurato - scorciatoie Windows ELIMINATE!")
         
         # Aggiungi il metodo all'istanza
         self._setup_mac_keyboard_handling = types.MethodType(_setup_mac_keyboard_handling, self)
         
-        # Aspetta un attimo per essere sicuri
-        wx.CallAfter(self._setup_mac_keyboard_handling)
+        # Chiama subito (non dopo) per sovrascrivere qualsiasi binding residuo
+        self._setup_mac_keyboard_handling()
         
         # Riporta eventuali messaggi temporanei
         if hasattr(self, '_temp_messages') and hasattr(self.output_text_ctrl, 'AppendText'):
@@ -9792,8 +9822,8 @@ def apply_accessible_menu_bar():
     print("✅ Soluzione Menu Bar Accessibile per macOS integrata!")
 
 if __name__ == "__main__":
-    if is_voiceover_active():
-    #if True:
+    #if is_voiceover_active():
+    if True:
         #print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
         apply_accessible_menu_bar()
     else:
