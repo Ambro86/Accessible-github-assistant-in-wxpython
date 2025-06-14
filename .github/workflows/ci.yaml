@@ -123,10 +123,34 @@ jobs:
         fi
         
         echo "PyInstaller build finished."
+
+    - name: Create macOS DMG (macOS only)
+      if: matrix.os_name == 'macOS'
+      shell: bash
+      run: |
+        echo "Creating DMG for macOS..."
+        
+        # Crea una cartella temporanea per il DMG
+        mkdir -p dmg_temp
+        
+        # Copia l'app nella cartella temporanea
+        cp -R dist/AssistenteGit.app dmg_temp/
+        
+        # Crea un link simbolico alle Applicazioni
+        ln -s /Applications dmg_temp/Applications
+        
+        # Crea il DMG
+        hdiutil create -volname "AssistenteGit" -srcfolder dmg_temp -ov -format UDZO AssistenteGit-macOS.dmg
+        
+        echo "DMG created successfully: AssistenteGit-macOS.dmg"
+        
+        # Verifica che il DMG sia stato creato
+        ls -la AssistenteGit-macOS.dmg
+
     - name: Upload application artifact
       uses: actions/upload-artifact@v4
       with:
         name: AssistenteGit-${{ matrix.os_name }} 
         path: |
-          ${{ matrix.os_name == 'macOS' && 'dist/AssistenteGit.app/' || format('dist/AssistenteGit{0}', matrix.asset_name_suffix) }}
+          ${{ matrix.os_name == 'macOS' && 'AssistenteGit-macOS.dmg' || format('dist/AssistenteGit{0}', matrix.asset_name_suffix) }}
         if-no-files-found: error
