@@ -5491,7 +5491,7 @@ msgstr "🆔 Run ID: {}"
 
 #: assistente-git.py:6756
 msgid "📊 Status"
-msgstr "📊 Stats"
+msgstr "📊 Status"
 
 #: assistente-git.py:6757 assistente-git.py:6842 assistente-git.py:6866
 #: assistente-git.py:7392 assistente-git.py:7430
@@ -9169,8 +9169,6 @@ msgstr ""
 msgid "Assistente Git"
 msgstr "GitAssistant"
 
-#~ msgid "📊 Stats:"
-#~ msgstr "📊 Status:"
 
 #~ msgid "A&ggiorna Repository\tAlt+R"
 #~ msgstr "R&efresh Repository\tAlt+R"
