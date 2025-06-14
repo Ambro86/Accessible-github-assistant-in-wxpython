@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AssistenteGit 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-14 15:25+0200\n"
+"POT-Creation-Date: 2025-06-14 15:51+0200\n"
 "PO-Revision-Date: 2025-06-09 18:00+0200\n"
 "Last-Translator: Ambrogio Riili <ambro86@gmail.com>\n"
 "Language-Team: English\n"
@@ -1785,8 +1785,8 @@ msgid "🔀 Mergeable:"
 msgstr "🔀 Mergeable:"
 
 #: assistente-git.py:2033
-msgid "📊 Stats:"
-msgstr "📊 Stats:"
+msgid "📊 Status:"
+msgstr "📊 Status"
 
 #: assistente-git.py:2050
 msgid "👥 Reviewers:"
@@ -8916,7 +8916,6 @@ msgid "Reset Hard HEAD"
 msgstr "Reset &Hard HEAD"
 
 #: assistente-git.py:9877
-
 msgid "Annulla Merge"
 msgstr "Cancel"
 
@@ -8933,7 +8932,6 @@ msgid "Ispeziona commit specifico"
 msgstr "Move to a specific commit"
 
 #: assistente-git.py:9880
-
 msgid "Reset a Remote"
 msgstr "Reset to &Remote"
 
@@ -8978,57 +8976,46 @@ msgid "Mostra informazioni sull'applicazione"
 msgstr "Show Application information"
 
 #: assistente-git.py:9898
-
 msgid "Dashboard"
 msgstr "&Dashboard"
 
 #: assistente-git.py:9899
-
 msgid "Base"
 msgstr "&Base"
 
 #: assistente-git.py:9900
-
 msgid "Modifiche"
 msgstr "&Changes"
 
 #: assistente-git.py:9901
-
 msgid "Branch"
 msgstr "&Branch"
 
 #: assistente-git.py:9902
-
 msgid "Remote"
 msgstr "&Remote"
 
 #: assistente-git.py:9903
-
 msgid "GitHub"
 msgstr "&GitHub"
 
 #: assistente-git.py:9904
-
 msgid "PR/Issue"
 msgstr "&PR/Issue"
 
 #: assistente-git.py:9905
-
 msgid "Stash"
 msgstr "&Stash"
 
 #: assistente-git.py:9906
-
 msgid "Ricerca"
 msgstr "S&earch"
 
 #: assistente-git.py:9907
-
 msgid "Ripristino"
 msgstr "Re&store"
 
 #: assistente-git.py:9908
-
 msgid "Aiuto"
 msgstr "&Help"
 
@@ -9181,6 +9168,9 @@ msgstr ""
 #: assistente-git.py:10236
 msgid "Assistente Git"
 msgstr "GitAssistant"
+
+#~ msgid "📊 Stats:"
+#~ msgstr "📊 Status:"
 
 #~ msgid "A&ggiorna Repository\tAlt+R"
 #~ msgstr "R&efresh Repository\tAlt+R"

@@ -2030,7 +2030,7 @@ class PullRequestManagementDialog(wx.Dialog):
         
         # Commit e file stats
         if 'commits' in self.pr_data or 'changed_files' in self.pr_data:
-            stats_label = wx.StaticText(panel, label=_("📊 Stats:"))
+            stats_label = wx.StaticText(panel, label=_("📊 Status:"))
             stats_text = ""
             if 'commits' in self.pr_data:
                 stats_text += f"{self.pr_data['commits']} commits"
