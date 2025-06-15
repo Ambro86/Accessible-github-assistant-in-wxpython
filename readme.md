@@ -24,7 +24,7 @@ The application will attempt to use your system's default language. Currently, i
 * German
 * Russian
 
-If your system language is one of these and the corresponding translation file is present, the application will display in that language. Otherwise, it will default to Italian (the original language of the strings in the source code if no other translation is found).
+If your system language is one of these and the corresponding translation file is present, the application will display in that language. Otherwise, it will default to English.
 
 ## Prerequisites
 
