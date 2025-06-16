@@ -6400,8 +6400,22 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         repo_path = self.repo_path_ctrl.GetValue()
         self.output_text_ctrl.AppendText(_("Cartella Repository: {}\n\n").format(repo_path)); wx.Yield()
         if not self.git_available and command_name_original_translated != CMD_ADD_TO_GITIGNORE:
-            self.output_text_ctrl.AppendText(_("Errore: Git non sembra essere installato o accessibile nel PATH di sistema.\n")); wx.MessageBox(_("Git non disponibile."), _("Errore Git"), wx.OK | wx.ICON_ERROR); return
-        if not os.path.isdir(repo_path): self.output_text_ctrl.AppendText(_("Errore: La cartella specificata '{}' non è una directory valida.\n").format(repo_path)); return
+            self.ShowErrorNotification(
+                title=_("❌ Git Non Disponibile"),
+                message=_("Git non è installato o non accessibile"),
+                details=_("🚨 PROBLEMA GIT:\n\nGit non sembra essere installato o accessibile nel PATH di sistema.\n\nPer utilizzare i comandi Git:\n• Installa Git dal sito ufficiale\n• Assicurati che sia nel PATH di sistema\n• Riavvia l'applicazione dopo l'installazione\n\nComando tentato: {}").format(command_name_original_translated),
+                suggestions=_("Visita https://git-scm.com/ per scaricare e installare Git.")
+            )
+            return
+            
+        if not os.path.isdir(repo_path):
+            self.ShowErrorNotification(
+                title=_("❌ Directory Non Valida"),
+                message=_("Il percorso specificato non è una directory valida"),
+                details=_("🗂️ ERRORE PERCORSO:\n\nPercorso specificato: {}\n\nIl percorso:\n• Non esiste\n• Non è una directory\n• Non è accessibile\n\nVerifica:\n• Che il percorso sia corretto\n• Che la directory esista\n• Che tu abbia i permessi di accesso").format(repo_path),
+                suggestions=_("Seleziona una directory valida usando il pulsante 'Sfoglia...' o correggi il percorso manualmente.")
+            )
+            return
 
         is_special_no_repo_check = command_name_original_translated in [CMD_CLONE, CMD_INIT_REPO]
         is_gitignore = command_name_original_translated == CMD_ADD_TO_GITIGNORE
@@ -6409,11 +6423,16 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
         if not is_special_no_repo_check and not is_gitignore and not is_ls_files:
             if not os.path.isdir(os.path.join(repo_path, ".git")):
-                self.output_text_ctrl.AppendText(_("Errore: La cartella '{}' non sembra essere un repository Git valido (manca la sottocartella .git).\n").format(repo_path)); return
+                self.ShowErrorNotification(
+                    title=_("❌ Repository Git Non Valido"),
+                    message=_("La directory non è un repository Git valido"),
+                    details=_("🗂️ PROBLEMA REPOSITORY:\n\nDirectory: {}\n\nLa directory:\n• Non contiene una sottocartella .git\n• Non è stata inizializzata come repository Git\n• Potrebbe essere corrotta\n\nPer risolvere:\n• Usa '{}' per inizializzare un nuovo repository\n• Oppure naviga a una directory che contiene già un repository Git\n• Verifica che la directory .git non sia nascosta o danneggiata\n\nComando tentato: {}").format(repo_path, CMD_INIT_REPO, command_name_original_translated),
+                    suggestions=_("Inizializza un repository Git con '{}' o seleziona una directory che già contiene un repository Git.").format(CMD_INIT_REPO)
+                )
+                return
         elif is_gitignore:
             if not os.path.isdir(os.path.join(repo_path, ".git")):
-                   self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
-
+                self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
         if command_details.get("confirm"):
             msg = command_details["confirm"].replace("{input_val}", user_input_val if user_input_val else _("VALORE_NON_SPECIFICATO"))
             style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING; title_confirm = _("Conferma Azione")
@@ -7052,11 +7071,20 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     response = requests.post(api_url, headers=headers, data=json.dumps(payload), timeout=15)
                     response.raise_for_status()
                     release_info = response.json()
-                    self.output_text_ctrl.AppendText(_("Release creata con successo: {}\n").format(release_info.get('html_url')))
-
+                    
+                    # Raccogli informazioni per la dialog di successo
+                    release_url = release_info.get('html_url', 'N/A')
+                    release_id = release_info.get('id', 'N/A')
                     upload_url_template = release_info.get("upload_url", "")
+                    
+                    successful_uploads = 0
+                    failed_uploads = 0
+                    upload_details = ""
+                    
                     if upload_url_template and files_to_upload:
                         upload_url_base = upload_url_template.split("{")[0]
+                        upload_details = _("\n📦 CARICAMENTO ASSET:\n")
+                        
                         for fpath in files_to_upload:
                             filename = os.path.basename(fpath)
                             params_upload = {"name": filename}
@@ -7070,23 +7098,117 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                                 response_asset = requests.post(upload_url_base, headers=headers_asset_upload, params=params_upload, data=file_data, timeout=120)
                                 response_asset.raise_for_status()
                                 asset_info = response_asset.json()
-                                self.output_text_ctrl.AppendText(_("Asset '{}' caricato: {}\n").format(filename, asset_info.get('browser_download_url')))
+                                
+                                successful_uploads += 1
+                                asset_download_url = asset_info.get('browser_download_url', 'N/A')
+                                upload_details += f"✅ {filename}: {asset_download_url}\n"
+                                
                             except requests.exceptions.RequestException as e_asset:
-                                self.output_text_ctrl.AppendText(_("ERRORE upload asset '{}': {}\n").format(filename, e_asset))
+                                failed_uploads += 1
+                                upload_details += f"❌ {filename}: Errore upload - {e_asset}\n"
                                 if hasattr(e_asset, 'response') and e_asset.response is not None:
-                                    self.output_text_ctrl.AppendText(_("Dettagli errore API asset: {}\n").format(e_asset.response.text[:500]))
+                                    upload_details += f"   Dettagli: {e_asset.response.text[:200]}\n"
                             except IOError as e_io:
-                                self.output_text_ctrl.AppendText(_("ERRORE lettura file asset '{}': {}\n").format(filename, e_io))
+                                failed_uploads += 1
+                                upload_details += f"❌ {filename}: Errore lettura file - {e_io}\n"
+                    
+                    # Formatta i dettagli per la dialog di successo
+                    success_details = f"🎯 RELEASE CREATA CON SUCCESSO\n\n"
+                    success_details += f"📋 Titolo: {release_name}\n"
+                    success_details += f"🏷️ Tag: {tag_name}\n"
+                    success_details += f"🆔 Release ID: {release_id}\n"
+                    success_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                    success_details += f"🔗 URL: {release_url}\n"
+                    success_details += f"⏰ Creata: {datetime.now().strftime('%H:%M:%S')}\n"
+                    
+                    if release_body:
+                        success_details += f"\n📝 Descrizione:\n{release_body[:200]}{'...' if len(release_body) > 200 else ''}\n"
+                    
+                    if files_to_upload:
+                        success_details += f"\n📊 RIEPILOGO ASSET:\n"
+                        success_details += f"• Asset caricati con successo: {successful_uploads}\n"
+                        success_details += f"• Asset con errori: {failed_uploads}\n"
+                        success_details += f"• Totale asset processati: {len(files_to_upload)}\n"
+                        success_details += upload_details
+                    
+                    success_details += f"\n✅ STATO:\n"
+                    success_details += f"• Release pubblicata e disponibile su GitHub\n"
+                    success_details += f"• Visibile a tutti gli utenti del repository\n"
+                    if files_to_upload:
+                        success_details += f"• Asset disponibili per il download\n"
+                    
+                    success_details += f"\n💡 PROSSIMI PASSI:\n"
+                    success_details += f"• Verifica la release nel browser\n"
+                    success_details += f"• Condividi il link con gli utenti\n"
+                    success_details += f"• Monitora i download degli asset"
+                    
+                    # Mostra successo nella dialog
+                    self.ShowSuccessNotification(
+                        title=_("🎯 Release Creata"),
+                        message=_("Release '{}' (tag: {}) creata con successo").format(release_name, tag_name),
+                        details=success_details
+                    )
+                    
+                    # Breve messaggio nel terminale
+                    self.output_text_ctrl.AppendText(_("✅ Release '{}' creata - dettagli mostrati in finestra\n").format(release_name))
+                    
+                    # Opzione per aprire nel browser
+                    open_browser_msg = _("Vuoi aprire la release nel browser?")
+                    open_dlg = wx.MessageDialog(self, open_browser_msg, _("Apri Release"), wx.YES_NO | wx.ICON_QUESTION)
+                    if open_dlg.ShowModal() == wx.ID_YES:
+                        import webbrowser
+                        webbrowser.open(release_url)
+                    open_dlg.Destroy()
                 except requests.exceptions.RequestException as e:
-                    self.output_text_ctrl.AppendText(_("ERRORE API GitHub (creazione release): {}\n").format(e))
+                    error_details = f"🚨 ERRORE CREAZIONE RELEASE\n\n"
+                    error_details += f"📋 Release tentata: {release_name} (tag: {tag_name})\n"
+                    error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                    error_details += f"📝 Errore: {e}\n"
+                    error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    
                     if hasattr(e, 'response') and e.response is not None:
-                        try:
-                            error_details = e.response.json()
-                            self.output_text_ctrl.AppendText(_("Dettagli errore API: {}\n").format(json.dumps(error_details, indent=2)))
-                        except json.JSONDecodeError:
-                            self.output_text_ctrl.AppendText(_("Dettagli errore API (testo): {}\n").format(e.response.text[:500]))
+                        error_details += f"📊 Codice HTTP: {e.response.status_code}\n"
+                        error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
+                        
+                        if e.response.status_code == 401:
+                            error_details += f"❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare release"
+                            suggestions = _("Verifica e aggiorna il token GitHub nelle impostazioni.")
+                        elif e.response.status_code == 403:
+                            error_details += f"❌ ERRORE PERMESSI:\n• Non hai permessi per creare release in questo repository\n• Repository privato senza accesso"
+                            suggestions = _("Verifica di avere accesso in scrittura al repository.")
+                        elif e.response.status_code == 404:
+                            error_details += f"❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
+                            suggestions = _("Verifica la configurazione del repository GitHub.")
+                        elif e.response.status_code == 422:
+                            error_details += f"❌ DATI NON VALIDI:\n• Tag già esistente\n• Formato release non valido\n• Parametri mancanti o errati"
+                            suggestions = _("Verifica che il tag non esista già e che tutti i campi siano compilati correttamente.")
+                        else:
+                            suggestions = _("Controlla la connessione e i permessi del token GitHub.")
+                    else:
+                        error_details += f"❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
+                        suggestions = _("Verifica la connessione internet e riprova.")
+                    
+                    self.ShowErrorNotification(
+                        title=_("❌ Errore Creazione Release"),
+                        message=_("Impossibile creare la release su GitHub"),
+                        details=error_details,
+                        suggestions=suggestions
+                    )
+
                 except Exception as e_generic:
-                    self.output_text_ctrl.AppendText(_("ERRORE imprevisto durante creazione release: {}\n").format(e_generic))
+                    error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
+                    error_details += f"📋 Release: {release_name} (tag: {tag_name})\n"
+                    error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
+                    error_details += f"📝 Dettagli: {e_generic}\n"
+                    error_details += f"📅 Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    error_details += f"❌ PROBLEMA:\n• Errore sconosciuto durante l'operazione\n• Possibile problema interno dell'applicazione\n• Risposta inattesa da GitHub"
+                    
+                    self.ShowErrorNotification(
+                        title=_("❌ Errore Imprevisto"),
+                        message=_("Errore sconosciuto durante la creazione della release"),
+                        details=error_details,
+                        suggestions=_("Riprova l'operazione o segnala il problema se persiste.")
+                    )
             else:
                 self.output_text_ctrl.AppendText(_("Creazione Release annullata dall'utente.\n"))
             dlg.Destroy()
