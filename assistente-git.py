@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
+#Version 1.1
 import wx
 import os, time, platform
 import subprocess
@@ -2691,7 +2692,7 @@ class GitFrame(wx.Frame):
         
         # Comandi con formattazione speciale
         if command_name == CMD_STATUS:
-            return self._format_status_output(stdout, stderr, success)
+            return self.format_status_output(stdout, stderr, success)
         elif command_name == CMD_DIFF or command_name == CMD_DIFF_STAGED:
             return self._format_diff_output(stdout, stderr, success, command_name)
         elif command_name == CMD_LOG_CUSTOM:
