@@ -19,10 +19,16 @@ jobs:
             os_runner: ubuntu-latest 
             asset_name_suffix: ""
             pyinstaller_add_data_sep: ":"
-          - os_name: macOS
+          - os_name: macOS-Intel
+            os_runner: macos-13
+            asset_name_suffix: "" 
+            pyinstaller_add_data_sep: ":"
+            dmg_name: "AssistenteGit-macOS-Intel.dmg"
+          - os_name: macOS-AppleSilicon
             os_runner: macos-latest
             asset_name_suffix: "" 
             pyinstaller_add_data_sep: ":"
+            dmg_name: "AssistenteGit-macOS-AppleSilicon.dmg"
 
     steps:
     - name: Checkout repository
@@ -108,7 +114,7 @@ jobs:
       run: |
         echo "Starting PyInstaller build..."
         
-        if [[ "${{ matrix.os_name }}" == "macOS" ]]; then
+        if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
           echo "Building macOS .app bundle..."
           pyinstaller --windowed \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
@@ -125,7 +131,7 @@ jobs:
         echo "PyInstaller build finished."
 
     - name: Create macOS DMG (macOS only)
-      if: matrix.os_name == 'macOS'
+      if: contains(matrix.os_name, 'macOS')
       shell: bash
       run: |
         echo "Creating DMG for macOS..."
@@ -139,18 +145,18 @@ jobs:
         # Crea un link simbolico alle Applicazioni
         ln -s /Applications dmg_temp/Applications
         
-        # Crea il DMG
-        hdiutil create -volname "AssistenteGit" -srcfolder dmg_temp -ov -format UDZO AssistenteGit-macOS.dmg
+        # Crea il DMG con nome specifico per architettura
+        DMG_NAME="${{ matrix.dmg_name }}"
+        hdiutil create -volname "AssistenteGit" -srcfolder dmg_temp -ov -format UDZO "$DMG_NAME"
         
-        echo "DMG created successfully: AssistenteGit-macOS.dmg"
+        echo "DMG created successfully: $DMG_NAME"
         
         # Verifica che il DMG sia stato creato
-        ls -la AssistenteGit-macOS.dmg
-
+        ls -la "$DMG_NAME"
     - name: Upload application artifact
       uses: actions/upload-artifact@v4
       with:
         name: AssistenteGit-${{ matrix.os_name }} 
         path: |
-          ${{ matrix.os_name == 'macOS' && 'AssistenteGit-macOS.dmg' || format('dist/AssistenteGit{0}', matrix.asset_name_suffix) }}
+          ${{ contains(matrix.os_name, 'macOS') && matrix.dmg_name || format('dist/AssistenteGit{0}', matrix.asset_name_suffix) }}
         if-no-files-found: error

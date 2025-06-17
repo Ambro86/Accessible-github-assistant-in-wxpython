@@ -7160,32 +7160,32 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         webbrowser.open(release_url)
                     open_dlg.Destroy()
                 except requests.exceptions.RequestException as e:
-                    error_details = f"🚨 ERRORE CREAZIONE RELEASE\n\n"
-                    error_details += f"📋 Release tentata: {release_name} (tag: {tag_name})\n"
-                    error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                    error_details += f"📝 Errore: {e}\n"
-                    error_details += f"⏰ Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                    error_details = _("🚨 ERRORE CREAZIONE RELEASE\n\n")
+                    error_details += _("📋 Release tentata: {} (tag: {})\n").format(release_name, tag_name)
+                    error_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                    error_details += _("📝 Errore: {}\n").format(e)
+                    error_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
                     
                     if hasattr(e, 'response') and e.response is not None:
-                        error_details += f"📊 Codice HTTP: {e.response.status_code}\n"
-                        error_details += f"📄 Risposta server: {e.response.text[:300]}\n\n"
+                        error_details += _("📊 Codice HTTP: {}\n").format(e.response.status_code)
+                        error_details += _("📄 Risposta server: {}\n\n").format(e.response.text[:300])
                         
                         if e.response.status_code == 401:
-                            error_details += f"❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare release"
+                            error_details += _("❌ ERRORE AUTENTICAZIONE:\n• Token GitHub non valido o scaduto\n• Permessi insufficienti per creare release")
                             suggestions = _("Verifica e aggiorna il token GitHub nelle impostazioni.")
                         elif e.response.status_code == 403:
-                            error_details += f"❌ ERRORE PERMESSI:\n• Non hai permessi per creare release in questo repository\n• Repository privato senza accesso"
+                            error_details += _("❌ ERRORE PERMESSI:\n• Non hai permessi per creare release in questo repository\n• Repository privato senza accesso")
                             suggestions = _("Verifica di avere accesso in scrittura al repository.")
                         elif e.response.status_code == 404:
-                            error_details += f"❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato"
+                            error_details += _("❌ REPOSITORY NON TROVATO:\n• Il repository specificato non esiste\n• Nome owner/repository errato")
                             suggestions = _("Verifica la configurazione del repository GitHub.")
                         elif e.response.status_code == 422:
-                            error_details += f"❌ DATI NON VALIDI:\n• Tag già esistente\n• Formato release non valido\n• Parametri mancanti o errati"
+                            error_details += _("❌ DATI NON VALIDI:\n• Tag già esistente\n• Formato release non valido\n• Parametri mancanti o errati")
                             suggestions = _("Verifica che il tag non esista già e che tutti i campi siano compilati correttamente.")
                         else:
                             suggestions = _("Controlla la connessione e i permessi del token GitHub.")
                     else:
-                        error_details += f"❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta"
+                        error_details += _("❌ ERRORE GENERICO:\n• Problema di connessione o server\n• Possibile timeout della richiesta")
                         suggestions = _("Verifica la connessione internet e riprova.")
                     
                     self.ShowErrorNotification(
@@ -7196,12 +7196,12 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     )
 
                 except Exception as e_generic:
-                    error_details = f"⚠️ ERRORE IMPREVISTO\n\n"
-                    error_details += f"📋 Release: {release_name} (tag: {tag_name})\n"
-                    error_details += f"🏢 Repository: {self.github_owner}/{self.github_repo}\n"
-                    error_details += f"📝 Dettagli: {e_generic}\n"
-                    error_details += f"📅 Timestamp: {datetime.now().strftime('%H:%M:%S')}\n\n"
-                    error_details += f"❌ PROBLEMA:\n• Errore sconosciuto durante l'operazione\n• Possibile problema interno dell'applicazione\n• Risposta inattesa da GitHub"
+                    error_details = _("⚠️ ERRORE IMPREVISTO\n\n")
+                    error_details += _("📋 Release: {} (tag: {})\n").format(release_name, tag_name)
+                    error_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+                    error_details += _("📝 Dettagli: {}\n").format(e_generic)
+                    error_details += _("📅 Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+                    error_details += _("❌ PROBLEMA:\n• Errore sconosciuto durante l'operazione\n• Possibile problema interno dell'applicazione\n• Risposta inattesa da GitHub")
                     
                     self.ShowErrorNotification(
                         title=_("❌ Errore Imprevisto"),
