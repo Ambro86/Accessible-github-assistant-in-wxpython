@@ -17,7 +17,6 @@ jobs:
       contents: write
       actions: read
     
-    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -51,27 +50,62 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          // Cerca l'ultimo workflow run completato con successo per il workflow di build
-          const runs = await github.rest.actions.listWorkflowRuns({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: 'ci.yaml', // Sostituisci con il nome del tuo file workflow di build
-            status: 'completed',
-            conclusion: 'success',
-            per_page: 1
-          });
-          
-          if (runs.data.workflow_runs.length === 0) {
-            core.setFailed('Nessun workflow di build completato con successo trovato');
-            return;
+          try {
+            // First, get all workflows
+            const workflows = await github.rest.actions.listRepoWorkflows({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            
+            console.log(`Found ${workflows.data.workflows.length} workflows`);
+            
+            let latestRun = null;
+            let latestDate = null;
+            
+            // Check each workflow for the latest successful run
+            for (const workflow of workflows.data.workflows) {
+              console.log(`Checking workflow: ${workflow.name} (${workflow.path})`);
+              
+              try {
+                const runs = await github.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: workflow.id,
+                  status: 'completed',
+                  conclusion: 'success',
+                  per_page: 5
+                });
+                
+                if (runs.data.workflow_runs.length > 0) {
+                  const run = runs.data.workflow_runs[0];
+                  const runDate = new Date(run.created_at);
+                  
+                  if (!latestDate || runDate > latestDate) {
+                    latestDate = runDate;
+                    latestRun = run;
+                    console.log(`New latest run found: ${run.id} from workflow ${workflow.name}`);
+                  }
+                }
+              } catch (workflowError) {
+                console.log(`Skipping workflow ${workflow.name}: ${workflowError.message}`);
+              }
+            }
+            
+            if (!latestRun) {
+              core.setFailed('Nessun workflow completato con successo trovato');
+              return;
+            }
+            
+            console.log(`Using latest successful run: ${latestRun.id} from ${latestRun.created_at}`);
+            
+            core.setOutput('run_id', latestRun.id);
+            core.setOutput('run_date', latestRun.created_at);
+            core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
+            core.setOutput('workflow_name', latestRun.name);
+            
+          } catch (error) {
+            core.setFailed(`Errore nel trovare workflow runs: ${error.message}`);
           }
-          
-          const latestRun = runs.data.workflow_runs[0];
-          console.log(`Latest successful run: ${latestRun.id} from ${latestRun.created_at}`);
-          
-          core.setOutput('run_id', latestRun.id);
-          core.setOutput('run_date', latestRun.created_at);
-          core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
 
     - name: Delete existing release assets
       uses: actions/github-script@v7
@@ -113,7 +147,11 @@ jobs:
         # Crea directory per i file finali
         mkdir -p release_files
         
+        # Salva la directory di lavoro corrente
+        WORK_DIR=$(pwd)
+        
         echo "=== Processando artifacts ==="
+        echo "Directory di lavoro: $WORK_DIR"
         
         # Processa ogni artifact scaricato
         for artifact_dir in ./artifacts/*/; do
@@ -121,13 +159,9 @@ jobs:
             artifact_name=$(basename "$artifact_dir")
             echo "📦 Processando artifact: $artifact_name"
             
-            # Naviga nella directory dell'artifact
-            cd "$artifact_dir"
-            
             # Trova tutti i file nell'artifact
-            find . -type f | while read file; do
+            find "$artifact_dir" -type f | while read file; do
               filename=$(basename "$file")
-              filepath="$file"
               
               echo "  🔍 Trovato file: $filename"
               
@@ -138,11 +172,11 @@ jobs:
                   echo "  📂 Estraendo ZIP macOS: $filename"
                   
                   # Crea directory temporanea per l'estrazione
-                  temp_dir="temp_extract_$(basename "$filename" .zip)"
+                  temp_dir="$WORK_DIR/temp_extract_$(basename "$filename" .zip)"
                   mkdir -p "$temp_dir"
                   
                   # Estrai il ZIP
-                  unzip -q "$filepath" -d "$temp_dir"
+                  unzip -q "$file" -d "$temp_dir"
                   
                   # Copia i file estratti (DMG)
                   find "$temp_dir" -type f | while read extracted_file; do
@@ -152,7 +186,7 @@ jobs:
                     final_name="$extracted_filename"
                     
                     echo "    ✅ Copiando DMG: $extracted_filename -> $final_name"
-                    cp "$extracted_file" "$(pwd)/../../../../release_files/$final_name"
+                    cp "$extracted_file" "$WORK_DIR/release_files/$final_name"
                   done
                   
                   rm -rf "$temp_dir"
@@ -180,7 +214,7 @@ jobs:
                   esac
                   
                   echo "  ✅ Copiando ZIP: $filename -> $final_name"
-                  cp "$filepath" "$(pwd)/../../../../release_files/$final_name"
+                  cp "$file" "$WORK_DIR/release_files/$final_name"
                 fi
                 
               else
@@ -213,12 +247,9 @@ jobs:
                 esac
                 
                 echo "  ✅ Copiando: $filename -> $final_name"
-                cp "$filepath" "$(pwd)/../../../../release_files/$final_name"
+                cp "$file" "$WORK_DIR/release_files/$final_name"
               fi
             done
-            
-            # Torna alla directory base
-            cd - > /dev/null
           fi
         done
         
@@ -260,6 +291,7 @@ jobs:
         echo "🎉 Release aggiornata con successo!"
         echo "🏷️  Tag: ${{ steps.get_latest_release.outputs.tag_name }}"
         echo "🔢 Build ID: ${{ steps.get_run.outputs.run_id }}"
+        echo "🔧 Workflow: ${{ steps.get_run.outputs.workflow_name }}"
         echo "📦 Files caricati: ${{ steps.prepare_files.outputs.file_count }}"
         echo "📂 ZIP macOS estratti: ${{ github.event.inputs.extract_mac_zips == 'true' && 'Sì' || 'No' }}"
         echo ""
