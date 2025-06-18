@@ -22,6 +22,7 @@ The application will attempt to use your system's default language. Currently, i
 * Spanish
 * French
 * German
+* Portuguese
 * Russian
 
 If your system language is one of these and the corresponding translation file is present, the application will display in that language. Otherwise, it will default to English.
