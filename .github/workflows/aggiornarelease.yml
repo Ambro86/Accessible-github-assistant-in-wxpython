@@ -1,0 +1,265 @@
+name: Update Latest Release with New Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      extract_mac_zips:
+        description: 'Extract ZIP files for macOS releases (keeping DMG files)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  update-release:
+    name: Update Latest Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get latest release
+      id: get_latest_release
+      uses: actions/github-script@v7
+      with:
+        script: |
+          try {
+            const release = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            
+            console.log(`Latest release found: ${release.data.tag_name}`);
+            console.log(`Release ID: ${release.data.id}`);
+            console.log(`Assets: ${release.data.assets.length}`);
+            
+            core.setOutput('release_id', release.data.id);
+            core.setOutput('tag_name', release.data.tag_name);
+            core.setOutput('release_name', release.data.name);
+            
+            return release.data;
+          } catch (error) {
+            core.setFailed(`Nessuna release trovata: ${error.message}`);
+          }
+
+    - name: Get latest successful workflow run  
+      id: get_run
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Cerca l'ultimo workflow run completato con successo per il workflow di build
+          const runs = await github.rest.actions.listWorkflowRuns({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'build.yml', // Sostituisci con il nome del tuo file workflow di build
+            status: 'completed',
+            conclusion: 'success',
+            per_page: 1
+          });
+          
+          if (runs.data.workflow_runs.length === 0) {
+            core.setFailed('Nessun workflow di build completato con successo trovato');
+            return;
+          }
+          
+          const latestRun = runs.data.workflow_runs[0];
+          console.log(`Latest successful run: ${latestRun.id} from ${latestRun.created_at}`);
+          
+          core.setOutput('run_id', latestRun.id);
+          core.setOutput('run_date', latestRun.created_at);
+          core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
+
+    - name: Delete existing release assets
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const releaseId = ${{ steps.get_latest_release.outputs.release_id }};
+          
+          // Ottieni tutti gli assets della release
+          const assets = await github.rest.repos.listReleaseAssets({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: releaseId
+          });
+          
+          console.log(`Trovati ${assets.data.length} assets da eliminare`);
+          
+          // Elimina ogni asset
+          for (const asset of assets.data) {
+            console.log(`Eliminando asset: ${asset.name}`);
+            await github.rest.repos.deleteReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              asset_id: asset.id
+            });
+          }
+          
+          console.log('Tutti gli assets sono stati eliminati');
+
+    - name: Download all artifacts from latest build
+      uses: actions/download-artifact@v4
+      with:
+        run-id: ${{ steps.get_run.outputs.run_id }}
+        path: ./artifacts
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract and prepare release files
+      id: prepare_files
+      run: |
+        # Crea directory per i file finali
+        mkdir -p release_files
+        
+        echo "=== Processando artifacts ==="
+        
+        # Processa ogni artifact scaricato
+        for artifact_dir in ./artifacts/*/; do
+          if [ -d "$artifact_dir" ]; then
+            artifact_name=$(basename "$artifact_dir")
+            echo "📦 Processando artifact: $artifact_name"
+            
+            # Naviga nella directory dell'artifact
+            cd "$artifact_dir"
+            
+            # Trova tutti i file nell'artifact
+            find . -type f | while read file; do
+              filename=$(basename "$file")
+              filepath="$file"
+              
+              echo "  🔍 Trovato file: $filename"
+              
+              # Se è un ZIP, verifica se deve essere estratto
+              if [[ "$filename" == *.zip ]]; then
+                # Estrai solo i ZIP delle release macOS (che contengono DMG)
+                if [[ "$artifact_name" == *macOS* ]] && [[ "${{ github.event.inputs.extract_mac_zips }}" == "true" ]]; then
+                  echo "  📂 Estraendo ZIP macOS: $filename"
+                  
+                  # Crea directory temporanea per l'estrazione
+                  temp_dir="temp_extract_$(basename "$filename" .zip)"
+                  mkdir -p "$temp_dir"
+                  
+                  # Estrai il ZIP
+                  unzip -q "$filepath" -d "$temp_dir"
+                  
+                  # Copia i file estratti (DMG)
+                  find "$temp_dir" -type f | while read extracted_file; do
+                    extracted_filename=$(basename "$extracted_file")
+                    
+                    # Per macOS, mantieni il nome originale del DMG
+                    final_name="$extracted_filename"
+                    
+                    echo "    ✅ Copiando DMG: $extracted_filename -> $final_name"
+                    cp "$extracted_file" "$(pwd)/../../../../release_files/$final_name"
+                  done
+                  
+                  rm -rf "$temp_dir"
+                  
+                else
+                  # Per Windows/Linux, mantieni il ZIP come è
+                  case "$artifact_name" in
+                    *Windows*)
+                      if [[ "$filename" != *Windows* ]]; then
+                        final_name="${filename%.*}-Windows.${filename##*.}"
+                      else
+                        final_name="$filename"
+                      fi
+                      ;;
+                    *Linux*)
+                      if [[ "$filename" != *Linux* ]]; then
+                        final_name="${filename%.*}-Linux.${filename##*.}"
+                      else
+                        final_name="$filename"
+                      fi
+                      ;;
+                    *)
+                      final_name="$filename"
+                      ;;
+                  esac
+                  
+                  echo "  ✅ Copiando ZIP: $filename -> $final_name"
+                  cp "$filepath" "$(pwd)/../../../../release_files/$final_name"
+                fi
+                
+              else
+                # Copia il file direttamente (non ZIP o altri file)
+                # Determina il nome finale basato sull'OS
+                case "$artifact_name" in
+                  *Windows*)
+                    if [[ "$filename" != *Windows* ]] && [[ "$filename" != *.exe ]]; then
+                      final_name="${filename%.*}-Windows"
+                      [[ "$filename" == *.* ]] && final_name="${final_name}.${filename##*.}"
+                    else
+                      final_name="$filename"
+                    fi
+                    ;;
+                  *Linux*)
+                    if [[ "$filename" != *Linux* ]]; then
+                      final_name="${filename%.*}-Linux"
+                      [[ "$filename" == *.* ]] && final_name="${final_name}.${filename##*.}"
+                    else
+                      final_name="$filename"
+                    fi
+                    ;;
+                  *macOS*)
+                    # Per i file macOS non-ZIP (come DMG già pronti), mantieni il nome originale
+                    final_name="$filename"
+                    ;;
+                  *)
+                    final_name="$filename"
+                    ;;
+                esac
+                
+                echo "  ✅ Copiando: $filename -> $final_name"
+                cp "$filepath" "$(pwd)/../../../../release_files/$final_name"
+              fi
+            done
+            
+            # Torna alla directory base
+            cd - > /dev/null
+          fi
+        done
+        
+        echo "=== File preparati per la release ==="
+        ls -la release_files/
+        
+        # Verifica che ci siano file
+        file_count=$(find release_files -type f | wc -l)
+        echo "📊 Numero totale di file: $file_count"
+        
+        if [ $file_count -eq 0 ]; then
+          echo "❌ ERRORE: Nessun file trovato per la release!"
+          exit 1
+        fi
+        
+        echo "file_count=$file_count" >> $GITHUB_OUTPUT
+
+    - name: Upload new release assets
+      run: |
+        echo "🚀 Caricamento nuovi assets..."
+        
+        # Upload tutti i file nella directory release_files
+        for file in release_files/*; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            echo "⬆️  Caricamento di $filename..."
+            
+            # Usa gh CLI per caricare il file
+            gh release upload ${{ steps.get_latest_release.outputs.tag_name }} "$file" --clobber
+          fi
+        done
+        
+        echo "✅ Tutti i file sono stati caricati!"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Summary
+      run: |
+        echo "🎉 Release aggiornata con successo!"
+        echo "🏷️  Tag: ${{ steps.get_latest_release.outputs.tag_name }}"
+        echo "🔢 Build ID: ${{ steps.get_run.outputs.run_id }}"
+        echo "📦 Files caricati: ${{ steps.prepare_files.outputs.file_count }}"
+        echo "📂 ZIP macOS estratti: ${{ github.event.inputs.extract_mac_zips == 'true' && 'Sì' || 'No' }}"
+        echo ""
+        echo "📋 Files nella release:"
+        ls -la release_files/ | sed 's/^/   /'
+        echo ""
+        echo "🔗 Link alla release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_latest_release.outputs.tag_name }}"
