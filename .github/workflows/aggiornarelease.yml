@@ -129,47 +129,52 @@ jobs:
               
               echo "  🔍 Trovato file: $filename"
               
-              # Solo per macOS: estrai DMG dai ZIP
-              if [[ "$artifact_name" == *macOS* ]] && [[ "$filename" == *.zip ]] && [[ "${{ github.event.inputs.extract_mac_zips }}" == "true" ]]; then
-                echo "  📂 Estraendo ZIP macOS: $filename"
-                
-                # Crea directory temporanea per l'estrazione
-                temp_dir="$WORK_DIR/temp_extract_$(basename "$filename" .zip)"
-                mkdir -p "$temp_dir"
-                
-                # Estrai il ZIP
-                unzip -q "$file" -d "$temp_dir"
-                
-                # Copia i file estratti (DMG)
-                find "$temp_dir" -type f | while read extracted_file; do
-                  extracted_filename=$(basename "$extracted_file")
-                  final_name="$extracted_filename"
-                  
-                  echo "    ✅ Copiando DMG: $extracted_filename -> $final_name"
-                  cp "$extracted_file" "$WORK_DIR/release_files/$final_name"
-                done
-                
-                rm -rf "$temp_dir"
-                
-              # Per Windows e Linux: mantieni solo i ZIP
-              elif [[ "$filename" == *.zip ]]; then
-                case "$artifact_name" in
-                  *Windows*)
+              # Processa i file in base al tipo di artifact e file
+              case "$artifact_name" in
+                *Windows*)
+                  if [[ "$filename" == *.exe ]]; then
+                    # Crea un ZIP per Windows con l'exe dentro
                     final_name="AssistenteGit-Windows.zip"
-                    ;;
-                  *Linux*)
+                    echo "  📦 Creando ZIP Windows: $filename -> $final_name"
+                    
+                    # Crea ZIP temporaneo
+                    temp_zip="$WORK_DIR/temp_windows.zip"
+                    (cd "$(dirname "$file")" && zip -q "$temp_zip" "$(basename "$file")")
+                    cp "$temp_zip" "$WORK_DIR/release_files/$final_name"
+                    rm -f "$temp_zip"
+                  else
+                    echo "  ⏭️  Saltando file Windows non-exe: $filename"
+                  fi
+                  ;;
+                *Linux*)
+                  if [[ "$filename" == "AssistenteGit" ]]; then
+                    # Crea un ZIP per Linux con l'eseguibile dentro
                     final_name="AssistenteGit-Linux.zip"
-                    ;;
-                  *)
+                    echo "  📦 Creando ZIP Linux: $filename -> $final_name"
+                    
+                    # Crea ZIP temporaneo
+                    temp_zip="$WORK_DIR/temp_linux.zip"
+                    (cd "$(dirname "$file")" && zip -q "$temp_zip" "$(basename "$file")")
+                    cp "$temp_zip" "$WORK_DIR/release_files/$final_name"
+                    rm -f "$temp_zip"
+                  else
+                    echo "  ⏭️  Saltando file Linux: $filename"
+                  fi
+                  ;;
+                *macOS*)
+                  if [[ "$filename" == *.dmg ]]; then
+                    # Copia direttamente i DMG di macOS
                     final_name="$filename"
-                    ;;
-                esac
-                
-                echo "  ✅ Copiando ZIP: $filename -> $final_name"
-                cp "$file" "$WORK_DIR/release_files/$final_name"
-              else
-                echo "  ⏭️  Saltando file: $filename"
-              fi
+                    echo "  ✅ Copiando DMG macOS: $filename -> $final_name"
+                    cp "$file" "$WORK_DIR/release_files/$final_name"
+                  else
+                    echo "  ⏭️  Saltando file macOS non-DMG: $filename"
+                  fi
+                  ;;
+                *)
+                  echo "  ⏭️  Saltando file sconosciuto: $filename"
+                  ;;
+              esac
             done
           fi
         done
@@ -219,4 +224,3 @@ jobs:
         ls -la release_files/ | sed 's/^/   /'
         echo ""
         echo "🔗 Link alla release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_latest_release.outputs.tag_name }}"
- 
