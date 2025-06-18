@@ -129,7 +129,14 @@ jobs:
               filename=$(basename "$file")
               
               echo "  🔍 Trovato file: $filename"
-              
+              if [[ "$filename" == *.exe ]] && [[ "$artifact_name" == *Windows* ]]; then
+                echo "  ⏭️  Saltando file .exe (manteniamo il ZIP): $filename"
+                continue
+              fi
+              if [[ "$artifact_name" == *Linux* ]] && [[ "$filename" != *.zip ]]; then
+                echo "  ⏭️  Saltando file Linux non-ZIP (manteniamo il ZIP): $filename"
+                continue
+              fi
               # Se è un ZIP, verifica se deve essere estratto
               if [[ "$filename" == *.zip ]]; then
                 # Estrai solo i ZIP delle release macOS (che contengono DMG)
