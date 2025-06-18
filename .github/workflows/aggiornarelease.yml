@@ -51,7 +51,7 @@ jobs:
           const runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: 'build.yml', // Sostituisci con il nome del tuo file workflow di build
+            workflow_id: 'ci.yaml', // Sostituisci con il nome del tuo file workflow di build
             status: 'completed',
             conclusion: 'success',
             per_page: 1
