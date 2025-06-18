@@ -44,69 +44,34 @@ jobs:
           } catch (error) {
             core.setFailed(`Nessuna release trovata: ${error.message}`);
           }
-
+          
     - name: Get latest successful workflow run  
       id: get_run
       uses: actions/github-script@v7
       with:
         script: |
-          try {
-            // First, get all workflows
-            const workflows = await github.rest.actions.listRepoWorkflows({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            
-            console.log(`Found ${workflows.data.workflows.length} workflows`);
-            
-            let latestRun = null;
-            let latestDate = null;
-            
-            // Check each workflow for the latest successful run
-            for (const workflow of workflows.data.workflows) {
-              console.log(`Checking workflow: ${workflow.name} (${workflow.path})`);
-              
-              try {
-                const runs = await github.rest.actions.listWorkflowRuns({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  workflow_id: workflow.id,
-                  status: 'completed',
-                  conclusion: 'success',
-                  per_page: 5
-                });
-                
-                if (runs.data.workflow_runs.length > 0) {
-                  const run = runs.data.workflow_runs[0];
-                  const runDate = new Date(run.created_at);
-                  
-                  if (!latestDate || runDate > latestDate) {
-                    latestDate = runDate;
-                    latestRun = run;
-                    console.log(`New latest run found: ${run.id} from workflow ${workflow.name}`);
-                  }
-                }
-              } catch (workflowError) {
-                console.log(`Skipping workflow ${workflow.name}: ${workflowError.message}`);
-              }
-            }
-            
-            if (!latestRun) {
-              core.setFailed('Nessun workflow completato con successo trovato');
-              return;
-            }
-            
-            console.log(`Using latest successful run: ${latestRun.id} from ${latestRun.created_at}`);
-            
-            core.setOutput('run_id', latestRun.id);
-            core.setOutput('run_date', latestRun.created_at);
-            core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
-            core.setOutput('workflow_name', latestRun.name);
-            
-          } catch (error) {
-            core.setFailed(`Errore nel trovare workflow runs: ${error.message}`);
+          const runs = await github.rest.actions.listWorkflowRuns({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'ci.yaml',
+            status: 'completed',
+            conclusion: 'success',
+            per_page: 1
+          });
+        
+          if (runs.data.workflow_runs.length === 0) {
+            core.setFailed('Nessun workflow di build completato con successo trovato');
+            return;
           }
+        
+          const latestRun = runs.data.workflow_runs[0];
+          console.log(`Latest successful run: ${latestRun.id} from ${latestRun.created_at}`);
+        
+          core.setOutput('run_id', latestRun.id);
+          core.setOutput('run_date', latestRun.created_at);
+          core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
 
+    
     - name: Delete existing release assets
       uses: actions/github-script@v7
       with:
