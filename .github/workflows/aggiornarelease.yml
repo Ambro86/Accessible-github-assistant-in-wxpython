@@ -71,7 +71,6 @@ jobs:
           core.setOutput('run_date', latestRun.created_at);
           core.setOutput('run_sha', latestRun.head_sha.substring(0, 7));
 
-    
     - name: Delete existing release assets
       uses: actions/github-script@v7
       with:
@@ -129,97 +128,47 @@ jobs:
               filename=$(basename "$file")
               
               echo "  🔍 Trovato file: $filename"
-              if [[ "$filename" == *.exe ]] && [[ "$artifact_name" == *Windows* ]]; then
-                echo "  ⏭️  Saltando file .exe (manteniamo il ZIP): $filename"
-                continue
-              fi
-              if [[ "$artifact_name" == *Linux* ]] && [[ "$filename" != *.zip ]]; then
-                echo "  ⏭️  Saltando file Linux non-ZIP (manteniamo il ZIP): $filename"
-                continue
-              fi
-              # Se è un ZIP, verifica se deve essere estratto
-              if [[ "$filename" == *.zip ]]; then
-                # Estrai solo i ZIP delle release macOS (che contengono DMG)
-                if [[ "$artifact_name" == *macOS* ]] && [[ "${{ github.event.inputs.extract_mac_zips }}" == "true" ]]; then
-                  echo "  📂 Estraendo ZIP macOS: $filename"
-                  
-                  # Crea directory temporanea per l'estrazione
-                  temp_dir="$WORK_DIR/temp_extract_$(basename "$filename" .zip)"
-                  mkdir -p "$temp_dir"
-                  
-                  # Estrai il ZIP
-                  unzip -q "$file" -d "$temp_dir"
-                  
-                  # Copia i file estratti (DMG)
-                  find "$temp_dir" -type f | while read extracted_file; do
-                    extracted_filename=$(basename "$extracted_file")
-                    
-                    # Per macOS, mantieni il nome originale del DMG
-                    final_name="$extracted_filename"
-                    
-                    echo "    ✅ Copiando DMG: $extracted_filename -> $final_name"
-                    cp "$extracted_file" "$WORK_DIR/release_files/$final_name"
-                  done
-                  
-                  rm -rf "$temp_dir"
-                  
-                else
-                  # Per Windows/Linux, mantieni il ZIP come è
-                  case "$artifact_name" in
-                    *Windows*)
-                      if [[ "$filename" != *Windows* ]]; then
-                        final_name="${filename%.*}-Windows.${filename##*.}"
-                      else
-                        final_name="$filename"
-                      fi
-                      ;;
-                    *Linux*)
-                      if [[ "$filename" != *Linux* ]]; then
-                        final_name="${filename%.*}-Linux.${filename##*.}"
-                      else
-                        final_name="$filename"
-                      fi
-                      ;;
-                    *)
-                      final_name="$filename"
-                      ;;
-                  esac
-                  
-                  echo "  ✅ Copiando ZIP: $filename -> $final_name"
-                  cp "$file" "$WORK_DIR/release_files/$final_name"
-                fi
+              
+              # Solo per macOS: estrai DMG dai ZIP
+              if [[ "$artifact_name" == *macOS* ]] && [[ "$filename" == *.zip ]] && [[ "${{ github.event.inputs.extract_mac_zips }}" == "true" ]]; then
+                echo "  📂 Estraendo ZIP macOS: $filename"
                 
-              else
-                # Copia il file direttamente (non ZIP o altri file)
-                # Determina il nome finale basato sull'OS
+                # Crea directory temporanea per l'estrazione
+                temp_dir="$WORK_DIR/temp_extract_$(basename "$filename" .zip)"
+                mkdir -p "$temp_dir"
+                
+                # Estrai il ZIP
+                unzip -q "$file" -d "$temp_dir"
+                
+                # Copia i file estratti (DMG)
+                find "$temp_dir" -type f | while read extracted_file; do
+                  extracted_filename=$(basename "$extracted_file")
+                  final_name="$extracted_filename"
+                  
+                  echo "    ✅ Copiando DMG: $extracted_filename -> $final_name"
+                  cp "$extracted_file" "$WORK_DIR/release_files/$final_name"
+                done
+                
+                rm -rf "$temp_dir"
+                
+              # Per Windows e Linux: mantieni solo i ZIP
+              elif [[ "$filename" == *.zip ]]; then
                 case "$artifact_name" in
                   *Windows*)
-                    if [[ "$filename" != *Windows* ]] && [[ "$filename" != *.exe ]]; then
-                      final_name="${filename%.*}-Windows"
-                      [[ "$filename" == *.* ]] && final_name="${final_name}.${filename##*.}"
-                    else
-                      final_name="$filename"
-                    fi
+                    final_name="AssistenteGit-Windows.zip"
                     ;;
                   *Linux*)
-                    if [[ "$filename" != *Linux* ]]; then
-                      final_name="${filename%.*}-Linux"
-                      [[ "$filename" == *.* ]] && final_name="${final_name}.${filename##*.}"
-                    else
-                      final_name="$filename"
-                    fi
-                    ;;
-                  *macOS*)
-                    # Per i file macOS non-ZIP (come DMG già pronti), mantieni il nome originale
-                    final_name="$filename"
+                    final_name="AssistenteGit-Linux.zip"
                     ;;
                   *)
                     final_name="$filename"
                     ;;
                 esac
                 
-                echo "  ✅ Copiando: $filename -> $final_name"
+                echo "  ✅ Copiando ZIP: $filename -> $final_name"
                 cp "$file" "$WORK_DIR/release_files/$final_name"
+              else
+                echo "  ⏭️  Saltando file: $filename"
               fi
             done
           fi
@@ -263,7 +212,6 @@ jobs:
         echo "🎉 Release aggiornata con successo!"
         echo "🏷️  Tag: ${{ steps.get_latest_release.outputs.tag_name }}"
         echo "🔢 Build ID: ${{ steps.get_run.outputs.run_id }}"
-        echo "🔧 Workflow: ${{ steps.get_run.outputs.workflow_name }}"
         echo "📦 Files caricati: ${{ steps.prepare_files.outputs.file_count }}"
         echo "📂 ZIP macOS estratti: ${{ github.event.inputs.extract_mac_zips == 'true' && 'Sì' || 'No' }}"
         echo ""
@@ -271,3 +219,4 @@ jobs:
         ls -la release_files/ | sed 's/^/   /'
         echo ""
         echo "🔗 Link alla release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_latest_release.outputs.tag_name }}"
+ 
