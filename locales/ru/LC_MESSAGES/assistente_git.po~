@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-20 01:00+0200\n"
+"POT-Creation-Date: 2025-06-19 13:05+0200\n"
 "PO-Revision-Date: 2025-06-16 19:31+0200\n"
 "Last-Translator: Ambrogio Riili <ambro86@gmail.com>\n"
 "Language-Team: russian\n"
@@ -60,15 +60,15 @@ msgstr "Pull Request и Issue"
 msgid "Clona un repository (nella cartella corrente)"
 msgstr "Клонировать репозиторий (в текущую папку)"
 
-#: assistente-git.py:203 assistente-git.py:10468
+#: assistente-git.py:203 assistente-git.py:10459
 msgid "Inizializza un nuovo repository qui"
 msgstr "Инициализировать новый репозиторий здесь"
 
-#: assistente-git.py:204 assistente-git.py:10469
+#: assistente-git.py:204 assistente-git.py:10460
 msgid "Aggiungi cartella/file da ignorare a .gitignore"
 msgstr "Добавить папку/файл для игнорирования в .gitignore"
 
-#: assistente-git.py:205 assistente-git.py:10463
+#: assistente-git.py:205 assistente-git.py:10454
 msgid "Controlla lo stato del repository"
 msgstr "Проверить состояние репозитория"
 
@@ -80,11 +80,11 @@ msgstr "Показать неиндексированные изменения (
 msgid "Visualizza modifiche in stage (diff --staged)"
 msgstr "Показать индексированные изменения (diff --staged)"
 
-#: assistente-git.py:208 assistente-git.py:10464
+#: assistente-git.py:208 assistente-git.py:10455
 msgid "Aggiungi tutte le modifiche all'area di stage"
 msgstr "Добавить все изменения в область индексирования"
 
-#: assistente-git.py:209 assistente-git.py:10465
+#: assistente-git.py:209 assistente-git.py:10456
 msgid "Crea un commit (salva modifiche)"
 msgstr "Создать коммит (сохранить изменения)"
 
@@ -92,7 +92,7 @@ msgstr "Создать коммит (сохранить изменения)"
 msgid "Rinomina ultimo commit (amend)"
 msgstr "Переименовать последний коммит (amend)"
 
-#: assistente-git.py:211 assistente-git.py:10477
+#: assistente-git.py:211 assistente-git.py:10468
 msgid "Mostra dettagli di un commit specifico"
 msgstr "Показать детали конкретного коммита"
 
@@ -108,7 +108,7 @@ msgstr "Искать текст в файлах (git grep)"
 msgid "Cerca file nel progetto (tracciati da Git)"
 msgstr "Искать файлы в проекте (отслеживаемые Git)"
 
-#: assistente-git.py:215 assistente-git.py:10492
+#: assistente-git.py:215 assistente-git.py:10483
 msgid "Crea nuovo Tag (leggero)"
 msgstr "Создать новый тег (легкий)"
 
@@ -124,23 +124,23 @@ msgstr "Загрузить изменения с сервера и объеди�
 msgid "Invia le modifiche al server (push)"
 msgstr "Отправить изменения на сервер (push)"
 
-#: assistente-git.py:219 assistente-git.py:10500
+#: assistente-git.py:219 assistente-git.py:10491
 msgid "Aggiungi repository remoto 'origin'"
 msgstr "Добавить удаленный репозиторий 'origin'"
 
-#: assistente-git.py:220 assistente-git.py:10501
+#: assistente-git.py:220 assistente-git.py:10492
 msgid "Modifica URL del repository remoto 'origin'"
 msgstr "Изменить URL удаленного репозитория 'origin'"
 
-#: assistente-git.py:221 assistente-git.py:10502
+#: assistente-git.py:221 assistente-git.py:10493
 msgid "Controlla indirizzi remoti configurati"
 msgstr "Проверить настроенные удаленные адреса"
 
-#: assistente-git.py:222 assistente-git.py:10482
+#: assistente-git.py:222 assistente-git.py:10473
 msgid "Visualizza tutti i branch (locali e remoti)"
 msgstr "Показать все ветки (локальные и удаленные)"
 
-#: assistente-git.py:223 assistente-git.py:10483
+#: assistente-git.py:223 assistente-git.py:10474
 msgid "Controlla branch corrente"
 msgstr "Проверить текущую ветку"
 
@@ -148,11 +148,11 @@ msgstr "Проверить текущую ветку"
 msgid "Crea nuovo branch (senza cambiare)"
 msgstr "Создать новую ветку (без переключения)"
 
-#: assistente-git.py:225 assistente-git.py:10485
+#: assistente-git.py:225 assistente-git.py:10476
 msgid "Crea e passa a un nuovo branch"
 msgstr "Создать и переключиться на новую ветку"
 
-#: assistente-git.py:226 assistente-git.py:10486
+#: assistente-git.py:226 assistente-git.py:10477
 msgid "Passa a un branch esistente"
 msgstr "Переключиться на существующую ветку"
 
@@ -164,15 +164,15 @@ msgstr "Объединить указанную ветку с текущей (me
 msgid "Annulla tentativo di merge (abort)"
 msgstr "Отменить попытку слияния (abort)"
 
-#: assistente-git.py:229 assistente-git.py:10489
+#: assistente-git.py:229 assistente-git.py:10480
 msgid "Elimina branch locale (sicuro, -d)"
 msgstr "Удалить локальную ветку (безопасно, -d)"
 
-#: assistente-git.py:230 assistente-git.py:10490
+#: assistente-git.py:230 assistente-git.py:10481
 msgid "Elimina branch locale (forzato, -D)"
 msgstr "Удалить локальную ветку (принудительно, -D)"
 
-#: assistente-git.py:231 assistente-git.py:10504
+#: assistente-git.py:231 assistente-git.py:10495
 msgid "Elimina branch remoto ('origin')"
 msgstr "Удалить удаленную ветку ('origin')"
 
@@ -194,7 +194,7 @@ msgid ""
 msgstr ""
 "Перезаписать файлы коммитом и очистить (checkout <commit> . && clean -fd)"
 
-#: assistente-git.py:236 assistente-git.py:10562
+#: assistente-git.py:236 assistente-git.py:10553
 msgid "Ripristina file modificati e pulisci file non tracciati"
 msgstr "Восстановить измененные файлы и очистить неотслеживаемые файлы"
 
@@ -210,7 +210,7 @@ msgstr "Сбросить локальную ветку к удаленной в�
 msgid "Resetta branch corrente a commit specifico (reset --hard)"
 msgstr "Сбросить текущую ветку к конкретному коммиту (reset --hard)"
 
-#: assistente-git.py:240 assistente-git.py:10555
+#: assistente-git.py:240 assistente-git.py:10546
 msgid "Annulla modifiche locali (reset --hard HEAD)"
 msgstr "Отменить локальные изменения (reset --hard HEAD)"
 
@@ -218,7 +218,7 @@ msgstr "Отменить локальные изменения (reset --hard HEA
 msgid "Configura Repository GitHub & Opzioni"
 msgstr "Настроить репозиторий GitHub и опции"
 
-#: assistente-git.py:242 assistente-git.py:10515
+#: assistente-git.py:242 assistente-git.py:10506
 msgid "Visualizza log Workflow"
 msgstr "Показать логи Workflow"
 
@@ -226,7 +226,7 @@ msgstr "Показать логи Workflow"
 msgid "Elenca e Scarica Artefatti Esecuzione Selezionata"
 msgstr "Перечислить и скачать артефакты выбранного выполнения"
 
-#: assistente-git.py:245 assistente-git.py:10511
+#: assistente-git.py:245 assistente-git.py:10502
 msgid "Crea Nuova Release GitHub con Asset"
 msgstr "Создать новый релиз GitHub с ресурсами"
 
@@ -234,47 +234,47 @@ msgstr "Создать новый релиз GitHub с ресурсами"
 msgid "Elimina Release GitHub (per ID o Tag)"
 msgstr "Удалить релиз GitHub (по ID или тегу)"
 
-#: assistente-git.py:247 assistente-git.py:10512
+#: assistente-git.py:247 assistente-git.py:10503
 msgid "Modifica Release GitHub Esistente"
 msgstr "Изменить существующий релиз GitHub"
 
-#: assistente-git.py:248 assistente-git.py:10516
+#: assistente-git.py:248 assistente-git.py:10507
 msgid "Trigger Workflow Manuale"
 msgstr "Запустить Workflow вручную"
 
-#: assistente-git.py:249 assistente-git.py:7877 assistente-git.py:10517
+#: assistente-git.py:249 assistente-git.py:7877 assistente-git.py:10508
 msgid "Cancella Workflow in Esecuzione"
 msgstr "Отменить выполняющийся Workflow"
 
-#: assistente-git.py:250 assistente-git.py:4832 assistente-git.py:10527
+#: assistente-git.py:250 assistente-git.py:4832 assistente-git.py:10518
 msgid "Crea Nuova Issue"
 msgstr "Создать новую Issue"
 
-#: assistente-git.py:251 assistente-git.py:5046 assistente-git.py:10534
+#: assistente-git.py:251 assistente-git.py:5046 assistente-git.py:10525
 msgid "Crea Nuova Pull Request"
 msgstr "Создать новый Pull Request"
 
-#: assistente-git.py:252 assistente-git.py:10528
+#: assistente-git.py:252 assistente-git.py:10519
 msgid "Visualizza Issue del Repository"
 msgstr "Показать Issue репозитория"
 
-#: assistente-git.py:253 assistente-git.py:10529
+#: assistente-git.py:253 assistente-git.py:10520
 msgid "Modifica Issue Esistente"
 msgstr "Изменить существующую Issue"
 
-#: assistente-git.py:254 assistente-git.py:10530
+#: assistente-git.py:254 assistente-git.py:10521
 msgid "Chiudi/Elimina Issue"
 msgstr "Закрыть/Удалить Issue"
 
-#: assistente-git.py:255 assistente-git.py:10535
+#: assistente-git.py:255 assistente-git.py:10526
 msgid "Visualizza Pull Request del Repository"
 msgstr "Показать Pull Request репозитория"
 
-#: assistente-git.py:256 assistente-git.py:10536
+#: assistente-git.py:256 assistente-git.py:10527
 msgid "Modifica Pull Request Esistente"
 msgstr "Изменить существующий Pull Request"
 
-#: assistente-git.py:257 assistente-git.py:10537
+#: assistente-git.py:257 assistente-git.py:10528
 msgid "Chiudi/Elimina Pull Request"
 msgstr "Закрыть/Удалить Pull Request"
 
@@ -282,23 +282,23 @@ msgstr "Закрыть/Удалить Pull Request"
 msgid "Dashboard Repository"
 msgstr "Панель управления репозиторием"
 
-#: assistente-git.py:259 assistente-git.py:10450
+#: assistente-git.py:259 assistente-git.py:10441
 msgid "Panoramica Stato Repository"
 msgstr "Обзор состояния репозитория"
 
-#: assistente-git.py:260 assistente-git.py:10452
+#: assistente-git.py:260 assistente-git.py:10443
 msgid "Statistiche Repository"
 msgstr "Статистика репозитория"
 
-#: assistente-git.py:261 assistente-git.py:10454
+#: assistente-git.py:261 assistente-git.py:10445
 msgid "Attività Recente"
 msgstr "Недавняя активность"
 
-#: assistente-git.py:262 assistente-git.py:10456
+#: assistente-git.py:262 assistente-git.py:10447
 msgid "Stato Branch e Remote"
 msgstr "Состояние веток и удаленных"
 
-#: assistente-git.py:263 assistente-git.py:10458
+#: assistente-git.py:263 assistente-git.py:10449
 msgid "Riepilogo Modifiche File"
 msgstr "Сводка изменений файлов"
 
@@ -308,7 +308,6 @@ msgid ""
 "Errore durante l'operazione:\n"
 "{}"
 msgstr "Ошибка во время операции '{}': {}\n"
-
 #: assistente-git.py:429 assistente-git.py:827 assistente-git.py:833
 #: assistente-git.py:844 assistente-git.py:2115 assistente-git.py:2523
 #: assistente-git.py:2701 assistente-git.py:4374 assistente-git.py:4397
@@ -579,7 +578,7 @@ msgstr "Удалить выбранное"
 msgid "Rimuovi Tutti"
 msgstr "Удалить все"
 
-#: assistente-git.py:908 assistente-git.py:10511
+#: assistente-git.py:908 assistente-git.py:10502
 msgid "Crea Release"
 msgstr "Создать релиз"
 
@@ -628,8 +627,8 @@ msgstr "Создать новый пустой Git репозиторий..."
 
 #: assistente-git.py:996
 msgid ""
-"Permette di selezionare una cartella o un file da aggiungere al file ."
-"gitignore..."
+"Permette di selezionare una cartella o un file da aggiungere al "
+"file .gitignore..."
 msgstr "Позволяет выбрать папку или файл для добавления в файл .gitignore..."
 
 #: assistente-git.py:997
@@ -1627,8 +1626,8 @@ msgid "🌐 Apri nel Browser"
 msgstr "🌐 Открыть в браузере"
 
 #: assistente-git.py:1959 assistente-git.py:2368 assistente-git.py:2892
-#: assistente-git.py:4315 assistente-git.py:9382 assistente-git.py:10169
-#: assistente-git.py:10876
+#: assistente-git.py:4315 assistente-git.py:9382 assistente-git.py:10160
+#: assistente-git.py:10867
 msgid "✖️ Chiudi"
 msgstr "✖️ Закрыть"
 
@@ -2059,11 +2058,6 @@ msgstr "индексированные"
 #: assistente-git.py:3038
 msgid "ℹ️ Nessuna Differenza"
 msgstr "ℹ️ Нет различий"
-
-#: assistente-git.py:3039
-#, python-brace-format
-msgid "Nessuna modifica trovata in {diff_type}"
-msgstr ""
 
 #: assistente-git.py:3040
 msgid ""
@@ -3089,7 +3083,7 @@ msgstr "Не найдено открытых issue для изменения.\n"
 msgid "Seleziona la issue da modificare:"
 msgstr "Выберите issue для изменения:"
 
-#: assistente-git.py:3977 assistente-git.py:3990 assistente-git.py:10529
+#: assistente-git.py:3977 assistente-git.py:3990 assistente-git.py:10520
 msgid "Modifica Issue"
 msgstr "Изменить Issue"
 
@@ -3122,7 +3116,7 @@ msgstr "Не найдено открытых issue для закрытия.\n"
 msgid "Seleziona la issue da chiudere:"
 msgstr "Выберите issue для закрытия:"
 
-#: assistente-git.py:4062 assistente-git.py:10530
+#: assistente-git.py:4062 assistente-git.py:10521
 msgid "Chiudi Issue"
 msgstr "Закрыть Issue"
 
@@ -3199,6 +3193,10 @@ msgstr "PR не выбран.\n"
 #: assistente-git.py:4211
 msgid "❌ Errore durante il recupero delle PR: {}\n"
 msgstr "❌ Ошибка при получении PR: {}\n"
+
+#: assistente-git.py:4249
+msgid "Dettagli"
+msgstr "Детали"
 
 #: assistente-git.py:4279
 msgid "📋 Dettagli tecnici:"
@@ -4287,6 +4285,10 @@ msgstr "'%(workflow)s' выполнен корректно"
 msgid "Controlla i log del workflow per maggiori dettagli sul problema."
 msgstr "Проверьте логи workflow для получения подробностей о проблеме."
 
+#: assistente-git.py:5416
+msgid "Dettagli mostrati in finestra"
+msgstr "Детали показаны в окне"
+
 #: assistente-git.py:5451
 msgid "❌ STATO:\n"
 msgstr "❌ СТАТУС:\n"
@@ -4836,7 +4838,7 @@ msgstr "Готово."
 msgid "&Cambia Repository...\tCtrl+O"
 msgstr "&Изменить репозиторий...\tCtrl+O"
 
-#: assistente-git.py:6217 assistente-git.py:10440
+#: assistente-git.py:6217 assistente-git.py:10431
 msgid "Seleziona una diversa cartella repository"
 msgstr "Выбрать другую папку репозитория"
 
@@ -4844,7 +4846,7 @@ msgstr "Выбрать другую папку репозитория"
 msgid "A&ggiorna Repository\tF5"
 msgstr "О&бновить репозиторий\tF5"
 
-#: assistente-git.py:6220 assistente-git.py:10443
+#: assistente-git.py:6220 assistente-git.py:10434
 msgid "Ricarica informazioni repository corrente"
 msgstr "Перезагрузить информацию о текущем репозитории"
 
@@ -4852,7 +4854,7 @@ msgstr "Перезагрузить информацию о текущем реп
 msgid "&Esci\tCtrl+Q"
 msgstr "&Выход\tCtrl+Q"
 
-#: assistente-git.py:6223 assistente-git.py:10446
+#: assistente-git.py:6223 assistente-git.py:10437
 msgid "Chiudi l'applicazione"
 msgstr "Закрыть приложение"
 
@@ -4916,7 +4918,7 @@ msgstr "Загрузить изменения с сервера"
 msgid "P&ush\tCtrl+Up"
 msgstr "P&ush\tCtrl+Up"
 
-#: assistente-git.py:6243 assistente-git.py:10497
+#: assistente-git.py:6243 assistente-git.py:10488
 msgid "Invia modifiche al server"
 msgstr "Отправить изменения на сервер"
 
@@ -4924,7 +4926,7 @@ msgstr "Отправить изменения на сервер"
 msgid "&Configurazione...\tCtrl+G"
 msgstr "&Конфигурация...\tCtrl+G"
 
-#: assistente-git.py:6248 assistente-git.py:10509
+#: assistente-git.py:6248 assistente-git.py:10500
 msgid "Configura repository e token GitHub"
 msgstr "Настроить репозиторий и токен GitHub"
 
@@ -4932,7 +4934,7 @@ msgstr "Настроить репозиторий и токен GitHub"
 msgid "&Dashboard Web\tCtrl+D"
 msgstr "&Веб-панель\tCtrl+D"
 
-#: assistente-git.py:6251 assistente-git.py:10521
+#: assistente-git.py:6251 assistente-git.py:10512
 msgid "Apri repository GitHub nel browser"
 msgstr "Открыть репозиторий GitHub в браузере"
 
@@ -5048,7 +5050,7 @@ msgstr "Что вы хотите добавить в .gitignore?"
 msgid "Selezione Tipo Elemento"
 msgstr "Выбор типа элемента"
 
-#: assistente-git.py:6467 assistente-git.py:6471 assistente-git.py:10576
+#: assistente-git.py:6467 assistente-git.py:6471 assistente-git.py:10567
 msgid "File"
 msgstr "Файл"
 
@@ -5111,7 +5113,7 @@ msgstr "Ошибка: Вы уже находитесь на единственн
 msgid "Seleziona il branch a cui passare:"
 msgstr "Выберите ветку для переключения:"
 
-#: assistente-git.py:6518 assistente-git.py:10486
+#: assistente-git.py:6518 assistente-git.py:10477
 msgid "Passa a Branch Esistente"
 msgstr "Переключиться на существующую ветку"
 
@@ -5179,13 +5181,13 @@ msgstr "Выбрать коммит для Reset --hard (ВНИМАНИЕ!)"
 msgid "Commit selezionato per reset: {}\n"
 msgstr "Коммит выбран для сброса: {}\n"
 
-#: assistente-git.py:6616 assistente-git.py:9233 assistente-git.py:10020
-#: assistente-git.py:10730
+#: assistente-git.py:6616 assistente-git.py:9233 assistente-git.py:10011
+#: assistente-git.py:10721
 msgid "Valore:"
 msgstr "Значение:"
 
-#: assistente-git.py:6618 assistente-git.py:9235 assistente-git.py:10022
-#: assistente-git.py:10732
+#: assistente-git.py:6618 assistente-git.py:9235 assistente-git.py:10013
+#: assistente-git.py:10723
 msgid "Input per: {}"
 msgstr "Ввод для: {}"
 
@@ -5244,12 +5246,10 @@ msgstr ""
 #: assistente-git.py:6655
 msgid "❌ Git Non Disponibile"
 msgstr "❌ Git Недоступен"
-
 #: assistente-git.py:6656
 #, fuzzy
 msgid "Git non è installato o non accessibile"
 msgstr "'{}' больше недоступен"
-
 #: assistente-git.py:6657
 msgid ""
 "🚨 PROBLEMA GIT:\n"
@@ -5262,17 +5262,7 @@ msgid ""
 "• Riavvia l'applicazione dopo l'installazione\n"
 "\n"
 "Comando tentato: {}"
-msgstr ""
-"🚨 PROBLEMA GIT:\n"
-" \n"
-" Git non sembra essere installato o accessibile nel PATH di sistema.\n"
-" \n"
-" Per utilizzare i comandi Git:\n"
-" • Installa Git dal sito ufficiale\n"
-" • Assicurati che sia nel PATH di sistema\n"
-" • Riavvia l'applicazione dopo l'installazione\n"
-" \n"
-" Попытка команды: {}"
+msgstr "🚨 PROBLEMA GIT:\n \n Git non sembra essere installato o accessibile nel PATH di sistema.\n \n Per utilizzare i comandi Git:\n • Installa Git dal sito ufficiale\n • Assicurati che sia nel PATH di sistema\n • Riavvia l'applicazione dopo l'installazione\n \n Попытка команды: {}"
 
 #: assistente-git.py:6658
 msgid "Visita https://git-scm.com/ per scaricare e installare Git."
@@ -5281,11 +5271,9 @@ msgstr "Посетите https://git-scm.com/ чтобы скачать и ус�
 #: assistente-git.py:6664
 msgid "❌ Directory Non Valida"
 msgstr "❌ Недействительный Каталог"
-
 #: assistente-git.py:6665
 msgid "Il percorso specificato non è una directory valida"
 msgstr "Указанный путь не является действительным каталогом"
-
 #: assistente-git.py:6666
 msgid ""
 "🗂️ ERRORE PERCORSO:\n"
@@ -5313,7 +5301,6 @@ msgstr ""
 #, fuzzy
 msgid "La directory non è un repository Git valido"
 msgstr "Каталог не является допустимым репозиторием Git"
-
 #: assistente-git.py:6680
 msgid ""
 "🗂️ PROBLEMA REPOSITORY:\n"
@@ -5331,22 +5318,7 @@ msgid ""
 "• Verifica che la directory .git non sia nascosta o danneggiata\n"
 "\n"
 "Comando tentato: {}"
-msgstr ""
-"🗂️ PROBLEMA REPOSITORY:\n"
-" \n"
-" Directory: {}\n"
-" \n"
-" La directory:\n"
-" • Non contiene una sottocartella .git\n"
-" • Non è stata inizializzata come repository Git\n"
-" • Potrebbe essere corrotta\n"
-" \n"
-" Per risolvere:\n"
-" • Usa '{}' per inizializzare un nuovo repository\n"
-" • Oppure naviga a una directory che contiene già un repository Git\n"
-" • Verifica che la directory .git non sia nascosta o danneggiata\n"
-" \n"
-" Попытка команды: {}"
+msgstr "🗂️ PROBLEMA REPOSITORY:\n \n Directory: {}\n \n La directory:\n • Non contiene una sottocartella .git\n • Non è stata inizializzata come repository Git\n • Potrebbe essere corrotta\n \n Per risolvere:\n • Usa '{}' per inizializzare un nuovo repository\n • Oppure naviga a una directory che contiene già un repository Git\n • Verifica che la directory .git non sia nascosta o danneggiata\n \n Попытка команды: {}"
 
 #: assistente-git.py:6681
 #, fuzzy
@@ -5356,12 +5328,11 @@ msgid ""
 msgstr ""
 "Инициализируйте Git репозиторий с помощью '%(cmd)s' или убедитесь, что "
 "находитесь в правильной директории."
-
 #: assistente-git.py:6686
 msgid ""
-"Avviso: La cartella '{}' non sembra essere un repository Git. Il file ."
-"gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino "
-"all'inizializzazione del repository ('{}').\n"
+"Avviso: La cartella '{}' non sembra essere un repository Git. Il "
+"file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo "
+"fino all'inizializzazione del repository ('{}').\n"
 msgstr ""
 "Предупреждение: Папка '{}' не является Git репозиторием. Файл .gitignore "
 "будет создан/изменен, но Git может не использовать его до инициализации "
@@ -5451,7 +5422,7 @@ msgstr "Ошибка: Недействительный ввод для тега.
 msgid "Nessun comando specifico da eseguire per questa azione.\n"
 msgstr "Нет конкретной команды для выполнения этого действия.\n"
 
-#: assistente-git.py:6759 assistente-git.py:9755
+#: assistente-git.py:6759 assistente-git.py:9754
 msgid ""
 "--- Output ({}) ---\n"
 "{}\n"
@@ -5459,7 +5430,7 @@ msgstr ""
 "--- Вывод ({}) ---\n"
 "{}\n"
 
-#: assistente-git.py:6760 assistente-git.py:9760
+#: assistente-git.py:6760 assistente-git.py:9759
 msgid ""
 "--- Messaggi/Errori ({}) ---\n"
 "{}\n"
@@ -5605,6 +5576,83 @@ msgstr "(Неизвестное имя Workflow)"
 #: assistente-git.py:7012
 msgid "🎯 Trovata esecuzione recente: '{}' (ID: {}, Status: {})\n"
 msgstr "🎯 Найдено недавнее выполнение: '{}' (ID: {}, Статус: {})\n"
+
+#: assistente-git.py:7024
+msgid "⏱️ MONITORAGGIO WORKFLOW AVVIATO"
+msgstr "⏱️ МОНИТОРИНГ WORKFLOW ЗАПУЩЕН"
+
+#: assistente-git.py:7025
+msgid "📋 Nome"
+msgstr "📋 Имя"
+
+#: assistente-git.py:7026
+msgid "🆔 Run ID"
+msgstr "🆔 ID запуска"
+
+#: assistente-git.py:7027
+msgid "📊 Status"
+msgstr "📊 Статус"
+
+#: assistente-git.py:7028 assistente-git.py:7113 assistente-git.py:7137
+#: assistente-git.py:7766 assistente-git.py:7804
+msgid "🏢 Repository"
+msgstr "🏢 Репозиторий"
+
+#: assistente-git.py:7029 assistente-git.py:7768
+msgid "⏰ Avviato"
+msgstr "⏰ Запущен"
+
+#: assistente-git.py:7030
+msgid "🔄 CONFIGURAZIONE MONITORAGGIO"
+msgstr "🔄 НАСТРОЙКА МОНИТОРИНГА"
+
+#: assistente-git.py:7031
+msgid "Polling ogni 10 secondi"
+msgstr "Опрос каждые 10 секунд"
+
+#: assistente-git.py:7032
+msgid "Durata massima: 30 minuti"
+msgstr "Максимальная длительность: 30 минут"
+
+#: assistente-git.py:7033
+msgid "Notifica automatica al completamento"
+msgstr "Автоматическое уведомление при завершении"
+
+#: assistente-git.py:7034
+msgid "Beep sonoro durante l'esecuzione (se abilitato)"
+msgstr "Звуковой сигнал во время выполнения (если включено)"
+
+#: assistente-git.py:7035
+msgid "✅ STATO ATTUALE"
+msgstr "✅ ТЕКУЩЕЕ СОСТОЯНИЕ"
+
+#: assistente-git.py:7036
+msgid "Monitoraggio attivo e funzionante"
+msgstr "Мониторинг активен и работает"
+
+#: assistente-git.py:7037
+msgid "Il workflow verrà seguito automaticamente"
+msgstr "Workflow будет отслеживаться автоматически"
+
+#: assistente-git.py:7038
+msgid "Riceverai una notifica quando terminerà"
+msgstr "Вы получите уведомление при завершении"
+
+#: assistente-git.py:7039
+msgid "💡 INFORMAZIONI"
+msgstr "💡 ИНФОРМАЦИЯ"
+
+#: assistente-git.py:7040
+msgid "Puoi continuare a usare l'applicazione normalmente"
+msgstr "Вы можете продолжать использовать приложение нормально"
+
+#: assistente-git.py:7041
+msgid "Il monitoraggio continua in background"
+msgstr "Мониторинг продолжается в фоновом режиме"
+
+#: assistente-git.py:7042
+msgid "La notifica finale includerà i risultati completi"
+msgstr "Итоговое уведомление будет включать полные результаты"
 
 #: assistente-git.py:7053
 msgid "⏱️ Monitoraggio Avviato"
@@ -5782,6 +5830,58 @@ msgstr "Не найдено недавних выполнений для мон�
 msgid "Verifica che il workflow sia stato avviato correttamente su GitHub."
 msgstr "Убедитесь, что workflow был корректно запущен на GitHub."
 
+#: assistente-git.py:7112
+msgid "🌐 ERRORE CONNESSIONE"
+msgstr "🌐 ОШИБКА СОЕДИНЕНИЯ"
+
+#: assistente-git.py:7114 assistente-git.py:7138
+msgid "📝 Dettagli"
+msgstr "📝 Детали"
+
+#: assistente-git.py:7115 assistente-git.py:7139
+msgid "⏰ Timestamp"
+msgstr "⏰ Время"
+
+#: assistente-git.py:7116 assistente-git.py:7140
+msgid "❌ PROBLEMA"
+msgstr "❌ ПРОБЛЕМА"
+
+#: assistente-git.py:7117
+msgid "Errore di rete durante la ricerca delle esecuzioni"
+msgstr "Сетевая ошибка при поиске выполнений"
+
+#: assistente-git.py:7118 assistente-git.py:7822
+msgid "Server GitHub temporaneamente non disponibile"
+msgstr "Сервер GitHub временно недоступен"
+
+#: assistente-git.py:7119
+msgid "Problemi di connessione internet"
+msgstr "Проблемы с интернет-соединением"
+
+#: assistente-git.py:7120
+msgid "Timeout della richiesta"
+msgstr "Тайм-аут запроса"
+
+#: assistente-git.py:7121
+msgid "🔧 SOLUZIONI"
+msgstr "🔧 РЕШЕНИЯ"
+
+#: assistente-git.py:7122
+msgid "Verifica la connessione internet"
+msgstr "Проверьте интернет-соединение"
+
+#: assistente-git.py:7123
+msgid "Riprova il monitoraggio tra qualche minuto"
+msgstr "Попробуйте мониторинг снова через несколько минут"
+
+#: assistente-git.py:7124
+msgid "Controlla lo stato dei servizi GitHub"
+msgstr "Проверьте состояние сервисов GitHub"
+
+#: assistente-git.py:7125
+msgid "Verifica i permessi del token GitHub"
+msgstr "Проверьте права токена GitHub"
+
 #: assistente-git.py:7128 assistente-git.py:7828 assistente-git.py:8356
 msgid "❌ Errore di Rete"
 msgstr "❌ Сетевая ошибка"
@@ -5793,6 +5893,42 @@ msgstr "Проблема соединения при поиске выполне
 #: assistente-git.py:7131
 msgid "Controlla la connessione e riprova tra qualche minuto."
 msgstr "Проверьте соединение и попробуйте снова через несколько минут."
+
+#: assistente-git.py:7136
+msgid "⚠️ ERRORE IMPREVISTO"
+msgstr "⚠️ НЕОЖИДАННАЯ ОШИБКА"
+
+#: assistente-git.py:7141
+msgid "Errore sconosciuto durante la ricerca automatica"
+msgstr "Неизвестная ошибка во время автоматического поиска"
+
+#: assistente-git.py:7142
+msgid "Possibile problema interno dell'applicazione"
+msgstr "Возможная внутренняя проблема приложения"
+
+#: assistente-git.py:7143
+msgid "Risposta inattesa dall'API GitHub"
+msgstr "Неожиданный ответ от API GitHub"
+
+#: assistente-git.py:7144
+msgid "🔧 AZIONI"
+msgstr "🔧 ДЕЙСТВИЯ"
+
+#: assistente-git.py:7145
+msgid "Riprova l'operazione di monitoraggio"
+msgstr "Повторите операцию мониторинга"
+
+#: assistente-git.py:7146
+msgid "Verifica la configurazione GitHub"
+msgstr "Проверьте конфигурацию GitHub"
+
+#: assistente-git.py:7147
+msgid "Controlla i log per dettagli aggiuntivi"
+msgstr "Проверьте логи для дополнительных деталей"
+
+#: assistente-git.py:7148
+msgid "Segnala il problema se persiste"
+msgstr "Сообщите о проблеме, если она продолжается"
 
 #: assistente-git.py:7151 assistente-git.py:7458 assistente-git.py:7831
 #: assistente-git.py:8362
@@ -5970,34 +6106,28 @@ msgstr "Загрузка ресурса: '{}'...\n"
 #, fuzzy
 msgid "🎯 Release Creata"
 msgstr "🎯 Issue создана"
-
 #: assistente-git.py:7399
 #, fuzzy
 msgid "Release '{}' (tag: {}) creata con successo"
 msgstr "Релиз '{}' (ID: {}) успешно удален из GitHub.\n"
-
 #: assistente-git.py:7404
 #, fuzzy
 msgid "✅ Release '{}' creata - dettagli mostrati in finestra\n"
 msgstr "✅ Issue #{} создана - детали показаны в окне\n"
-
 #: assistente-git.py:7407
 #, fuzzy
 msgid "Vuoi aprire la release nel browser?"
 msgstr "Хотите открыть Pull Request в браузере?"
-
 #: assistente-git.py:7408
 #, fuzzy
 msgid "Apri Release"
 msgstr "Создать релиз"
-
 #: assistente-git.py:7414
 #, fuzzy
 msgid ""
 "🚨 ERRORE CREAZIONE RELEASE\n"
 "\n"
 msgstr "🚨 HTTP ОШИБКА ВО ВРЕМЯ ЗАПУСКА"
-
 #: assistente-git.py:7415
 msgid "📋 Release tentata: {} (tag: {})\n"
 msgstr ""
@@ -6010,7 +6140,6 @@ msgstr "📝 Ошибка: {}\n"
 #, fuzzy
 msgid "📊 Codice HTTP: {}\n"
 msgstr "📊 HTTP код: {status_code}\n"
-
 #: assistente-git.py:7422
 #, fuzzy
 msgid ""
@@ -6019,7 +6148,6 @@ msgid ""
 msgstr ""
 "📄 Ответ сервера: {response_text}\n"
 "\n"
-
 #: assistente-git.py:7425
 #, fuzzy
 msgid ""
@@ -6030,7 +6158,6 @@ msgstr ""
 "❌ ОШИБКА АУТЕНТИФИКАЦИИ:\n"
 "• Недействительный или истекший токен GitHub\n"
 "• Недостаточные права для создания issue"
-
 #: assistente-git.py:7428
 #, fuzzy
 msgid ""
@@ -6041,7 +6168,6 @@ msgstr ""
 "❌ ОШИБКА ПРАВ:\n"
 "• У вас нет прав для создания issue в этом репозитории\n"
 "• Частный репозиторий без доступа"
-
 #: assistente-git.py:7434
 msgid ""
 "❌ DATI NON VALIDI:\n"
@@ -6060,19 +6186,16 @@ msgstr ""
 #, fuzzy
 msgid "❌ Errore Creazione Release"
 msgstr "❌ Ошибка создания Issue"
-
 #: assistente-git.py:7444
 #, fuzzy
 msgid "Impossibile creare la release su GitHub"
 msgstr "Невозможно создать issue на GitHub"
-
 #: assistente-git.py:7450
 #, fuzzy
 msgid ""
 "⚠️ ERRORE IMPREVISTO\n"
 "\n"
 msgstr "⚠️ НЕОЖИДАННАЯ ОШИБКА"
-
 #: assistente-git.py:7451
 msgid "📋 Release: {} (tag: {})\n"
 msgstr ""
@@ -6081,7 +6204,6 @@ msgstr ""
 #, fuzzy
 msgid "📝 Dettagli: {}\n"
 msgstr "📝 Детали"
-
 #: assistente-git.py:7454
 #, fuzzy
 msgid ""
@@ -6090,7 +6212,6 @@ msgid ""
 msgstr ""
 "⏰ Время: {}\n"
 "\n"
-
 #: assistente-git.py:7455
 msgid ""
 "❌ PROBLEMA:\n"
@@ -6103,7 +6224,6 @@ msgstr ""
 #, fuzzy
 msgid "Errore sconosciuto durante la creazione della release"
 msgstr "Неизвестная ошибка при запуске workflow"
-
 #: assistente-git.py:7464
 msgid "Creazione Release annullata dall'utente.\n"
 msgstr "Создание релиза отменено пользователем.\n"
@@ -6301,7 +6421,7 @@ msgstr "Выбор workflow отменен.\n"
 msgid "Errore nella selezione del workflow.\n"
 msgstr "Ошибка в выборе workflow.\n"
 
-#: assistente-git.py:7734 assistente-git.py:10516
+#: assistente-git.py:7734 assistente-git.py:10507
 msgid "Trigger Workflow"
 msgstr "Запустить Workflow"
 
@@ -6312,6 +6432,30 @@ msgstr "Запуск workflow отменен.\n"
 #: assistente-git.py:7753
 msgid "🚀 Avvio workflow '{}' sul branch '{}' con {} input...\n"
 msgstr "🚀 Запуск workflow '{}' на ветке '{}' с {} входными данными...\n"
+
+#: assistente-git.py:7763
+msgid "🚀 WORKFLOW AVVIATO CON SUCCESSO"
+msgstr "🚀 WORKFLOW ЗАПУЩЕН УСПЕШНО"
+
+#: assistente-git.py:7764
+msgid "📋 Nome Workflow"
+msgstr "📋 Имя Workflow"
+
+#: assistente-git.py:7765 assistente-git.py:7803
+msgid "🌿 Branch"
+msgstr "🌿 Ветка"
+
+#: assistente-git.py:7767
+msgid "📝 Input Parametri"
+msgstr "📝 Входные параметры"
+
+#: assistente-git.py:7767
+msgid "parametri"
+msgstr "параметры"
+
+#: assistente-git.py:7771
+msgid "🔧 PARAMETRI FORNITI"
+msgstr "🔧 ПРЕДОСТАВЛЕННЫЕ ПАРАМЕТРЫ"
 
 #: assistente-git.py:7777
 msgid "• Il workflow è stato accodato per l'esecuzione\n"
@@ -6368,9 +6512,69 @@ msgid "⏳ Monitoraggio automatico attivato - attesa nuova esecuzione...\n"
 msgstr ""
 "⏳ Автоматический мониторинг активирован - ожидание нового выполнения...\n"
 
+#: assistente-git.py:7801
+msgid "🚨 ERRORE HTTP DURANTE TRIGGER"
+msgstr "🚨 HTTP ОШИБКА ВО ВРЕМЯ ЗАПУСКА"
+
+#: assistente-git.py:7802
+msgid "📋 Workflow"
+msgstr "📋 Workflow"
+
+#: assistente-git.py:7805
+msgid "📊 Codice Errore"
+msgstr "📊 Код ошибки"
+
+#: assistente-git.py:7806
+msgid "📝 Risposta Server"
+msgstr "📝 Ответ сервера"
+
+#: assistente-git.py:7809
+msgid "❌ ERRORE 422 - PARAMETRI NON VALIDI"
+msgstr "❌ ОШИБКА 422 - НЕДЕЙСТВИТЕЛЬНЫЕ ПАРАМЕТРЫ"
+
+#: assistente-git.py:7810
+msgid "Il workflow potrebbe non supportare il dispatch manuale"
+msgstr "Workflow может не поддерживать ручной запуск"
+
+#: assistente-git.py:7811
+msgid "I parametri forniti potrebbero essere incorretti"
+msgstr "Предоставленные параметры могут быть неверными"
+
+#: assistente-git.py:7812
+msgid "La configurazione del workflow potrebbe essere errata"
+msgstr "Конфигурация workflow может быть неверной"
+
+#: assistente-git.py:7813
+msgid "🔧 VERIFICA"
+msgstr "🔧 ПРОВЕРКА"
+
+#: assistente-git.py:7814
+msgid "Controlla che il workflow abbia 'workflow_dispatch' abilitato"
+msgstr "Проверьте, что в workflow включен 'workflow_dispatch'"
+
+#: assistente-git.py:7815
+msgid "Verifica i parametri di input richiesti"
+msgstr "Проверьте требуемые входные параметры"
+
+#: assistente-git.py:7816
+msgid "Controlla la configurazione YAML del workflow"
+msgstr "Проверьте YAML конфигурацию workflow"
+
 #: assistente-git.py:7817
 msgid "Verifica la configurazione del workflow e i parametri richiesti."
 msgstr "Проверьте конфигурацию workflow и требуемые параметры."
+
+#: assistente-git.py:7819
+msgid "❌ ERRORE HTTP"
+msgstr "❌ HTTP ОШИБКА"
+
+#: assistente-git.py:7820
+msgid "Problema di comunicazione con GitHub"
+msgstr "Проблема связи с GitHub"
+
+#: assistente-git.py:7821
+msgid "Possibili problemi di permessi o autenticazione"
+msgstr "Возможные проблемы с правами или аутентификацией"
 
 #: assistente-git.py:7823
 msgid "Verifica i permessi del token GitHub e riprova."
@@ -6554,7 +6758,7 @@ msgstr "Не найдено действительных релизов для �
 msgid "Seleziona la release da eliminare:"
 msgstr "Выберите релиз для удаления:"
 
-#: assistente-git.py:7973 assistente-git.py:10513
+#: assistente-git.py:7973 assistente-git.py:10504
 msgid "Elimina Release GitHub"
 msgstr "Удалить релиз GitHub"
 
@@ -6694,6 +6898,10 @@ msgstr "в процессе"
 msgid " ⭐ [ATTUALMENTE SELEZIONATA]"
 msgstr " ⭐ [ВЫБРАНА В НАСТОЯЩЕЕ ВРЕМЯ]"
 
+#: assistente-git.py:8130 assistente-git.py:8162 assistente-git.py:8311
+msgid "Workflow Sconosciuto"
+msgstr "Неизвестный Workflow"
+
 #: assistente-git.py:8135
 msgid "Nessuna esecuzione di workflow trovata da cui recuperare i log.\n"
 msgstr "Выполнения workflow для получения логов не найдены.\n"
@@ -6713,10 +6921,6 @@ msgstr "Просмотр логов отменен.\n"
 #: assistente-git.py:8157
 msgid "Errore nella selezione dell'esecuzione per i log.\n"
 msgstr "Ошибка в выборе выполнения для логов.\n"
-
-#: assistente-git.py:8162 assistente-git.py:8311
-msgid "Workflow Sconosciuto"
-msgstr "Неизвестный Workflow"
 
 #: assistente-git.py:8164
 msgid "Recupero log per: '{}' (ID: {})\n"
@@ -6846,6 +7050,38 @@ msgstr "Ошибка при декодировании или обработке
 #: assistente-git.py:8307
 msgid "Nessun file di log selezionato per la visualizzazione.\n"
 msgstr "Файл логов для отображения не выбран.\n"
+
+#: assistente-git.py:8314
+msgid "LOG WORKFLOW"
+msgstr "ЛОГ WORKFLOW"
+
+#: assistente-git.py:8315
+msgid "Run ID"
+msgstr "ID запуска"
+
+#: assistente-git.py:8316
+msgid "Repository"
+msgstr "Репозиторий"
+
+#: assistente-git.py:8317
+msgid "File log"
+msgstr "Файл логов"
+
+#: assistente-git.py:8318
+msgid "Recuperato"
+msgstr "Получено"
+
+#: assistente-git.py:8319
+msgid "CONTENUTO LOG COMPLETO"
+msgstr "ПОЛНОЕ СОДЕРЖИМОЕ ЛОГОВ"
+
+#: assistente-git.py:8322
+msgid "Log Workflow"
+msgstr "Логи Workflow"
+
+#: assistente-git.py:8323
+msgid "Log recuperati con successo per run ID"
+msgstr "Логи успешно получены для run ID"
 
 #: assistente-git.py:8328
 msgid "✅ Log mostrati in finestra dettagli per run ID {}\n"
@@ -6980,7 +7216,6 @@ msgstr ""
 #, fuzzy
 msgid "Controlla la connessione internet e riprova tra qualche minuto."
 msgstr "Проверьте соединение и попробуйте снова через несколько минут."
-
 #: assistente-git.py:8359
 msgid "❌ File Log Corrotto"
 msgstr "❌ Поврежденный файл логов"
@@ -7160,6 +7395,10 @@ msgstr ""
 "Убедитесь, что workflow предназначен для создания артефактов и что "
 "выполнение завершено успешно."
 
+#: assistente-git.py:8420
+msgid "Scade"
+msgstr "Истекает"
+
 #: assistente-git.py:8426
 msgid "❌ Nessun Artifact Valido"
 msgstr "❌ Нет действительных артефактов"
@@ -7208,7 +7447,6 @@ msgstr "ZIP файлы (*.zip)|*.zip|Все файлы (*.*)|*.*"
 #, fuzzy
 msgid "Download Artifact"
 msgstr "❌ Ошибка загрузки артефакта"
-
 #: assistente-git.py:8459 assistente-git.py:8468
 msgid "❌ Errore Recupero Artifacts"
 msgstr "❌ Ошибка получения артефактов"
@@ -7715,9 +7953,39 @@ msgstr ""
 "🏠 === ОБЗОР РЕПОЗИТОРИЯ ===\n"
 "\n"
 
+#: assistente-git.py:8709
+msgid "Percorso"
+msgstr "Путь"
+
+#: assistente-git.py:8717 assistente-git.py:8719 assistente-git.py:8943
+msgid "Branch corrente"
+msgstr "Текущая ветка"
+
+#: assistente-git.py:8719
+msgid "Errore nel rilevamento"
+msgstr "Ошибка определения"
+
+#: assistente-git.py:8728 assistente-git.py:9063
+msgid "File modificati"
+msgstr "Измененные файлы"
+
+#: assistente-git.py:8736 assistente-git.py:8978 assistente-git.py:9067
+#: assistente-git.py:9075 assistente-git.py:9083 assistente-git.py:9091
+#: assistente-git.py:9099 assistente-git.py:9107
+msgid "... e altri"
+msgstr "... и другие"
+
+#: assistente-git.py:8736
+msgid "file"
+msgstr "файла"
+
 #: assistente-git.py:8738
 msgid "✅ Working directory pulita\n"
 msgstr "✅ Рабочий каталог чист\n"
+
+#: assistente-git.py:8745 assistente-git.py:8867
+msgid "Ultimo commit"
+msgstr "Последний коммит"
 
 #: assistente-git.py:8764
 msgid "📤 Repository ha commit non inviati al remote\n"
@@ -7743,6 +8011,10 @@ msgstr ""
 "\n"
 "✨ Обзор успешно завершен!"
 
+#: assistente-git.py:8782
+msgid "Errore nella raccolta dati panoramica"
+msgstr "Ошибка при сборе данных для обзора"
+
 #: assistente-git.py:8787
 msgid ""
 "📊 === STATISTICHE REPOSITORY ===\n"
@@ -7751,9 +8023,41 @@ msgstr ""
 "📊 === СТАТИСТИКА РЕПОЗИТОРИЯ ===\n"
 "\n"
 
+#: assistente-git.py:8796
+msgid "Totale commit"
+msgstr "Всего коммитов"
+
+#: assistente-git.py:8804
+msgid "Contributori"
+msgstr "Участники"
+
 #: assistente-git.py:8808
 msgid "🏆 Top contributori:\n"
 msgstr "🏆 Лучшие участники:\n"
+
+#: assistente-git.py:8826
+msgid "Branch locali"
+msgstr "Локальные ветки"
+
+#: assistente-git.py:8827 assistente-git.py:8971
+msgid "Branch remoti"
+msgstr "Удаленные ветки"
+
+#: assistente-git.py:8839 assistente-git.py:8841
+msgid "Dimensione .git"
+msgstr "Размер .git"
+
+#: assistente-git.py:8841
+msgid "Non calcolabile"
+msgstr "Невозможно вычислить"
+
+#: assistente-git.py:8849
+msgid "File tracciati"
+msgstr "Отслеживаемые файлы"
+
+#: assistente-git.py:8859
+msgid "Primo commit"
+msgstr "Первый коммит"
 
 #: assistente-git.py:8871
 msgid ""
@@ -7762,6 +8066,10 @@ msgid ""
 msgstr ""
 "\n"
 "✨ Статистика успешно собрана!"
+
+#: assistente-git.py:8881
+msgid "Errore nella raccolta statistiche"
+msgstr "Ошибка при сборе статистики"
 
 #: assistente-git.py:8886
 msgid ""
@@ -7775,6 +8083,10 @@ msgstr ""
 msgid "❌ Nessun commit trovato o formato non riconosciuto.\n"
 msgstr "❌ Коммиты не найдены или формат не распознан.\n"
 
+#: assistente-git.py:8916
+msgid "Totale commit mostrati"
+msgstr "Всего показанных коммитов"
+
 #: assistente-git.py:8917
 msgid ""
 "\n"
@@ -7786,6 +8098,10 @@ msgstr ""
 #: assistente-git.py:8919
 msgid "❌ Errore nel recupero dei commit o repository vuoto.\n"
 msgstr "❌ Ошибка при получении коммитов или репозиторий пуст.\n"
+
+#: assistente-git.py:8930
+msgid "Errore nel recupero attività recente"
+msgstr "Ошибка при получении недавней активности"
 
 #: assistente-git.py:8935
 msgid ""
@@ -7799,6 +8115,14 @@ msgstr ""
 msgid "📋 Branch locali con ultimo commit:\n"
 msgstr "📋 Локальные ветки с последним коммитом:\n"
 
+#: assistente-git.py:8958
+msgid "CORRENTE"
+msgstr "ТЕКУЩАЯ"
+
+#: assistente-git.py:8962
+msgid "Totale branch locali"
+msgstr "Всего локальных веток"
+
 #: assistente-git.py:8974
 msgid ""
 "\n"
@@ -7807,26 +8131,30 @@ msgstr ""
 "\n"
 "🔗 Удаленные ветки:\n"
 
+#: assistente-git.py:8978
+msgid "branch"
+msgstr "ветки"
+
+#: assistente-git.py:8987 assistente-git.py:8998
+msgid "Stato sync branch"
+msgstr "Статус синхронизации веток"
+
 #: assistente-git.py:8990
 #, fuzzy
 msgid "   ⚠️ Branch divergente (ahead e behind)\n"
 msgstr "   ⚠️ Разошедшаяся ветка (впереди и позади)\n"
-
 #: assistente-git.py:8992
 #, fuzzy
 msgid "   📤 Branch avanti rispetto al remote\n"
 msgstr "   📤 Ветка опережает удаленную\n"
-
 #: assistente-git.py:8994
 #, fuzzy
 msgid "   📥 Branch indietro rispetto al remote\n"
 msgstr "   📥 Ветка отстает от удаленной\n"
-
 #: assistente-git.py:8996
 #, fuzzy
 msgid "   ✅ Branch sincronizzato con remote\n"
 msgstr "   ✅ Ветка синхронизирована с удаленной\n"
-
 #: assistente-git.py:9000
 msgid ""
 "\n"
@@ -7834,6 +8162,10 @@ msgid ""
 msgstr ""
 "\n"
 "✨ Состояние веток успешно получено!"
+
+#: assistente-git.py:9010
+msgid "Errore nel recupero stato branch"
+msgstr "Ошибка при получении состояния веток"
 
 #: assistente-git.py:9015
 msgid ""
@@ -7855,9 +8187,69 @@ msgstr ""
 "\n"
 "🎉 Репозиторий находится в чистом и синхронизированном состоянии."
 
+#: assistente-git.py:9060
+msgid "Totale file con modifiche"
+msgstr "Всего файлов с изменениями"
+
+#: assistente-git.py:9067
+msgid "file modificati"
+msgstr "измененных файлов"
+
+#: assistente-git.py:9071
+msgid "File aggiunti"
+msgstr "Добавленные файлы"
+
+#: assistente-git.py:9075
+msgid "file aggiunti"
+msgstr "добавленных файлов"
+
+#: assistente-git.py:9079
+msgid "File eliminati"
+msgstr "Удаленные файлы"
+
+#: assistente-git.py:9083
+msgid "file eliminati"
+msgstr "удаленных файлов"
+
+#: assistente-git.py:9087
+msgid "File rinominati"
+msgstr "Переименованные файлы"
+
+#: assistente-git.py:9091
+msgid "file rinominati"
+msgstr "переименованных файлов"
+
+#: assistente-git.py:9095
+msgid "File copiati"
+msgstr "Скопированные файлы"
+
+#: assistente-git.py:9099
+msgid "file copiati"
+msgstr "скопированных файлов"
+
+#: assistente-git.py:9103
+msgid "File non tracciati"
+msgstr "Неотслеживаемые файлы"
+
+#: assistente-git.py:9107
+msgid "file non tracciati"
+msgstr "неотслеживаемых файлов"
+
 #: assistente-git.py:9111
 msgid "💡 Azioni suggerite:\n"
 msgstr "💡 Предлагаемые действия:\n"
+
+#: assistente-git.py:9113 assistente-git.py:9115
+msgid "Usa"
+msgstr "Используйте"
+
+#: assistente-git.py:9113
+msgid "per mettere in stage tutte le modifiche"
+msgstr "для индексации всех изменений"
+
+#: assistente-git.py:9115
+msgid "per creare un commit dopo staging"
+msgstr "для создания коммита после индексации"
 
 #: assistente-git.py:9117
 #, fuzzy
@@ -7867,7 +8259,6 @@ msgid ""
 msgstr ""
 "   • Добавьте важные файлы или используйте .gitignore, чтобы исключить "
 "ненужные\n"
-
 #: assistente-git.py:9119
 msgid ""
 "\n"
@@ -7875,6 +8266,10 @@ msgid ""
 msgstr ""
 "\n"
 "✨ Сводка изменений успешно завершена!"
+
+#: assistente-git.py:9129
+msgid "Errore nel riepilogo modifiche"
+msgstr "Ошибка в сводке изменений"
 
 #: assistente-git.py:9141
 msgid "🔄 Informazioni repository aggiornate.\n"
@@ -8019,7 +8414,6 @@ msgstr ""
 "\n"
 "💡 Помните: Вы всегда можете использовать традиционные меню в качестве "
 "альтернативы!"
-
 #: assistente-git.py:9320
 msgid "🎹 Scorciatoie Tastiera - Assistente Git"
 msgstr "🎹 Клавиатурные сокращения - Git-ассистент"
@@ -8028,11 +8422,11 @@ msgstr "🎹 Клавиатурные сокращения - Git-ассисте�
 msgid "Guida Scorciatoie Tastiera"
 msgstr "Руководство по клавиатурным сокращениям"
 
-#: assistente-git.py:9374 assistente-git.py:10161 assistente-git.py:10868
+#: assistente-git.py:9374 assistente-git.py:10152 assistente-git.py:10859
 msgid "📋 Copia Tutto"
 msgstr "📋 Копировать все"
 
-#: assistente-git.py:9378 assistente-git.py:10165 assistente-git.py:10872
+#: assistente-git.py:9378 assistente-git.py:10156 assistente-git.py:10863
 msgid "🖨️ Salva Come File"
 msgstr "🖨️ Сохранить как файл"
 
@@ -8119,46 +8513,38 @@ msgstr ""
 #: assistente-git.py:9488
 #, fuzzy
 msgid "Comando completato con successo"
-msgstr "Команда успешно выполнена"
-
+msgstr "Checkout завершен успешно!"
 #: assistente-git.py:9501
 msgid "✅ Operazione completata con successo\n"
 msgstr "✅ Операция завершена успешно\n"
-
 #: assistente-git.py:9529
 #, fuzzy
 msgid "❌ Errore comando Git: {}"
 msgstr "❌ Сетевая ошибка: {}\n"
-
 #: assistente-git.py:9534
 #, fuzzy
 msgid ""
 "❌ Errore durante l'operazione:\n"
 "{}"
 msgstr "Ошибка во время операции '{}': {}\n"
-
 #: assistente-git.py:9536
 #, fuzzy
 msgid "Errore Operazione"
 msgstr "Ошибка проверки"
-
 #: assistente-git.py:9547
 #, fuzzy
 msgid "Esecuzione {} in corso..."
 msgstr "Выполнение в процессе"
-
 #: assistente-git.py:9572
 #, fuzzy
 msgid "📁 Percorso aggiornato a: {}\n"
 msgstr ""
 "\n"
 "Путь к папке репозитория обновлен до: {}\n"
-
 #: assistente-git.py:9583
 #, fuzzy
 msgid "Comando Git: {}"
 msgstr "Команда Git"
-
 #: assistente-git.py:9646
 msgid "Scaricamento {}: {} KB"
 msgstr ""
@@ -8167,7 +8553,6 @@ msgstr ""
 #, fuzzy
 msgid "Download cancellato dall'utente"
 msgstr "Коммит отменен пользователем.\n"
-
 #: assistente-git.py:9658
 msgid ""
 "📦 ARTIFACT SCARICATO CON SUCCESSO\n"
@@ -8228,39 +8613,33 @@ msgstr "• Извлеките содержимое для использова�
 #, fuzzy
 msgid "Artifact \"{}\" scaricato con successo"
 msgstr "'{}' загружен успешно"
-
 #: assistente-git.py:9721
 #, fuzzy
 msgid "Input per il tag non valido. Fornire almeno il nome del tag."
 msgstr "Ошибка: Недействительный ввод для тега. Укажите хотя бы имя тега.\n"
-
 #: assistente-git.py:9727
 #, fuzzy
 msgid "Nessun comando specifico da eseguire per questa azione."
 msgstr "Нет конкретной команды для выполнения этого действия.\n"
-
 #: assistente-git.py:9734
 #, fuzzy
 msgid "Esecuzione: {}"
 msgstr ""
 "\n"
 "Выполнение: {}...\n"
-
 #: assistente-git.py:9736
 #, fuzzy
 msgid "Operazione cancellata dall'utente"
 msgstr "Операция отменена пользователем.\n"
-
-#: assistente-git.py:9752
+#: assistente-git.py:9751
 #, fuzzy
 msgid "🔧 Comando eseguito: {}\n"
-msgstr "🔧 Команда выполнена: {}\n"
-
-#: assistente-git.py:9757
+msgstr "🔄 Выполнено: {}\n"
+#: assistente-git.py:9756
 msgid "✅ Comando completato senza output\n"
-msgstr "✅ Команда завершена без вывода\n"
+msgstr ""
 
-#: assistente-git.py:9764
+#: assistente-git.py:9763
 #, fuzzy
 msgid ""
 "\n"
@@ -8268,63 +8647,41 @@ msgid ""
 msgstr ""
 "\n"
 "!!! Команда {} не удалась с кодом выхода: {} !!!\n"
-
-#: assistente-git.py:9780
+#: assistente-git.py:9779
 #, fuzzy
 msgid "Comando Git fallito: {}"
 msgstr "Команда Git"
-
-#: assistente-git.py:9785
+#: assistente-git.py:9784
 #, fuzzy
 msgid "Comando completato"
 msgstr "Команда Git"
-
-#: assistente-git.py:9789
+#: assistente-git.py:9788
 #, fuzzy
 msgid "✅ OPERAZIONE COMPLETATA CON SUCCESSO\n"
-msgstr "✅ ОПЕРАЦИЯ УСПЕШНО ЗАВЕРШЕНА\n"
+msgstr ""
 "%(icon)s ОПЕРАЦИЯ ЗАВЕРШЕНА\n"
 "\n"
-
-#: assistente-git.py:9790
+#: assistente-git.py:9789
 #, fuzzy
 msgid "📋 Comando: {}\n"
-msgstr "📋 Команда: {}\n"
+msgstr "📋 Имя: {}\n"
+#: assistente-git.py:9790
+msgid "⏱️ Comandi eseguiti: {}\n"
+msgstr ""
 
 #: assistente-git.py:9791
-msgid "⏱️ Comandi eseguiti: {}\n"
-msgstr "⏱️ Выполненные команды: {}\n"
-
-#: assistente-git.py:9792
 #, fuzzy
 msgid "📂 Repository: {}\n"
 msgstr "🏢 Репозиторий: {}/{}\n"
-
-#: assistente-git.py:9798
+#: assistente-git.py:9797
 #, fuzzy
 msgid "Comando Git completato: {}"
 msgstr "📅 Завершено: {}"
-
-#: assistente-git.py:9805
-msgid "⏱️ TIMEOUT: Comando Git scaduto dopo 30 secondi\n"
-msgstr ""
-
 #: assistente-git.py:9806
-#, fuzzy
-msgid "🔧 Comando: {}\n"
-msgstr "📋 Имя: {}\n"
-
-#: assistente-git.py:9807
-#, fuzzy
-msgid "Timeout durante l'esecuzione del comando Git"
-msgstr "Непредвиденная ошибка при выполнении команды панели управления"
-
-#: assistente-git.py:9815
 #, fuzzy
 msgid "Errore durante l'esecuzione: {}"
 msgstr "Ошибка при выполнении {}: {}\n"
-
-#: assistente-git.py:10045
+#: assistente-git.py:10036
 #, fuzzy
 msgid ""
 "🎹 SCORCIATOIE TASTIERA (macOS)\n"
@@ -8470,400 +8827,399 @@ msgstr ""
 "• Cmd+H для скрытия приложения\n"
 "\n"
 "💡 Все команды доступны из строки меню!"
-
-#: assistente-git.py:10107 assistente-git.py:10814
+#: assistente-git.py:10098 assistente-git.py:10805
 msgid "🎹 Scorciatoie Tastiera - Assistente Git (macOS)"
 msgstr "🎹 Клавиатурные сокращения - Git-ассистент (macOS)"
 
-#: assistente-git.py:10123 assistente-git.py:10830
+#: assistente-git.py:10114 assistente-git.py:10821
 msgid "Guida Scorciatoie Tastiera (macOS)"
 msgstr "Руководство по клавиатурным сокращениям (macOS)"
 
-#: assistente-git.py:10439
+#: assistente-git.py:10430
 msgid "Cambia Repository"
 msgstr "Сменить репозиторий"
 
-#: assistente-git.py:10442
+#: assistente-git.py:10433
 msgid "Aggiorna Repository"
 msgstr "Обновить репозиторий"
 
-#: assistente-git.py:10445
+#: assistente-git.py:10436
 msgid "Esci"
 msgstr "Выход"
 
-#: assistente-git.py:10451
+#: assistente-git.py:10442
 msgid "Mostra una panoramica completa dello stato del repository"
 msgstr "Показать полный обзор состояния репозитория"
 
-#: assistente-git.py:10453
+#: assistente-git.py:10444
 msgid "Visualizza statistiche dettagliate del repository"
 msgstr "Показать подробную статистику репозитория"
 
-#: assistente-git.py:10455
+#: assistente-git.py:10446
 msgid "Mostra gli ultimi 20 commit con informazioni dettagliate"
 msgstr "Показать последние 20 коммитов с подробной информацией"
 
-#: assistente-git.py:10457
+#: assistente-git.py:10448
 msgid "Analisi dettagliata di tutti i branch"
 msgstr "Подробный анализ всех веток"
 
-#: assistente-git.py:10459
+#: assistente-git.py:10450
 msgid "Riepilogo delle modifiche correnti"
 msgstr "Сводка текущих изменений"
 
-#: assistente-git.py:10463
+#: assistente-git.py:10454
 msgid "Status"
 msgstr "Статус"
 
-#: assistente-git.py:10464
+#: assistente-git.py:10455
 msgid "Add All"
 msgstr "Добавить все"
 
-#: assistente-git.py:10465
+#: assistente-git.py:10456
 msgid "Commit"
 msgstr "Коммит"
 
-#: assistente-git.py:10467
+#: assistente-git.py:10458
 msgid "Clona Repository"
 msgstr "Клонировать репозиторий"
 
-#: assistente-git.py:10467
+#: assistente-git.py:10458
 msgid "Clona un repository nella cartella corrente"
 msgstr "Клонировать репозиторий в текущую папку"
 
-#: assistente-git.py:10468
+#: assistente-git.py:10459
 msgid "Inizializza Repository"
 msgstr "Инициализировать репозиторий"
 
-#: assistente-git.py:10469
+#: assistente-git.py:10460
 msgid "Aggiungi a .gitignore"
 msgstr "Добавить в .gitignore"
 
-#: assistente-git.py:10473
+#: assistente-git.py:10464
 msgid "Diff Working Directory"
 msgstr "Diff рабочего каталога"
 
-#: assistente-git.py:10473
+#: assistente-git.py:10464
 msgid "Visualizza modifiche non in stage"
 msgstr "Показать неиндексированные изменения"
 
-#: assistente-git.py:10474
+#: assistente-git.py:10465
 msgid "Diff Staged"
 msgstr "Diff проиндексированных изменений"
 
-#: assistente-git.py:10474
+#: assistente-git.py:10465
 msgid "Visualizza modifiche in stage"
 msgstr "Показать проиндексированные изменения"
 
-#: assistente-git.py:10476
+#: assistente-git.py:10467
 msgid "Amend Ultimo Commit"
 msgstr "Изменить последний коммит"
 
-#: assistente-git.py:10476
+#: assistente-git.py:10467
 msgid "Rinomina ultimo commit"
 msgstr "Переименовать последний коммит"
 
-#: assistente-git.py:10477
+#: assistente-git.py:10468
 msgid "Mostra Commit Specifico"
 msgstr "Показать конкретный коммит"
 
-#: assistente-git.py:10478
+#: assistente-git.py:10469
 msgid "Cronologia Log"
 msgstr "История (Log)"
 
-#: assistente-git.py:10478
+#: assistente-git.py:10469
 msgid "Visualizza cronologia commit personalizzata"
 msgstr "Показать настраиваемую историю коммитов"
 
-#: assistente-git.py:10482
+#: assistente-git.py:10473
 msgid "Visualizza Tutti i Branch"
 msgstr "Показать все ветки"
 
-#: assistente-git.py:10483
+#: assistente-git.py:10474
 msgid "Branch Corrente"
 msgstr "Текущая ветка"
 
-#: assistente-git.py:10485
+#: assistente-git.py:10476
 msgid "Crea Nuovo Branch"
 msgstr "Создать новую ветку"
 
-#: assistente-git.py:10487
+#: assistente-git.py:10478
 msgid "Merge Branch"
 msgstr "Слить ветку"
 
-#: assistente-git.py:10487
+#: assistente-git.py:10478
 msgid "Unisci branch specificato nel corrente"
 msgstr "Слить указанную ветку в текущую"
 
-#: assistente-git.py:10489
+#: assistente-git.py:10480
 msgid "Elimina Branch (sicuro)"
 msgstr "Удалить ветку (безопасно)"
 
-#: assistente-git.py:10490
+#: assistente-git.py:10481
 msgid "Elimina Branch (Forzato)"
 msgstr "Удалить ветку (принудительно)"
 
-#: assistente-git.py:10492
+#: assistente-git.py:10483
 msgid "Crea Tag"
 msgstr "Создать тег"
 
-#: assistente-git.py:10496
+#: assistente-git.py:10487
 msgid "Pull"
 msgstr "Pull"
 
-#: assistente-git.py:10496
+#: assistente-git.py:10487
 msgid "Scarica modifiche dal server e unisci"
 msgstr "Скачать изменения с сервера и слить"
 
-#: assistente-git.py:10497
+#: assistente-git.py:10488
 msgid "Push"
 msgstr "Push"
 
-#: assistente-git.py:10498
+#: assistente-git.py:10489
 msgid "Fetch Origin"
 msgstr "Fetch Origin"
 
-#: assistente-git.py:10498
+#: assistente-git.py:10489
 msgid "Scarica da remoto 'origin'"
 msgstr "Скачать с удаленного 'origin'"
 
-#: assistente-git.py:10500
+#: assistente-git.py:10491
 msgid "Aggiungi Remote Origin"
 msgstr "Добавить удаленный origin"
 
-#: assistente-git.py:10501
+#: assistente-git.py:10492
 msgid "Modifica URL Remote"
 msgstr "Изменить URL удаленного репозитория"
 
-#: assistente-git.py:10502
+#: assistente-git.py:10493
 msgid "Visualizza Remote"
 msgstr "Показать удаленные репозитории"
 
-#: assistente-git.py:10504
+#: assistente-git.py:10495
 msgid "Elimina Branch Remoto"
 msgstr "Удалить удаленную ветку"
 
-#: assistente-git.py:10508
+#: assistente-git.py:10499
 msgid "Configurazione"
 msgstr "Настройка"
 
-#: assistente-git.py:10512
+#: assistente-git.py:10503
 msgid "Modifica Release"
 msgstr "Изменить релиз"
 
-#: assistente-git.py:10513
+#: assistente-git.py:10504
 msgid "Elimina Release"
 msgstr "Удалить релиз"
 
-#: assistente-git.py:10515
+#: assistente-git.py:10506
 msgid "Visualizza Log Workflow"
 msgstr "Просмотреть лог Workflow"
 
-#: assistente-git.py:10517
+#: assistente-git.py:10508
 msgid "Cancella Workflow"
 msgstr "Отменить Workflow"
 
-#: assistente-git.py:10518
+#: assistente-git.py:10509
 msgid "Scarica Artefatti"
 msgstr "Скачать артефакты"
 
-#: assistente-git.py:10518
+#: assistente-git.py:10509
 msgid "Elenca e Scarica Artefatti Esecuzione"
 msgstr "Перечислить и скачать артефакты выполнения"
 
-#: assistente-git.py:10520
+#: assistente-git.py:10511
 msgid "Dashboard Web"
 msgstr "Веб-панель управления"
 
-#: assistente-git.py:10527
+#: assistente-git.py:10518
 msgid "Crea una nuova issue"
 msgstr "Создать новую задачу (issue)"
 
-#: assistente-git.py:10528
+#: assistente-git.py:10519
 msgid "Visualizza Issue"
 msgstr "Просмотреть задачу (issue)"
 
-#: assistente-git.py:10534
+#: assistente-git.py:10525
 msgid "Crea Nuova PR"
 msgstr "Создать новый PR"
 
-#: assistente-git.py:10535
+#: assistente-git.py:10526
 msgid "Visualizza PR"
 msgstr "Просмотреть PR"
 
-#: assistente-git.py:10536
+#: assistente-git.py:10527
 msgid "Modifica PR"
 msgstr "Изменить PR"
 
-#: assistente-git.py:10537
+#: assistente-git.py:10528
 msgid "Chiudi PR"
 msgstr "Закрыть PR"
 
-#: assistente-git.py:10539
+#: assistente-git.py:10530
 msgid "Issue"
 msgstr "Задача (Issue)"
 
-#: assistente-git.py:10539
+#: assistente-git.py:10530
 msgid "Gestione Issue GitHub"
 msgstr "Управление задачами (Issues) GitHub"
 
-#: assistente-git.py:10540
+#: assistente-git.py:10531
 msgid "Pull Request"
 msgstr "Pull Request"
 
-#: assistente-git.py:10540
+#: assistente-git.py:10531
 msgid "Gestione Pull Request GitHub"
 msgstr "Управление Pull Request'ами GitHub"
 
-#: assistente-git.py:10544
+#: assistente-git.py:10535
 msgid "Salva Stash"
 msgstr "Сохранить в Stash"
 
-#: assistente-git.py:10544
+#: assistente-git.py:10535
 msgid "Salva modifiche temporaneamente"
 msgstr "Временно сохранить изменения"
 
-#: assistente-git.py:10545
+#: assistente-git.py:10536
 msgid "Applica Stash"
 msgstr "Применить Stash"
 
-#: assistente-git.py:10545
+#: assistente-git.py:10536
 msgid "Applica ultime modifiche da stash"
 msgstr "Применить последние изменения из stash"
 
-#: assistente-git.py:10549
+#: assistente-git.py:10540
 msgid "Grep - Cerca Testo"
 msgstr "Grep - Поиск текста"
 
-#: assistente-git.py:10549
+#: assistente-git.py:10540
 msgid "Cerca testo nei file del repository"
 msgstr "Искать текст в файлах репозитория"
 
-#: assistente-git.py:10550
+#: assistente-git.py:10541
 msgid "Lista File Tracciati"
 msgstr "Список отслеживаемых файлов"
 
-#: assistente-git.py:10550
+#: assistente-git.py:10541
 msgid "Cerca file nel progetto tracciati da Git"
 msgstr "Искать файлы в проекте, отслеживаемые Git"
 
-#: assistente-git.py:10554
+#: assistente-git.py:10545
 msgid "Ripristina File Specifico"
 msgstr "Восстановить конкретный файл"
 
-#: assistente-git.py:10554
+#: assistente-git.py:10545
 msgid "Annulla modifiche su file specifico"
 msgstr "Отменить изменения в конкретном файле"
 
-#: assistente-git.py:10555
+#: assistente-git.py:10546
 msgid "Reset Hard HEAD"
 msgstr "Жесткий сброс (Reset Hard) до HEAD"
 
-#: assistente-git.py:10556
+#: assistente-git.py:10547
 msgid "Annulla Merge"
 msgstr "Отменить слияние"
 
-#: assistente-git.py:10556
+#: assistente-git.py:10547
 msgid "Annulla tentativo di merge"
 msgstr "Отменить попытку слияния"
 
-#: assistente-git.py:10558
+#: assistente-git.py:10549
 msgid "Checkout Commit (Detached)"
 msgstr "Checkout коммита (Detached)"
 
-#: assistente-git.py:10558
+#: assistente-git.py:10549
 msgid "Ispeziona commit specifico"
 msgstr "Проверить конкретный коммит"
 
-#: assistente-git.py:10559
+#: assistente-git.py:10550
 msgid "Reset a Remote"
 msgstr "Сброс до удаленной ветки"
 
-#: assistente-git.py:10559
+#: assistente-git.py:10550
 msgid "Resetta branch locale a versione remota"
 msgstr "Сбросить локальную ветку до удаленной версии"
 
-#: assistente-git.py:10560
+#: assistente-git.py:10551
 msgid "Reset Hard a Commit"
 msgstr "Жесткий сброс до коммита"
 
-#: assistente-git.py:10560
+#: assistente-git.py:10551
 msgid "Resetta branch corrente a commit specifico"
 msgstr "Сбросить текущую ветку до конкретного коммита"
 
-#: assistente-git.py:10562
+#: assistente-git.py:10553
 msgid "Ripristina e Pulisci"
 msgstr "Восстановить и очистить"
 
-#: assistente-git.py:10566
+#: assistente-git.py:10557
 msgid "Info Comando"
 msgstr "Информация о команде"
 
-#: assistente-git.py:10567
+#: assistente-git.py:10558
 msgid "Mostra informazioni sul comando selezionato nella barra dei menu"
 msgstr "Показать информацию о команде, выбранной в строке меню"
 
-#: assistente-git.py:10568
+#: assistente-git.py:10559
 msgid "Scorciatoie Barra Menu"
 msgstr "Сокращения для строки меню"
 
-#: assistente-git.py:10569
+#: assistente-git.py:10560
 msgid "Mostra elenco scorciatoie per navigare la barra dei menu"
 msgstr "Показать список сокращений для навигации по строке меню"
 
-#: assistente-git.py:10572
+#: assistente-git.py:10563
 msgid "Informazioni (Finestra)"
 msgstr "Информация (Окно)"
 
-#: assistente-git.py:10572
+#: assistente-git.py:10563
 msgid "Mostra informazioni sull'applicazione"
 msgstr "Показать информацию о приложении"
 
-#: assistente-git.py:10577
+#: assistente-git.py:10568
 msgid "Dashboard"
 msgstr "Панель управления"
 
-#: assistente-git.py:10578
+#: assistente-git.py:10569
 msgid "Base"
 msgstr "Основные"
 
-#: assistente-git.py:10579
+#: assistente-git.py:10570
 msgid "Modifiche"
 msgstr "Изменения"
 
-#: assistente-git.py:10580
+#: assistente-git.py:10571
 msgid "Branch"
 msgstr "Ветки"
 
-#: assistente-git.py:10581
+#: assistente-git.py:10572
 msgid "Remote"
 msgstr "Удаленный"
 
-#: assistente-git.py:10582
+#: assistente-git.py:10573
 msgid "GitHub"
 msgstr "GitHub"
 
-#: assistente-git.py:10583
+#: assistente-git.py:10574
 msgid "PR/Issue"
 msgstr "PR/Задачи"
 
-#: assistente-git.py:10584
+#: assistente-git.py:10575
 msgid "Stash"
 msgstr "Stash"
 
-#: assistente-git.py:10585
+#: assistente-git.py:10576
 msgid "Ricerca"
 msgstr "Поиск"
 
-#: assistente-git.py:10586
+#: assistente-git.py:10577
 msgid "Ripristino"
 msgstr "Восстановление"
 
-#: assistente-git.py:10587
+#: assistente-git.py:10578
 msgid "Aiuto"
 msgstr "Помощь"
 
-#: assistente-git.py:10752
+#: assistente-git.py:10743
 #, fuzzy
 msgid ""
 "🎹 SCORCIATOIE TASTIERA (macOS)\n"
@@ -9009,349 +9365,9 @@ msgstr ""
 "• Cmd+H для скрытия приложения\n"
 "\n"
 "💡 Все команды доступны из строки меню!"
-
-#: assistente-git.py:10915
+#: assistente-git.py:10906
 msgid "Assistente Git"
 msgstr "Git-ассистент"
-
-#~ msgid "Dettagli"
-#~ msgstr "Детали"
-
-#~ msgid "Dettagli mostrati in finestra"
-#~ msgstr "Детали показаны в окне"
-
-#~ msgid "⏱️ MONITORAGGIO WORKFLOW AVVIATO"
-#~ msgstr "⏱️ МОНИТОРИНГ WORKFLOW ЗАПУЩЕН"
-
-#~ msgid "📋 Nome"
-#~ msgstr "📋 Имя"
-
-#~ msgid "🆔 Run ID"
-#~ msgstr "🆔 ID запуска"
-
-#~ msgid "📊 Status"
-#~ msgstr "📊 Статус"
-
-#~ msgid "🏢 Repository"
-#~ msgstr "🏢 Репозиторий"
-
-#~ msgid "⏰ Avviato"
-#~ msgstr "⏰ Запущен"
-
-#~ msgid "🔄 CONFIGURAZIONE MONITORAGGIO"
-#~ msgstr "🔄 НАСТРОЙКА МОНИТОРИНГА"
-
-#~ msgid "Polling ogni 10 secondi"
-#~ msgstr "Опрос каждые 10 секунд"
-
-#~ msgid "Durata massima: 30 minuti"
-#~ msgstr "Максимальная длительность: 30 минут"
-
-#~ msgid "Notifica automatica al completamento"
-#~ msgstr "Автоматическое уведомление при завершении"
-
-#~ msgid "Beep sonoro durante l'esecuzione (se abilitato)"
-#~ msgstr "Звуковой сигнал во время выполнения (если включено)"
-
-#~ msgid "✅ STATO ATTUALE"
-#~ msgstr "✅ ТЕКУЩЕЕ СОСТОЯНИЕ"
-
-#~ msgid "Monitoraggio attivo e funzionante"
-#~ msgstr "Мониторинг активен и работает"
-
-#~ msgid "Il workflow verrà seguito automaticamente"
-#~ msgstr "Workflow будет отслеживаться автоматически"
-
-#~ msgid "Riceverai una notifica quando terminerà"
-#~ msgstr "Вы получите уведомление при завершении"
-
-#~ msgid "💡 INFORMAZIONI"
-#~ msgstr "💡 ИНФОРМАЦИЯ"
-
-#~ msgid "Puoi continuare a usare l'applicazione normalmente"
-#~ msgstr "Вы можете продолжать использовать приложение нормально"
-
-#~ msgid "Il monitoraggio continua in background"
-#~ msgstr "Мониторинг продолжается в фоновом режиме"
-
-#~ msgid "La notifica finale includerà i risultati completi"
-#~ msgstr "Итоговое уведомление будет включать полные результаты"
-
-#~ msgid "🌐 ERRORE CONNESSIONE"
-#~ msgstr "🌐 ОШИБКА СОЕДИНЕНИЯ"
-
-#~ msgid "📝 Dettagli"
-#~ msgstr "📝 Детали"
-
-#~ msgid "⏰ Timestamp"
-#~ msgstr "⏰ Время"
-
-#~ msgid "❌ PROBLEMA"
-#~ msgstr "❌ ПРОБЛЕМА"
-
-#~ msgid "Errore di rete durante la ricerca delle esecuzioni"
-#~ msgstr "Сетевая ошибка при поиске выполнений"
-
-#~ msgid "Server GitHub temporaneamente non disponibile"
-#~ msgstr "Сервер GitHub временно недоступен"
-
-#~ msgid "Problemi di connessione internet"
-#~ msgstr "Проблемы с интернет-соединением"
-
-#~ msgid "Timeout della richiesta"
-#~ msgstr "Тайм-аут запроса"
-
-#~ msgid "🔧 SOLUZIONI"
-#~ msgstr "🔧 РЕШЕНИЯ"
-
-#~ msgid "Verifica la connessione internet"
-#~ msgstr "Проверьте интернет-соединение"
-
-#~ msgid "Riprova il monitoraggio tra qualche minuto"
-#~ msgstr "Попробуйте мониторинг снова через несколько минут"
-
-#~ msgid "Controlla lo stato dei servizi GitHub"
-#~ msgstr "Проверьте состояние сервисов GitHub"
-
-#~ msgid "Verifica i permessi del token GitHub"
-#~ msgstr "Проверьте права токена GitHub"
-
-#~ msgid "⚠️ ERRORE IMPREVISTO"
-#~ msgstr "⚠️ НЕОЖИДАННАЯ ОШИБКА"
-
-#~ msgid "Errore sconosciuto durante la ricerca automatica"
-#~ msgstr "Неизвестная ошибка во время автоматического поиска"
-
-#~ msgid "Possibile problema interno dell'applicazione"
-#~ msgstr "Возможная внутренняя проблема приложения"
-
-#~ msgid "Risposta inattesa dall'API GitHub"
-#~ msgstr "Неожиданный ответ от API GitHub"
-
-#~ msgid "🔧 AZIONI"
-#~ msgstr "🔧 ДЕЙСТВИЯ"
-
-#~ msgid "Riprova l'operazione di monitoraggio"
-#~ msgstr "Повторите операцию мониторинга"
-
-#~ msgid "Verifica la configurazione GitHub"
-#~ msgstr "Проверьте конфигурацию GitHub"
-
-#~ msgid "Controlla i log per dettagli aggiuntivi"
-#~ msgstr "Проверьте логи для дополнительных деталей"
-
-#~ msgid "Segnala il problema se persiste"
-#~ msgstr "Сообщите о проблеме, если она продолжается"
-
-#~ msgid "🚀 WORKFLOW AVVIATO CON SUCCESSO"
-#~ msgstr "🚀 WORKFLOW ЗАПУЩЕН УСПЕШНО"
-
-#~ msgid "📋 Nome Workflow"
-#~ msgstr "📋 Имя Workflow"
-
-#~ msgid "🌿 Branch"
-#~ msgstr "🌿 Ветка"
-
-#~ msgid "📝 Input Parametri"
-#~ msgstr "📝 Входные параметры"
-
-#~ msgid "parametri"
-#~ msgstr "параметры"
-
-#~ msgid "🔧 PARAMETRI FORNITI"
-#~ msgstr "🔧 ПРЕДОСТАВЛЕННЫЕ ПАРАМЕТРЫ"
-
-#~ msgid "🚨 ERRORE HTTP DURANTE TRIGGER"
-#~ msgstr "🚨 HTTP ОШИБКА ВО ВРЕМЯ ЗАПУСКА"
-
-#~ msgid "📋 Workflow"
-#~ msgstr "📋 Workflow"
-
-#~ msgid "📊 Codice Errore"
-#~ msgstr "📊 Код ошибки"
-
-#~ msgid "📝 Risposta Server"
-#~ msgstr "📝 Ответ сервера"
-
-#~ msgid "❌ ERRORE 422 - PARAMETRI NON VALIDI"
-#~ msgstr "❌ ОШИБКА 422 - НЕДЕЙСТВИТЕЛЬНЫЕ ПАРАМЕТРЫ"
-
-#~ msgid "Il workflow potrebbe non supportare il dispatch manuale"
-#~ msgstr "Workflow может не поддерживать ручной запуск"
-
-#~ msgid "I parametri forniti potrebbero essere incorretti"
-#~ msgstr "Предоставленные параметры могут быть неверными"
-
-#~ msgid "La configurazione del workflow potrebbe essere errata"
-#~ msgstr "Конфигурация workflow может быть неверной"
-
-#~ msgid "🔧 VERIFICA"
-#~ msgstr "🔧 ПРОВЕРКА"
-
-#~ msgid "Controlla che il workflow abbia 'workflow_dispatch' abilitato"
-#~ msgstr "Проверьте, что в workflow включен 'workflow_dispatch'"
-
-#~ msgid "Verifica i parametri di input richiesti"
-#~ msgstr "Проверьте требуемые входные параметры"
-
-#~ msgid "Controlla la configurazione YAML del workflow"
-#~ msgstr "Проверьте YAML конфигурацию workflow"
-
-#~ msgid "❌ ERRORE HTTP"
-#~ msgstr "❌ HTTP ОШИБКА"
-
-#~ msgid "Problema di comunicazione con GitHub"
-#~ msgstr "Проблема связи с GitHub"
-
-#~ msgid "Possibili problemi di permessi o autenticazione"
-#~ msgstr "Возможные проблемы с правами или аутентификацией"
-
-#~ msgid "LOG WORKFLOW"
-#~ msgstr "ЛОГ WORKFLOW"
-
-#~ msgid "Run ID"
-#~ msgstr "ID запуска"
-
-#~ msgid "Repository"
-#~ msgstr "Репозиторий"
-
-#~ msgid "File log"
-#~ msgstr "Файл логов"
-
-#~ msgid "Recuperato"
-#~ msgstr "Получено"
-
-#~ msgid "CONTENUTO LOG COMPLETO"
-#~ msgstr "ПОЛНОЕ СОДЕРЖИМОЕ ЛОГОВ"
-
-#~ msgid "Log Workflow"
-#~ msgstr "Логи Workflow"
-
-#~ msgid "Log recuperati con successo per run ID"
-#~ msgstr "Логи успешно получены для run ID"
-
-#~ msgid "Scade"
-#~ msgstr "Истекает"
-
-#~ msgid "Percorso"
-#~ msgstr "Путь"
-
-#~ msgid "Branch corrente"
-#~ msgstr "Текущая ветка"
-
-#~ msgid "Errore nel rilevamento"
-#~ msgstr "Ошибка определения"
-
-#~ msgid "File modificati"
-#~ msgstr "Измененные файлы"
-
-#~ msgid "... e altri"
-#~ msgstr "... и другие"
-
-#~ msgid "file"
-#~ msgstr "файла"
-
-#~ msgid "Ultimo commit"
-#~ msgstr "Последний коммит"
-
-#~ msgid "Errore nella raccolta dati panoramica"
-#~ msgstr "Ошибка при сборе данных для обзора"
-
-#~ msgid "Totale commit"
-#~ msgstr "Всего коммитов"
-
-#~ msgid "Contributori"
-#~ msgstr "Участники"
-
-#~ msgid "Branch locali"
-#~ msgstr "Локальные ветки"
-
-#~ msgid "Branch remoti"
-#~ msgstr "Удаленные ветки"
-
-#~ msgid "Dimensione .git"
-#~ msgstr "Размер .git"
-
-#~ msgid "Non calcolabile"
-#~ msgstr "Невозможно вычислить"
-
-#~ msgid "File tracciati"
-#~ msgstr "Отслеживаемые файлы"
-
-#~ msgid "Primo commit"
-#~ msgstr "Первый коммит"
-
-#~ msgid "Errore nella raccolta statistiche"
-#~ msgstr "Ошибка при сборе статистики"
-
-#~ msgid "Totale commit mostrati"
-#~ msgstr "Всего показанных коммитов"
-
-#~ msgid "Errore nel recupero attività recente"
-#~ msgstr "Ошибка при получении недавней активности"
-
-#~ msgid "CORRENTE"
-#~ msgstr "ТЕКУЩАЯ"
-
-#~ msgid "Totale branch locali"
-#~ msgstr "Всего локальных веток"
-
-#~ msgid "branch"
-#~ msgstr "ветки"
-
-#~ msgid "Stato sync branch"
-#~ msgstr "Статус синхронизации веток"
-
-#~ msgid "Errore nel recupero stato branch"
-#~ msgstr "Ошибка при получении состояния веток"
-
-#~ msgid "Totale file con modifiche"
-#~ msgstr "Всего файлов с изменениями"
-
-#~ msgid "file modificati"
-#~ msgstr "измененных файлов"
-
-#~ msgid "File aggiunti"
-#~ msgstr "Добавленные файлы"
-
-#~ msgid "file aggiunti"
-#~ msgstr "добавленных файлов"
-
-#~ msgid "File eliminati"
-#~ msgstr "Удаленные файлы"
-
-#~ msgid "file eliminati"
-#~ msgstr "удаленных файлов"
-
-#~ msgid "File rinominati"
-#~ msgstr "Переименованные файлы"
-
-#~ msgid "file rinominati"
-#~ msgstr "переименованных файлов"
-
-#~ msgid "File copiati"
-#~ msgstr "Скопированные файлы"
-
-#~ msgid "file copiati"
-#~ msgstr "скопированных файлов"
-
-#~ msgid "File non tracciati"
-#~ msgstr "Неотслеживаемые файлы"
-
-#~ msgid "file non tracciati"
-#~ msgstr "неотслеживаемых файлов"
-
-#~ msgid "Usa"
-#~ msgstr "Используйте"
-
-#~ msgid "per mettere in stage tutte le modifiche"
-#~ msgstr "для индексации всех изменений"
-
-#~ msgid "per creare un commit dopo staging"
-#~ msgstr "для создания коммита после индексации"
-
-#~ msgid "Errore nel riepilogo modifiche"
-#~ msgstr "Ошибка в сводке изменений"
 
 #~ msgid ""
 #~ "Errore: Git non sembra essere installato o accessibile nel PATH di "

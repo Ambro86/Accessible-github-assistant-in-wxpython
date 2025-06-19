@@ -9744,7 +9744,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     check=False, 
                     encoding='utf-8', 
                     errors='replace', 
-                    creationflags=process_flags
+                    creationflags=process_flags,
+                    timeout=30
                 )
                 
                 # Raccogli output - mostra sempre almeno il comando eseguito
@@ -9798,6 +9799,14 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 'command_name': command_name
             }
             
+        except subprocess.TimeoutExpired as e:
+            return {
+                'success': False,
+                'output': _("⏱️ TIMEOUT: Comando Git scaduto dopo 30 secondi\n") + 
+                         _("🔧 Comando: {}\n").format(' '.join(e.cmd)),
+                'message': _("Timeout durante l'esecuzione del comando Git"),
+                'command_name': command_name
+            }
         except Exception as e:
             return {
                 'success': False,

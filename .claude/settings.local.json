@@ -11,7 +11,10 @@
       "Bash(sudo apt install:*)",
       "Bash(python3:*)",
       "Bash(ls:*)",
-      "Bash(msgfmt:*)"
+      "Bash(msgfmt:*)",
+      "Bash(rm:*)",
+      "Bash(xgettext:*)",
+      "Bash(msgmerge:*)"
     ],
     "deny": []
   }
