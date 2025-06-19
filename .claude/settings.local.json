@@ -4,7 +4,14 @@
       "Bash(grep:*)",
       "Bash(awk:*)",
       "Bash(sed:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(apt list:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(msgfmt:*)"
     ],
     "deny": []
   }
