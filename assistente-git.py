@@ -8426,87 +8426,15 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         if save_dialog.ShowModal() == wx.ID_OK:
                             save_path = save_dialog.GetPath()
                             
-                            try:
-                                artifact_response = requests.get(download_url, headers=headers, stream=True, allow_redirects=True, timeout=120)
-                                artifact_response.raise_for_status()
-                                with open(save_path, 'wb') as f:
-                                    for chunk in artifact_response.iter_content(chunk_size=8192):
-                                        f.write(chunk)
-                                
-                                # Calcola dimensione file scaricato
-                                file_size = os.path.getsize(save_path)
-                                size_mb = file_size / (1024 * 1024)
-                                
-                                # Mostra successo nella dialog
-                                success_details = _("📦 ARTIFACT SCARICATO CON SUCCESSO\n\n")
-                                success_details += _("📁 Nome: {}\n").format(artifact_name_from_api)
-                                success_details += _("💾 Dimensione: {:.2f} MB\n").format(size_mb)
-                                success_details += _("📂 Salvato in: {}\n").format(save_path)
-                                success_details += _("🆔 Run ID: {}\n").format(self.selected_run_id)
-                                success_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
-                                success_details += _("⏰ Completato: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
-                                success_details += _("✅ STATO:\n")
-                                success_details += _("• File scaricato correttamente\n")
-                                success_details += _("• Artifact salvato nella posizione scelta\n")
-                                success_details += _("• Pronto per essere utilizzato\n\n")
-                                success_details += _("💡 INFORMAZIONI:\n")
-                                success_details += _("• L'artifact è in formato ZIP\n")
-                                success_details += _("• Estrarre il contenuto per utilizzare i file\n")
-                                success_details += _("• Il file è stato scaricato completamente")
-                                
-                                self.ShowSuccessNotification(
-                                    title=_("📦 Artifact Scaricato"),
-                                    message=_("'{}' scaricato con successo").format(artifact_name_from_api),
-                                    details=success_details
-                                )
-                                
-                            except requests.exceptions.RequestException as e_dl:
-                                # Mostra errore nella dialog
-                                error_details = _("🌐 ERRORE DOWNLOAD ARTIFACT\n\n")
-                                error_details += _("📁 Artifact: {}\n").format(artifact_name_from_api)
-                                error_details += _("📂 Destinazione: {}\n").format(save_path)
-                                error_details += _("📝 Errore: {}\n").format(e_dl)
-                                error_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
-                                error_details += _("❌ PROBLEMA:\n")
-                                error_details += _("• Errore di rete durante il download\n")
-                                error_details += _("• Connessione interrotta o server non disponibile\n")
-                                error_details += _("• Possibili problemi di autenticazione\n\n")
-                                error_details += _("🔧 SOLUZIONI:\n")
-                                error_details += _("• Verifica la connessione internet\n")
-                                error_details += _("• Riprova il download dell'artifact\n")
-                                error_details += _("• Controlla i permessi del token GitHub")
-                                
-                                self.ShowErrorNotification(
-                                    title=_("❌ Errore Download Artifact"),
-                                    message=_("Impossibile scaricare '{}'").format(artifact_name_from_api),
-                                    details=error_details,
-                                    suggestions=_("Verifica la connessione e riprova il download.")
-                                )
-                                
-                            except IOError as e_io:
-                                # Mostra errore nella dialog
-                                error_details = _("💾 ERRORE SALVATAGGIO ARTIFACT\n\n")
-                                error_details += _("📁 Artifact: {}\n").format(artifact_name_from_api)
-                                error_details += _("📂 Destinazione: {}\n").format(save_path)
-                                error_details += _("📝 Errore: {}\n").format(e_io)
-                                error_details += _("⏰ Timestamp: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
-                                error_details += _("❌ PROBLEMA:\n")
-                                error_details += _("• Impossibile scrivere il file nel percorso specificato\n")
-                                error_details += _("• Permessi insufficienti sulla directory\n")
-                                error_details += _("• Spazio su disco insufficiente\n")
-                                error_details += _("• File già aperto in un'altra applicazione\n\n")
-                                error_details += _("🔧 SOLUZIONI:\n")
-                                error_details += _("• Verifica i permessi della directory di destinazione\n")
-                                error_details += _("• Controlla lo spazio disponibile su disco\n")
-                                error_details += _("• Scegli una diversa posizione di salvataggio\n")
-                                error_details += _("• Chiudi eventuali applicazioni che usano il file")
-                                
-                                self.ShowErrorNotification(
-                                    title=_("❌ Errore Salvataggio Artifact"),
-                                    message=_("Impossibile salvare '{}'").format(artifact_name_from_api),
-                                    details=error_details,
-                                    suggestions=_("Verifica i permessi e lo spazio su disco, poi riprova.")
-                                )
+                            # Avvia il download asincrono
+                            self.ExecuteGitHubOperationAsync(
+                                "Download Artifact",
+                                self._download_artifact_async,
+                                download_url,
+                                save_path,
+                                artifact_name_from_api,
+                                headers
+                            )
                         save_dialog.Destroy()
                 choice_dlg.Destroy()
 
@@ -9509,7 +9437,17 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         if isinstance(result, dict):
             if 'message' in result:
                 self.output_text_ctrl.AppendText(f"✅ {result['message']}\n")
-            if 'data' in result:
+            
+            # Gestione specifica per download artifact
+            if 'details' in result and 'file_path' in result:
+                # Mostra dialog di successo per artifact
+                self.ShowDetailsDialog(
+                    title="✅ Download Completato",
+                    message=result['message'],
+                    details=result['details'],
+                    is_success=True
+                )
+            elif 'data' in result:
                 # Aggiorna l'interfaccia con i nuovi dati se necessario
                 pass
         else:
@@ -9536,6 +9474,81 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         """
         message = f"Esecuzione {title.lower()} in corso..."
         self.RunAsyncOperation(title, message, operation_func, *args, **kwargs)
+        
+    def _download_artifact_async(self, download_url, save_path, artifact_name, headers, progress_callback=None):
+        """Scarica un artifact GitHub in modo asincrono.
+        
+        Args:
+            download_url: URL di download dell'artifact
+            save_path: Percorso dove salvare il file
+            artifact_name: Nome dell'artifact
+            headers: Header HTTP per l'autenticazione
+            progress_callback: Callback per aggiornare il progresso
+            
+        Returns:
+            dict: Risultato dell'operazione con dettagli del successo
+        """
+        try:
+            # Inizia il download
+            artifact_response = requests.get(download_url, headers=headers, 
+                                           stream=True, allow_redirects=True, timeout=120)
+            artifact_response.raise_for_status()
+            
+            # Ottieni la dimensione totale se disponibile
+            total_size = int(artifact_response.headers.get('content-length', 0))
+            downloaded_size = 0
+            
+            # Scarica il file con progress tracking
+            with open(save_path, 'wb') as f:
+                for chunk in artifact_response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded_size += len(chunk)
+                        
+                        # Aggiorna il progresso se il callback è disponibile
+                        if progress_callback and total_size > 0:
+                            progress_msg = f"Scaricamento {artifact_name}: {downloaded_size // 1024} KB"
+                            if not progress_callback(downloaded_size, total_size, progress_msg):
+                                # L'utente ha cancellato l'operazione
+                                if os.path.exists(save_path):
+                                    os.remove(save_path)
+                                raise Exception("Download cancellato dall'utente")
+            
+            # Calcola dimensione file scaricato
+            file_size = os.path.getsize(save_path)
+            size_mb = file_size / (1024 * 1024)
+            
+            # Prepara i dettagli del successo
+            success_details = _("📦 ARTIFACT SCARICATO CON SUCCESSO\n\n")
+            success_details += _("📁 Nome: {}\n").format(artifact_name)
+            success_details += _("💾 Dimensione: {:.2f} MB\n").format(size_mb)
+            success_details += _("📂 Salvato in: {}\n").format(save_path)
+            success_details += _("🆔 Run ID: {}\n").format(self.selected_run_id)
+            success_details += _("🏢 Repository: {}/{}\n").format(self.github_owner, self.github_repo)
+            success_details += _("⏰ Completato: {}\n\n").format(datetime.now().strftime('%H:%M:%S'))
+            success_details += _("✅ STATO:\n")
+            success_details += _("• File scaricato correttamente\n")
+            success_details += _("• Artifact salvato nella posizione scelta\n")
+            success_details += _("• Pronto per essere utilizzato\n\n")
+            success_details += _("💡 INFORMAZIONI:\n")
+            success_details += _("• L'artifact è in formato ZIP\n")
+            success_details += _("• Estrarre il contenuto per utilizzare i file\n")
+            
+            return {
+                'message': f'Artifact "{artifact_name}" scaricato con successo',
+                'details': success_details,
+                'file_path': save_path,
+                'size_mb': size_mb
+            }
+            
+        except Exception as e:
+            # Rimuovi il file parziale se esiste
+            if os.path.exists(save_path):
+                try:
+                    os.remove(save_path)
+                except:
+                    pass
+            raise e
 
 
 import wx
