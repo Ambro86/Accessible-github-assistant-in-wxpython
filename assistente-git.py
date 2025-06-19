@@ -15,7 +15,9 @@ import gzip # Per comprimere i dati prima della crittografia
 import uuid # Per l'identificatore univoco dell'utente
 import base64 # Per la chiave Fernet
 import webbrowser
-import types  
+import types
+import threading
+import queue
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -261,6 +263,162 @@ CMD_BRANCH_STATUS = _("Stato Branch e Remote")
 CMD_FILE_CHANGES_SUMMARY = _("Riepilogo Modifiche File")
 
 # --- FINE NUOVO COMANDO ---
+
+# --- Classi per Operazioni Asincrone ---
+class AsyncProgressDialog(wx.ProgressDialog):
+    """Dialogo di progresso per operazioni asincrone con supporto per cancellazione."""
+    
+    def __init__(self, parent, title, message, maximum=100):
+        """Inizializza il dialogo di progresso.
+        
+        Args:
+            parent: Finestra genitore
+            title: Titolo del dialogo
+            message: Messaggio da mostrare
+            maximum: Valore massimo del progresso
+        """
+        super().__init__(title, message, maximum, parent,
+                        wx.PD_APP_MODAL | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE)
+        self.cancelled = False
+        
+    def Update(self, value, message=""):
+        """Aggiorna il progresso e controlla la cancellazione.
+        
+        Args:
+            value: Valore attuale del progresso
+            message: Messaggio da aggiornare
+            
+        Returns:
+            bool: True se l'operazione deve continuare, False se cancellata
+        """
+        if message:
+            result = super().Update(value, message)
+        else:
+            result = super().Update(value)
+            
+        if not result[0]:  # L'utente ha premuto Cancel
+            self.cancelled = True
+            return False
+        return True
+        
+    def IsCancelled(self):
+        """Verifica se l'operazione è stata cancellata.
+        
+        Returns:
+            bool: True se cancellata
+        """
+        return self.cancelled
+
+
+class GitHubAsyncTask(threading.Thread):
+    """Thread per eseguire operazioni GitHub asincrone."""
+    
+    def __init__(self, parent, operation_func, *args, **kwargs):
+        """Inizializza il task asincrono.
+        
+        Args:
+            parent: Finestra genitore per comunicare i risultati
+            operation_func: Funzione da eseguire asincronamente
+            *args: Argomenti per la funzione
+            **kwargs: Argomenti keyword per la funzione
+        """
+        super().__init__(daemon=True)
+        self.parent = parent
+        self.operation_func = operation_func
+        self.args = args
+        self.kwargs = kwargs
+        self.result = None
+        self.error = None
+        self.progress_callback = kwargs.pop('progress_callback', None)
+        
+    def run(self):
+        """Esegue l'operazione nel thread separato."""
+        try:
+            if self.progress_callback:
+                self.kwargs['progress_callback'] = self.progress_callback
+            self.result = self.operation_func(*self.args, **self.kwargs)
+            wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=True)
+        except Exception as e:
+            self.error = e
+            wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=False)
+
+
+class AsyncOperationMixin:
+    """Mixin per aggiungere capacità di operazioni asincrone alle classi wxPython."""
+    
+    def __init__(self):
+        """Inizializza il mixin per operazioni asincrone."""
+        self.active_tasks = []
+        self.progress_dialog = None
+        
+    def RunAsyncOperation(self, title, message, operation_func, *args, **kwargs):
+        """Esegue un'operazione in modo asincrono con dialogo di progresso.
+        
+        Args:
+            title: Titolo del dialogo di progresso
+            message: Messaggio iniziale
+            operation_func: Funzione da eseguire
+            *args: Argomenti per la funzione
+            **kwargs: Argomenti keyword per la funzione
+        """
+        # Crea il dialogo di progresso
+        self.progress_dialog = AsyncProgressDialog(self, title, message)
+        
+        # Callback per aggiornare il progresso
+        def progress_callback(current, total, msg=""):
+            if self.progress_dialog and not self.progress_dialog.IsCancelled():
+                progress_value = int((current / total) * 100) if total > 0 else 0
+                wx.CallAfter(self.progress_dialog.Update, progress_value, msg)
+                return not self.progress_dialog.IsCancelled()
+            return False
+            
+        # Avvia il task asincrono
+        task = GitHubAsyncTask(self, operation_func, *args, 
+                              progress_callback=progress_callback, **kwargs)
+        self.active_tasks.append(task)
+        task.start()
+        
+        # Mostra il dialogo
+        self.progress_dialog.ShowModal()
+        
+    def OnAsyncTaskCompleted(self, task, success):
+        """Chiamato quando un task asincrono è completato.
+        
+        Args:
+            task: Il task completato
+            success: Se l'operazione è riuscita
+        """
+        # Rimuovi il task dalla lista attiva
+        if task in self.active_tasks:
+            self.active_tasks.remove(task)
+            
+        # Chiudi il dialogo di progresso
+        if self.progress_dialog:
+            self.progress_dialog.Destroy()
+            self.progress_dialog = None
+            
+        if success:
+            self.OnAsyncOperationSuccess(task.result)
+        else:
+            self.OnAsyncOperationError(task.error)
+            
+    def OnAsyncOperationSuccess(self, result):
+        """Gestisce il successo di un'operazione asincrona.
+        
+        Args:
+            result: Risultato dell'operazione
+        """
+        # Da implementare nelle sottoclassi
+        pass
+        
+    def OnAsyncOperationError(self, error):
+        """Gestisce l'errore di un'operazione asincrona.
+        
+        Args:
+            error: Errore verificatosi
+        """
+        wx.MessageBox(f"Errore durante l'operazione:\n{str(error)}", 
+                     "Errore", wx.OK | wx.ICON_ERROR, self)
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
 class InputDialog(wx.Dialog):
@@ -2602,7 +2760,7 @@ class CommitSelectionDialog(wx.Dialog):
         return self.selected_commit_hash
 
 
-class GitFrame(wx.Frame):
+class GitFrame(wx.Frame, AsyncOperationMixin):
     """Finestra principale dell'Assistente Git.
     
     Questa classe implementa l'interfaccia utente principale dell'applicazione,
@@ -2618,6 +2776,7 @@ class GitFrame(wx.Frame):
             **kw: Argomenti per parole chiave per wx.Frame
         """
         super(GitFrame, self).__init__(*args, **kw)
+        AsyncOperationMixin.__init__(self)
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
         self.command_tree_ctrl = None
@@ -9338,8 +9497,45 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         )
         
         wx.MessageBox(about_text, _("Informazioni - Assistente Git"), wx.OK | wx.ICON_INFORMATION, self)
+    
+    # --- Metodi per Gestione Operazioni Asincrone ---
+    
+    def OnAsyncOperationSuccess(self, result):
+        """Gestisce il successo di un'operazione GitHub asincrona.
         
-
+        Args:
+            result: Risultato dell'operazione
+        """
+        if isinstance(result, dict):
+            if 'message' in result:
+                self.output_text_ctrl.AppendText(f"✅ {result['message']}\n")
+            if 'data' in result:
+                # Aggiorna l'interfaccia con i nuovi dati se necessario
+                pass
+        else:
+            self.output_text_ctrl.AppendText("✅ Operazione completata con successo\n")
+            
+    def OnAsyncOperationError(self, error):
+        """Gestisce l'errore di un'operazione GitHub asincrona.
+        
+        Args:
+            error: Errore verificatosi
+        """
+        error_msg = f"❌ Errore durante l'operazione GitHub:\n{str(error)}"
+        self.output_text_ctrl.AppendText(error_msg + "\n")
+        wx.MessageBox(error_msg, "Errore Operazione GitHub", wx.OK | wx.ICON_ERROR, self)
+        
+    def ExecuteGitHubOperationAsync(self, title, operation_func, *args, **kwargs):
+        """Esegue un'operazione GitHub in modo asincrono.
+        
+        Args:
+            title: Titolo per il dialogo di progresso
+            operation_func: Funzione GitHub da eseguire
+            *args: Argomenti per la funzione
+            **kwargs: Argomenti keyword per la funzione
+        """
+        message = f"Esecuzione {title.lower()} in corso..."
+        self.RunAsyncOperation(title, message, operation_func, *args, **kwargs)
 
 
 import wx
