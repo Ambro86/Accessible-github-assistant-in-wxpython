@@ -3,7 +3,8 @@
     "allow": [
       "Bash(grep:*)",
       "Bash(awk:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

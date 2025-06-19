@@ -417,8 +417,8 @@ class AsyncOperationMixin:
         Args:
             error: Errore verificatosi
         """
-        wx.MessageBox(f"Errore durante l'operazione:\n{str(error)}", 
-                     "Errore", wx.OK | wx.ICON_ERROR, self)
+        wx.MessageBox(_("Errore durante l'operazione:\n{}").format(str(error)), 
+                     _("Errore"), wx.OK | wx.ICON_ERROR, self)
 
 # --- Finestra di Dialogo Personalizzata per l'Input ---
 class InputDialog(wx.Dialog):
@@ -8428,7 +8428,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                             
                             # Avvia il download asincrono
                             self.ExecuteGitHubOperationAsync(
-                                "Download Artifact",
+                                _("Download Artifact"),
                                 self._download_artifact_async,
                                 download_url,
                                 save_path,
@@ -9220,10 +9220,16 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 input_dialog = InputDialog(self, dlg_title, prompt, placeholder)
                 if input_dialog.ShowModal() == wx.ID_OK:
                     user_input = input_dialog.GetValue()
-                    self.ExecuteGitCommand(command_name, cmd_details, user_input)
+                    if self.should_use_async_git(command_name):
+                        self.ExecuteGitCommandAsync(command_name, cmd_details, user_input)
+                    else:
+                        self.ExecuteGitCommand(command_name, cmd_details, user_input)
                 input_dialog.Destroy()
             else:
-                self.ExecuteGitCommand(command_name, cmd_details, "")
+                if self.should_use_async_git(command_name):
+                    self.ExecuteGitCommandAsync(command_name, cmd_details, "")
+                else:
+                    self.ExecuteGitCommand(command_name, cmd_details, "")
 
     def OnMenuGitHubConfig(self, event):
         """Apri configurazione GitHub tramite menu."""
@@ -9442,26 +9448,76 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             if 'details' in result and 'file_path' in result:
                 # Mostra dialog di successo per artifact
                 self.ShowDetailsDialog(
-                    title="✅ Download Completato",
+                    title=_("✅ Download Completato"),
                     message=result['message'],
                     details=result['details'],
                     is_success=True
                 )
+            # Gestione specifica per comandi Git
+            elif 'command_name' in result and 'output' in result:
+                # Aggiungi output alla console
+                if result['output']:
+                    self.output_text_ctrl.AppendText(result['output'])
+                
+                # Gestioni speciali per alcuni comandi
+                command_name = result['command_name']
+                
+                # Mostra dialog di successo se il comando lo richiede
+                if self.should_use_details_dialog(command_name):
+                    formatted_output = self.format_git_output_for_dialog(
+                        command_name, result['output'], "", True
+                    )
+                    self.ShowDetailsDialog(
+                        title=_("✅ {}").format(command_name),
+                        message=_("Comando completato con successo"),
+                        details=formatted_output,
+                        is_success=True
+                    )
+                
+                # Gestioni speciali post-comando
+                if command_name == CMD_CLONE:
+                    self._handle_clone_success(result)
+                    
             elif 'data' in result:
                 # Aggiorna l'interfaccia con i nuovi dati se necessario
                 pass
         else:
-            self.output_text_ctrl.AppendText("✅ Operazione completata con successo\n")
+            self.output_text_ctrl.AppendText(_("✅ Operazione completata con successo\n"))
             
     def OnAsyncOperationError(self, error):
-        """Gestisce l'errore di un'operazione GitHub asincrona.
+        """Gestisce l'errore di un'operazione asincrona.
         
         Args:
-            error: Errore verificatosi
+            error: Errore verificatosi o risultato con errore
         """
-        error_msg = f"❌ Errore durante l'operazione GitHub:\n{str(error)}"
-        self.output_text_ctrl.AppendText(error_msg + "\n")
-        wx.MessageBox(error_msg, "Errore Operazione GitHub", wx.OK | wx.ICON_ERROR, self)
+        # Se è un risultato di comando Git con errore
+        if isinstance(error, dict) and 'error_info' in error:
+            error_info = error['error_info']
+            command_name = error_info['command_name']
+            
+            # Aggiungi output alla console
+            if error.get('output'):
+                self.output_text_ctrl.AppendText(error['output'])
+            
+            # Gestioni speciali per errori specifici
+            if command_name == CMD_PUSH and error_info['returncode'] == 128:
+                if "has no upstream branch" in error_info['stderr'].lower():
+                    self.HandlePushNoUpstream(self.repo_path_ctrl.GetValue(), error_info['stderr'])
+                    return
+            
+            if command_name == CMD_MERGE and "conflict" in (error_info['stdout'] + error_info['stderr']).lower():
+                self.HandleMergeConflict(self.repo_path_ctrl.GetValue())
+                return
+            
+            # Mostra errore generico per comandi Git
+            error_msg = _("❌ Errore comando Git: {}").format(error.get('message', str(error)))
+            self.output_text_ctrl.AppendText(error_msg + "\n")
+            
+        else:
+            # Errore generico
+            error_msg = _("❌ Errore durante l'operazione:\n{}").format(str(error))
+            self.output_text_ctrl.AppendText(error_msg + "\n")
+            wx.MessageBox(error_msg, _("Errore Operazione"), wx.OK | wx.ICON_ERROR, self)
         
     def ExecuteGitHubOperationAsync(self, title, operation_func, *args, **kwargs):
         """Esegue un'operazione GitHub in modo asincrono.
@@ -9472,8 +9528,72 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             *args: Argomenti per la funzione
             **kwargs: Argomenti keyword per la funzione
         """
-        message = f"Esecuzione {title.lower()} in corso..."
+        message = _("Esecuzione {} in corso...").format(title.lower())
         self.RunAsyncOperation(title, message, operation_func, *args, **kwargs)
+        
+    def _handle_clone_success(self, result):
+        """Gestisce il successo di un comando clone aggiornando il path del repository.
+        
+        Args:
+            result: Risultato del comando clone
+        """
+        # Cerca di determinare la nuova directory dal comando clone
+        output = result.get('output', '')
+        if 'cloning into' in output.lower():
+            # Prova a estrarre il nome della directory dal output
+            lines = output.split('\n')
+            for line in lines:
+                if 'cloning into' in line.lower():
+                    # Estrai il nome della directory
+                    import re
+                    match = re.search(r"'([^']+)'", line)
+                    if match:
+                        new_dir = match.group(1)
+                        current_path = self.repo_path_ctrl.GetValue()
+                        new_path = os.path.join(current_path, new_dir)
+                        if os.path.exists(new_path):
+                            self.repo_path_ctrl.SetValue(new_path)
+                            self.output_text_ctrl.AppendText(_("📁 Percorso aggiornato a: {}\n").format(new_path))
+                        break
+                        
+    def ExecuteGitCommandAsync(self, command_name, command_details, user_input_val):
+        """Esegue un comando Git in modo asincrono.
+        
+        Args:
+            command_name: Nome del comando Git tradotto
+            command_details: Dettagli del comando
+            user_input_val: Input dell'utente
+        """
+        title = _("Comando Git: {}").format(command_name)
+        self.ExecuteGitHubOperationAsync(
+            title,
+            self._execute_git_command_async,
+            command_name,
+            command_details,
+            user_input_val
+        )
+        
+    def should_use_async_git(self, command_name):
+        """Determina se un comando Git dovrebbe essere eseguito in modo asincrono.
+        
+        Args:
+            command_name: Nome del comando Git
+            
+        Returns:
+            bool: True se dovrebbe essere asincrono
+        """
+        # Comandi che potrebbero essere lunghi e dovrebbero essere asincroni
+        async_commands = {
+            CMD_CLONE,          # git clone - può essere molto lento
+            CMD_PUSH,           # git push - può essere lento su repository grandi
+            CMD_PULL,           # git pull - può essere lento
+            CMD_FETCH_ORIGIN,   # git fetch - può essere lento
+            CMD_COMMIT,         # git commit - può essere lento su repository grandi
+            CMD_ADD_ALL,        # git add . - può essere lento su molti file
+            CMD_AMEND_COMMIT,   # git commit --amend - può essere lento
+        }
+        
+        return command_name in async_commands
         
     def _download_artifact_async(self, download_url, save_path, artifact_name, headers, progress_callback=None):
         """Scarica un artifact GitHub in modo asincrono.
@@ -9507,12 +9627,12 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         
                         # Aggiorna il progresso se il callback è disponibile
                         if progress_callback and total_size > 0:
-                            progress_msg = f"Scaricamento {artifact_name}: {downloaded_size // 1024} KB"
+                            progress_msg = _("Scaricamento {}: {} KB").format(artifact_name, downloaded_size // 1024)
                             if not progress_callback(downloaded_size, total_size, progress_msg):
                                 # L'utente ha cancellato l'operazione
                                 if os.path.exists(save_path):
                                     os.remove(save_path)
-                                raise Exception("Download cancellato dall'utente")
+                                raise Exception(_("Download cancellato dall'utente"))
             
             # Calcola dimensione file scaricato
             file_size = os.path.getsize(save_path)
@@ -9535,7 +9655,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             success_details += _("• Estrarre il contenuto per utilizzare i file\n")
             
             return {
-                'message': f'Artifact "{artifact_name}" scaricato con successo',
+                'message': _('Artifact "{}" scaricato con successo').format(artifact_name),
                 'details': success_details,
                 'file_path': save_path,
                 'size_mb': size_mb
@@ -9549,6 +9669,113 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 except:
                     pass
             raise e
+            
+    def _execute_git_command_async(self, command_name, command_details, user_input_val, progress_callback=None):
+        """Esegue comandi Git in modo asincrono.
+        
+        Args:
+            command_name: Nome del comando Git tradotto
+            command_details: Dettagli del comando dal dizionario ORIGINAL_COMMANDS
+            user_input_val: Input dell'utente se necessario
+            progress_callback: Callback per aggiornare il progresso
+            
+        Returns:
+            dict: Risultato dell'operazione con output e status
+        """
+        import os
+        import subprocess
+        
+        try:
+            repo_path = self.repo_path_ctrl.GetValue()
+            process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            
+            # Prepara i comandi da eseguire
+            cmds_to_run = []
+            full_output = ""
+            success = True
+            
+            # Gestione speciale per alcuni comandi
+            if command_name == CMD_TAG_LIGHTWEIGHT:
+                parts = user_input_val.strip().split() if user_input_val else []
+                if len(parts) == 1: 
+                    cmds_to_run = [["git", "tag", parts[0]]]
+                elif len(parts) >= 2 and parts[0]: 
+                    cmds_to_run = [["git", "tag", parts[0], parts[1]]]
+                else: 
+                    raise Exception(_("Input per il tag non valido. Fornire almeno il nome del tag."))
+            else:
+                for tmpl in command_details.get("cmds", []): 
+                    cmds_to_run.append([p.replace("{input_val}", user_input_val) for p in tmpl])
+            
+            if not cmds_to_run:
+                raise Exception(_("Nessun comando specifico da eseguire per questa azione."))
+            
+            # Esegui i comandi
+            total_commands = len(cmds_to_run)
+            for i, cmd_parts in enumerate(cmds_to_run):
+                # Aggiorna progresso
+                if progress_callback:
+                    progress_msg = _("Esecuzione: {}").format(' '.join(cmd_parts[:2]))
+                    if not progress_callback(i, total_commands, progress_msg):
+                        raise Exception(_("Operazione cancellata dall'utente"))
+                
+                # Esegui il comando
+                proc = subprocess.run(
+                    cmd_parts, 
+                    cwd=repo_path, 
+                    capture_output=True, 
+                    text=True, 
+                    check=False, 
+                    encoding='utf-8', 
+                    errors='replace', 
+                    creationflags=process_flags
+                )
+                
+                # Raccogli output
+                if proc.stdout: 
+                    full_output += _("--- Output ({}) ---\n{}\n").format(' '.join(cmd_parts), proc.stdout)
+                if proc.stderr: 
+                    full_output += _("--- Messaggi/Errori ({}) ---\n{}\n").format(' '.join(cmd_parts), proc.stderr)
+                
+                # Controlla errori
+                if proc.returncode != 0:
+                    full_output += _("\n!!! Comando {} fallito con codice: {} !!!\n").format(' '.join(cmd_parts), proc.returncode)
+                    success = False
+                    
+                    # Gestione errori speciali (da implementare nel callback)
+                    error_info = {
+                        'command_name': command_name,
+                        'returncode': proc.returncode,
+                        'stderr': proc.stderr,
+                        'stdout': proc.stdout,
+                        'cmd_parts': cmd_parts
+                    }
+                    
+                    return {
+                        'success': False,
+                        'output': full_output,
+                        'error_info': error_info,
+                        'message': _("Comando Git fallito: {}").format(' '.join(cmd_parts[:2]))
+                    }
+            
+            # Aggiorna progresso finale
+            if progress_callback:
+                progress_callback(total_commands, total_commands, _("Comando completato"))
+            
+            return {
+                'success': True,
+                'output': full_output,
+                'message': _("Comando Git completato: {}").format(command_name),
+                'command_name': command_name
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'output': full_output,
+                'error': str(e),
+                'message': _("Errore durante l'esecuzione: {}").format(str(e))
+            }
 
 
 import wx
@@ -9734,7 +9961,10 @@ class AccessibleMenuBarReplacer:
                             # Mostra dialog per input
                             AccessibleMenuBarReplacer._show_input_dialog(frame, command_name, cmd_details)
                         else:
-                            frame.ExecuteGitCommand(command_name, cmd_details, "")
+                            if frame.should_use_async_git(command_name):
+                                frame.ExecuteGitCommandAsync(command_name, cmd_details, "")
+                            else:
+                                frame.ExecuteGitCommand(command_name, cmd_details, "")
                 else:
                     print(f"❌ Comando non trovato: {command_name}")
                     if hasattr(frame, 'output_text_ctrl'):
@@ -9756,7 +9986,10 @@ class AccessibleMenuBarReplacer:
             input_dialog = InputDialog(frame, dlg_title, prompt, placeholder)
             if input_dialog.ShowModal() == wx.ID_OK:
                 user_input = input_dialog.GetValue()
-                frame.ExecuteGitCommand(command_name, cmd_details, user_input)
+                if frame.should_use_async_git(command_name):
+                    frame.ExecuteGitCommandAsync(command_name, cmd_details, user_input)
+                else:
+                    frame.ExecuteGitCommand(command_name, cmd_details, user_input)
             input_dialog.Destroy()
             
         except Exception as e:
