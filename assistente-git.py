@@ -337,7 +337,15 @@ class GitHubAsyncTask(threading.Thread):
             if self.progress_callback:
                 self.kwargs['progress_callback'] = self.progress_callback
             self.result = self.operation_func(*self.args, **self.kwargs)
-            wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=True)
+            
+            # Controlla se il risultato indica un fallimento
+            if isinstance(self.result, dict) and not self.result.get('success', True):
+                # Il risultato indica un fallimento, trattalo come errore
+                self.error = self.result
+                wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=False)
+            else:
+                # Successo normale
+                wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=True)
         except Exception as e:
             self.error = e
             wx.CallAfter(self.parent.OnAsyncTaskCompleted, self, success=False)
@@ -378,8 +386,8 @@ class AsyncOperationMixin:
         self.active_tasks.append(task)
         task.start()
         
-        # Mostra il dialogo
-        self.progress_dialog.ShowModal()
+        # Mostra il dialogo (non modale per evitare conflitti)
+        self.progress_dialog.Show()
         
     def OnAsyncTaskCompleted(self, task, success):
         """Chiamato quando un task asincrono è completato.
@@ -9464,9 +9472,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 
                 # Mostra dialog di successo se il comando lo richiede
                 if self.should_use_details_dialog(command_name):
-                    formatted_output = self.format_git_output_for_dialog(
-                        command_name, result['output'], "", True
-                    )
+                    # Per il sistema asincrono, usiamo direttamente l'output
+                    formatted_output = result['output']
+                    
                     self.ShowDetailsDialog(
                         title=_("✅ {}").format(command_name),
                         message=_("Comando completato con successo"),
@@ -9731,10 +9739,15 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     creationflags=process_flags
                 )
                 
-                # Raccogli output
-                if proc.stdout: 
+                # Raccogli output - mostra sempre almeno il comando eseguito
+                full_output += _("🔧 Comando eseguito: {}\n").format(' '.join(cmd_parts))
+                
+                if proc.stdout.strip(): 
                     full_output += _("--- Output ({}) ---\n{}\n").format(' '.join(cmd_parts), proc.stdout)
-                if proc.stderr: 
+                else:
+                    full_output += _("✅ Comando completato senza output\n")
+                    
+                if proc.stderr.strip(): 
                     full_output += _("--- Messaggi/Errori ({}) ---\n{}\n").format(' '.join(cmd_parts), proc.stderr)
                 
                 # Controlla errori
@@ -9761,6 +9774,14 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             # Aggiorna progresso finale
             if progress_callback:
                 progress_callback(total_commands, total_commands, _("Comando completato"))
+            
+            # Aggiungi riepilogo finale
+            full_output += f"\n" + "="*50 + "\n"
+            full_output += _("✅ OPERAZIONE COMPLETATA CON SUCCESSO\n")
+            full_output += _("📋 Comando: {}\n").format(command_name)
+            full_output += _("⏱️ Comandi eseguiti: {}\n").format(total_commands)
+            full_output += _("📂 Repository: {}\n").format(repo_path)
+            full_output += "="*50 + "\n"
             
             return {
                 'success': True,
