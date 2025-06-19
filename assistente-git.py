@@ -265,6 +265,14 @@ CMD_FILE_CHANGES_SUMMARY = _("Riepilogo Modifiche File")
 # --- Finestra di Dialogo Personalizzata per l'Input ---
 class InputDialog(wx.Dialog):
     def __init__(self, parent, title, prompt, placeholder=""):
+        """Inizializza il dialogo di input.
+        
+        Args:
+            parent: Finestra genitore
+            title: Titolo del dialogo
+            prompt: Testo del prompt da mostrare
+            placeholder: Testo placeholder nel campo di input
+        """
         super(InputDialog, self).__init__(parent, title=title, size=(450, 150))
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -284,12 +292,29 @@ class InputDialog(wx.Dialog):
         self.text_ctrl.SetFocus()
 
     def GetValue(self):
+        """Restituisce il valore inserito dall'utente.
+        
+        Returns:
+            str: Il testo inserito, rimossi spazi iniziali e finali
+        """
         return self.text_ctrl.GetValue().strip()
 
 # --- Finestra di Dialogo per Configurazione GitHub (MODIFICATA) ---
 class GitHubConfigDialog(wx.Dialog):
     def __init__(self, parent, title, current_owner, current_repo,
                  current_token_present, current_ask_pass_on_startup, current_strip_timestamps, current_monitoring_beep):
+        """Inizializza il dialogo di configurazione GitHub.
+        
+        Args:
+            parent: Finestra genitore
+            title: Titolo del dialogo
+            current_owner: Proprietario del repository corrente
+            current_repo: Nome del repository corrente
+            current_token_present: Se è presente un token memorizzato
+            current_ask_pass_on_startup: Se richiedere password all'avvio
+            current_strip_timestamps: Se rimuovere timestamp dai log
+            current_monitoring_beep: Se abilitare beep durante monitoraggio
+        """
         super(GitHubConfigDialog, self).__init__(parent, title=title)
         self.parent_frame = parent
         panel = wx.Panel(self)
@@ -403,6 +428,11 @@ class GitHubConfigDialog(wx.Dialog):
         self.Refresh()       # Forza un ridisegno per assicurare che le modifiche siano visibili
         
     def OnDeleteConfig(self, event):
+        """Gestisce l'eliminazione della configurazione GitHub salvata.
+        
+        Args:
+            event: Evento del pulsante
+        """
 
         # Tentiamo di scrivere anche nell'output GUI per conferma
         if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
@@ -483,6 +513,11 @@ class GitHubConfigDialog(wx.Dialog):
                 pass
 
     def GetValues(self):
+        """Restituisce i valori inseriti nel dialogo.
+        
+        Returns:
+            dict: Dizionario contenente tutti i valori di configurazione
+        """
         return {
             "owner": self.owner_ctrl.GetValue().strip(),
             "repo": self.repo_ctrl.GetValue().strip(),
@@ -523,6 +558,13 @@ class GitHubConfigDialog(wx.Dialog):
             
 class WorkflowInputDialog(wx.Dialog):
     def __init__(self, parent, title, workflow_name):
+        """Inizializza il dialogo per input dei parametri del workflow.
+        
+        Args:
+            parent: Finestra genitore
+            title: Titolo del dialogo
+            workflow_name: Nome del workflow da eseguire
+        """
         super().__init__(parent, title=title, size=(500, 400))
         
         self.workflow_name = workflow_name
@@ -532,6 +574,7 @@ class WorkflowInputDialog(wx.Dialog):
         self.Center()
     
     def create_ui(self):
+        """Crea l'interfaccia utente del dialogo."""
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
         # Titolo
@@ -2560,7 +2603,20 @@ class CommitSelectionDialog(wx.Dialog):
 
 
 class GitFrame(wx.Frame):
+    """Finestra principale dell'Assistente Git.
+    
+    Questa classe implementa l'interfaccia utente principale dell'applicazione,
+    gestendo i comandi Git, l'integrazione GitHub e tutte le funzionalità di
+    monitoraggio e gestione dei repository.
+    """
+    
     def __init__(self, *args, **kw):
+        """Inizializza la finestra principale dell'Assistente Git.
+        
+        Args:
+            *args: Argomenti posizionali per wx.Frame
+            **kw: Argomenti per parole chiave per wx.Frame
+        """
         super(GitFrame, self).__init__(*args, **kw)
         self.panel = wx.Panel(self)
         self.git_available = self.check_git_installation()
@@ -2688,7 +2744,17 @@ class GitFrame(wx.Frame):
         return True  # Tutti i comandi usano la dialog!
 
     def format_git_output_for_dialog(self, command_name, stdout, stderr, success):
-        """Formatta l'output Git per la visualizzazione in ShowDetailsDialog."""
+        """Formatta l'output dei comandi Git per la visualizzazione in dialogo.
+        
+        Args:
+            command_name: Nome del comando Git eseguito
+            stdout: Output standard del comando
+            stderr: Output di errore del comando
+            success: Se il comando è stato eseguito con successo
+            
+        Returns:
+            str: Output formattato per la visualizzazione
+        """
         
         # Comandi con formattazione speciale
         if command_name == CMD_STATUS:
@@ -5762,6 +5828,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         self.Destroy()
         
     def check_git_installation(self):
+        """Verifica se Git è installato e disponibile nel sistema.
+        
+        Returns:
+            bool: True se Git è installato e funzionante, False altrimenti
+        """
         try:
             process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             subprocess.run(["git", "--version"], capture_output=True, check=True, text=True, creationflags=process_flags)
@@ -5889,6 +5960,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         
         dlg.Destroy()
     def InitUI(self):
+        """Inizializza l'interfaccia utente principale.
+        
+        Crea tutti i controlli della finestra principale inclusi menu,
+        campo percorso repository, albero comandi e area output.
+        """
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.CreateMenuBar()
         repo_sizer_box = wx.StaticBoxSizer(wx.HORIZONTAL, self.panel, _("Cartella del Repository (Directory di Lavoro)"))
