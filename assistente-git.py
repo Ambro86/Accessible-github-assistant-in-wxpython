@@ -4323,8 +4323,16 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         
         panel.SetSizer(main_sizer)
         dlg.Center()
-        dlg.ShowModal()
-        dlg.Destroy()
+        try:
+            dlg.ShowModal()
+        finally:
+            # Verifica che il dialog non sia già stato distrutto
+            try:
+                if dlg and not dlg.IsBeingDeleted():
+                    dlg.Destroy()
+            except RuntimeError:
+                # Dialog già distrutto, ignora
+                pass
     def _handle_details_key(self, event, dialog):
         """Gestisce tasti nel campo dettagli."""
         keycode = event.GetKeyCode()
