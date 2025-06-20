@@ -3768,10 +3768,6 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
     def HandleCheckoutWithLocalChanges(self, repo_path, target_commit, original_stderr):
         """Gestisce il caso in cui checkout fallisce per modifiche locali non committate."""
         
-        self.output_text_ctrl.AppendText(
-            _("\n*** CHECKOUT BLOCCATO: Modifiche locali non committate rilevate! ***\n")
-        )
-        
         # Estrai i file in conflitto dall'errore
         conflicting_files = []
         lines = original_stderr.split('\n')
@@ -3790,24 +3786,26 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
                 else:
                     break
         
+        # Prepara lista file per il dialog
+        file_list_text = ""
         if conflicting_files:
-            self.output_text_ctrl.AppendText(_("File con modifiche locali che impediscono il checkout:\n"))
+            file_list_text = "\n\n" + _("File con modifiche locali:") + "\n"
             for file_path in conflicting_files[:10]:  # Mostra primi 10
-                self.output_text_ctrl.AppendText(f"  📝 {file_path}\n")
+                file_list_text += f"  📝 {file_path}\n"
             if len(conflicting_files) > 10:
-                self.output_text_ctrl.AppendText(_("  ... e altri %(count)d file\n") % {"count": len(conflicting_files) - 10})
-            self.output_text_ctrl.AppendText("\n")
+                file_list_text += _("  ... e altri %(count)d file\n") % {"count": len(conflicting_files) - 10}
         
         # Opzioni per risolvere il problema
         dialog_message = _(
-            "Il checkout al commit '{}' è stato bloccato perché ci sono modifiche locali non committate.\n\n"
-            "Come vuoi procedere?\n\n"
+            "⚠️ CHECKOUT BLOCCATO\n\n"
+            "Il checkout al commit '{}' è stato bloccato perché ci sono modifiche locali non committate.{}"
+            "\n\nCome vuoi procedere?\n\n"
             "💡 Spiegazione opzioni:\n"
             "• STASH: Salva temporaneamente le modifiche (potrai recuperarle dopo)\n"
             "• COMMIT: Crea un commit con le modifiche attuali\n"
             "• SCARTA: Elimina definitivamente le modifiche locali (IRREVERSIBILE!)\n"
             "• ANNULLA: Non fare nulla e tornare allo stato attuale"
-        ).format(target_commit)
+        ).format(target_commit, file_list_text)
         
         choices = [
             _("💾 STASH - Salva modifiche temporaneamente e procedi con checkout"),
@@ -3826,20 +3824,13 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         
         if choice_dlg.ShowModal() == wx.ID_OK:
             strategy_choice_text = choice_dlg.GetStringSelection()
-            self.output_text_ctrl.AppendText(_("Strategia scelta: {}\n").format(strategy_choice_text))
-            
             success = False
             
             if strategy_choice_text == choices[0]:  # STASH
-                self.output_text_ctrl.AppendText(_("📦 Salvataggio modifiche in stash...\n"))
-                wx.Yield()
-                
+                wx.SafeYield()
                 if self.RunSingleGitCommand(["git", "stash", "push", "-m", f"Auto-stash before checkout to {target_commit}"], 
                                            repo_path, _("Stash modifiche automatico")):
-                    self.output_text_ctrl.AppendText(_("✅ Modifiche salvate in stash.\n"))
                     success = True
-                else:
-                    self.output_text_ctrl.AppendText(_("❌ Errore nel salvare le modifiche in stash.\n"))
                     
             elif strategy_choice_text == choices[1]:  # COMMIT
                 # Chiedi messaggio di commit
@@ -3855,22 +3846,14 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
                     if not commit_message.strip():
                         commit_message = f"Auto-commit before checkout to {target_commit}"
                     
-                    self.output_text_ctrl.AppendText(_("📝 Creazione commit con modifiche attuali...\n"))
-                    wx.Yield()
+                    wx.SafeYield()
                     
                     # Prima aggiungi tutte le modifiche
                     if self.RunSingleGitCommand(["git", "add", "."], repo_path, _("Aggiungi modifiche per commit")):
                         # Poi committa
                         if self.RunSingleGitCommand(["git", "commit", "-m", commit_message], 
                                                    repo_path, _("Commit modifiche automatico")):
-                            self.output_text_ctrl.AppendText(_("✅ Commit creato con successo.\n"))
                             success = True
-                        else:
-                            self.output_text_ctrl.AppendText(_("❌ Errore nella creazione del commit.\n"))
-                    else:
-                        self.output_text_ctrl.AppendText(_("❌ Errore nell'aggiungere le modifiche.\n"))
-                else:
-                    self.output_text_ctrl.AppendText(_("Commit annullato dall'utente.\n"))
                 
                 commit_dlg.Destroy()
                 
@@ -3893,54 +3876,52 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
                 )
                 
                 if confirm_dlg.ShowModal() == wx.ID_YES:
-                    self.output_text_ctrl.AppendText(_("🗑️ Eliminazione modifiche locali...\n"))
-                    wx.Yield()
+                    wx.SafeYield()
                     
                     # Reset hard + clean per eliminare tutto
                     if self.RunSingleGitCommand(["git", "reset", "--hard", "HEAD"], 
                                                repo_path, _("Reset modifiche locali")):
                         if self.RunSingleGitCommand(["git", "clean", "-fd"], 
                                                    repo_path, _("Pulizia file non tracciati")):
-                            self.output_text_ctrl.AppendText(_("✅ Modifiche locali eliminate.\n"))
                             success = True
                         else:
-                            self.output_text_ctrl.AppendText(_("❌ Errore nella pulizia dei file non tracciati.\n"))
                             success = True  # Reset è riuscito, continua comunque
-                    else:
-                        self.output_text_ctrl.AppendText(_("❌ Errore nel reset delle modifiche.\n"))
-                else:
-                    self.output_text_ctrl.AppendText(_("Eliminazione modifiche annullata dall'utente.\n"))
                 
                 confirm_dlg.Destroy()
                 
             else:  # ANNULLA
-                self.output_text_ctrl.AppendText(_("Checkout annullato. Modifiche locali mantenute.\n"))
                 choice_dlg.Destroy()
                 return False
             
             # Se la strategia ha avuto successo, prova di nuovo il checkout
             if success:
-                self.output_text_ctrl.AppendText(_("\n🔄 Tentativo checkout dopo risoluzione conflitti...\n"))
-                wx.Yield()
+                wx.SafeYield()
                 
                 if self.RunSingleGitCommand(["git", "checkout", target_commit], 
                                            repo_path, f"Checkout a {target_commit} (post-risoluzione)"):
-                    self.output_text_ctrl.AppendText(_("✅ Checkout completato con successo!\n"))
+                    
+                    # Messaggio di successo
+                    success_message = _("✅ Checkout completato con successo!")
+                    success_details = _("📋 CHECKOUT COMPLETATO\n\n")
+                    success_details += _("🎯 Target: {}\n").format(target_commit)
+                    success_details += _("📁 Repository: {}\n").format(repo_path)
                     
                     # Se abbiamo fatto stash, ricorda all'utente
                     if strategy_choice_text == choices[0]:
-                        self.output_text_ctrl.AppendText(
-                            _("\n💡 Le tue modifiche sono salvate in stash.\n"
-                              "Usa '{}' per recuperarle quando necessario.\n").format(CMD_STASH_POP)
-                        )
+                        success_details += _("\n💡 INFORMAZIONI IMPORTANTI:\n")
+                        success_details += _("• Le tue modifiche sono salvate in stash\n")
+                        success_details += _("• Usa '{}' per recuperarle quando necessario\n").format(CMD_STASH_POP)
                     
+                    self.ShowSuccessNotification(success_message, success_details)
                     choice_dlg.Destroy()
                     return True
                 else:
-                    self.output_text_ctrl.AppendText(_("❌ Checkout fallito anche dopo la risoluzione dei conflitti.\n"))
+                    error_message = _("❌ Checkout fallito anche dopo la risoluzione dei conflitti")
+                    self.ShowErrorNotification(error_message, _("Il checkout non è riuscito nonostante la risoluzione dei conflitti."))
             
         else:
-            self.output_text_ctrl.AppendText(_("Risoluzione conflitti annullata dall'utente.\n"))
+            # Operazione annullata
+            pass
         
         choice_dlg.Destroy()
         return False
@@ -8500,10 +8481,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             return None
 
     def HandlePushNoUpstream(self, repo_path, original_stderr):
-        self.output_text_ctrl.AppendText(
-            _("\n*** PROBLEMA PUSH: Il branch corrente non ha un upstream remoto configurato. ***\n"
-              "Questo di solito accade la prima volta che si tenta di inviare (push) un nuovo branch locale al server remoto.\n")
-        )
         current_branch = self.GetCurrentBranchName(repo_path)
         parsed_branch_from_error = None
         if not current_branch: # Prova a dedurlo dall'errore se GetCurrentBranchName fallisce
@@ -8514,7 +8491,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 if match_hint: parsed_branch_from_error = match_hint.group(1).splitlines()[0].strip() # Prendi solo il nome del branch
             if parsed_branch_from_error:
                 current_branch = parsed_branch_from_error
-                self.output_text_ctrl.AppendText(_("Branch corrente rilevato dall'errore Git: '{}'\n").format(current_branch))
 
         if not current_branch:
             self.output_text_ctrl.AppendText(_("Impossibile determinare automaticamente il nome del branch corrente.\n"
