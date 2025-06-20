@@ -14,7 +14,8 @@
       "Bash(msgfmt:*)",
       "Bash(rm:*)",
       "Bash(xgettext:*)",
-      "Bash(msgmerge:*)"
+      "Bash(msgmerge:*)",
+      "Bash(python:*)"
     ],
     "deny": []
   }

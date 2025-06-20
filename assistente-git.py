@@ -1,40 +1,96 @@
 # -*- coding: utf-8 -*-
-#To create an executable use pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
-#Version 1.1
+"""
+Assistente Git Semplice v1.1
+Applicazione GUI per la gestione di repository Git con integrazione GitHub.
+
+Per creare un eseguibile:
+pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
+"""
+
 import wx
-import os, time, platform
+import os
+import time
+import platform
 import subprocess
-import fnmatch # Per il filtraggio dei file
-import re # Aggiunto per regex nella gestione errori push
-import json # Per gestire risposte API GitHub e config
-import requests # Per chiamate API GitHub
-import zipfile # Per gestire archivi ZIP dei log
-import io # Per gestire stream di byte in memoria
-import struct # Per il formato archivio personalizzato
-import gzip # Per comprimere i dati prima della crittografia
-import uuid # Per l'identificatore univoco dell'utente
-import base64 # Per la chiave Fernet
+import fnmatch
+import re
+import json
+import requests
+import zipfile
+import io
+import struct
+import gzip
+import uuid
+import base64
 import webbrowser
 import types
 import threading
 import queue
+import logging
+import sys
+from pathlib import Path
+from typing import Optional, Dict, List, Union, Tuple, Any
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-from cryptography.fernet import Fernet, InvalidToken # Per la crittografia
-from datetime import datetime, timezone # Aggiungi timezone da datetime
+from cryptography.fernet import Fernet, InvalidToken
+from datetime import datetime, timezone
+
+# Import utility functions
+try:
+    from utils import (
+        sanitize_input, validate_git_command, validate_repository_path,
+        format_file_size, truncate_text, is_safe_filename, PerformanceMonitor
+    )
+except ImportError:
+    logger.warning("Modulo utils non disponibile, alcune funzioni di sicurezza potrebbero essere limitate")
+    
+    # Fallback functions
+    def sanitize_input(input_str: str, max_length: int = 1000) -> str:
+        return str(input_str)[:max_length] if input_str else ""
+        
+    def validate_git_command(cmd_parts: List[str]) -> bool:
+        return True
+        
+    def validate_repository_path(repo_path: str) -> tuple[bool, Optional[str]]:
+        return True, None
+        
+    def format_file_size(size_bytes: int) -> str:
+        return f"{size_bytes} bytes"
+        
+    def truncate_text(text: str, max_length: int = 100) -> str:
+        return text[:max_length] if text else ""
+        
+    def is_safe_filename(filename: str) -> bool:
+        return True
+        
+    class PerformanceMonitor:
+        def __init__(self, name: str): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+# --- Setup logging ---
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('assistente-git.log', encoding='utf-8')
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # --- Setup gettext for internationalization ---
 import gettext
 import locale
-print("🔍 === DEBUG TRADUZIONE - INIZIO ===")
+logger.info("Inizializzazione sistema traduzioni")
 
 try:
     locale.setlocale(locale.LC_ALL, '')
     current_locale_info = locale.getlocale()
-    print(f"🔍 locale.getlocale(): {current_locale_info}")
+    logger.debug(f"Locale rilevato: {current_locale_info}")
     
 except locale.Error as e:
-    print(f"❌ Errore locale.setlocale: {e}")
+    logger.error(f"Errore configurazione locale: {e}")
     current_locale_info = (None, None)
 
 lang_code = None
@@ -6624,21 +6680,63 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         else:
             self.output_text_ctrl.AppendText(_("Tipo di comando non riconosciuto: {}\n").format(command_type))
             
-    def ExecuteGitCommand(self, command_name_original_translated, command_details, user_input_val):
-        self.output_text_ctrl.AppendText(_("Esecuzione comando Git: {}...\n").format(command_name_original_translated))
-        if user_input_val and command_details.get("input_needed") and \
-           command_name_original_translated not in [CMD_ADD_TO_GITIGNORE, CMD_RESTORE_FILE]:
-               self.output_text_ctrl.AppendText(_("Input fornito: {}\n").format(user_input_val))
-        repo_path = self.repo_path_ctrl.GetValue()
-        self.output_text_ctrl.AppendText(_("Cartella Repository: {}\n\n").format(repo_path)); wx.Yield()
-        if not self.git_available and command_name_original_translated != CMD_ADD_TO_GITIGNORE:
+    def ExecuteGitCommand(self, command_name_original_translated: str, command_details: Dict[str, Any], user_input_val: Optional[str]):
+        """Esegue un comando Git con validazione e gestione errori migliorata.
+        
+        Args:
+            command_name_original_translated: Nome del comando tradotto
+            command_details: Dettagli del comando (dict con comando, args, etc.)
+            user_input_val: Input dell'utente (opzionale)
+        """
+        try:
+            logger.info(f"Esecuzione comando Git: {command_name_original_translated}")
+            self.output_text_ctrl.AppendText(_("Esecuzione comando Git: {}...\n").format(command_name_original_translated))
+            
+            if user_input_val and command_details.get("input_needed") and \
+               command_name_original_translated not in [CMD_ADD_TO_GITIGNORE, CMD_RESTORE_FILE]:
+                   # Sanitizza l'input prima del logging
+                   safe_input = user_input_val[:100] + "..." if len(user_input_val) > 100 else user_input_val
+                   logger.debug(f"Input fornito: {safe_input}")
+                   self.output_text_ctrl.AppendText(_("Input fornito: {}\n").format(user_input_val))
+            
+            repo_path = self.repo_path_ctrl.GetValue()
+            
+            # Validazione percorso repository
+            if not self._validate_repository_path(repo_path):
+                return
+                
+            self.output_text_ctrl.AppendText(_("Cartella Repository: {}\n\n").format(repo_path))
+            wx.Yield()
+            
+            if not self.git_available and command_name_original_translated != CMD_ADD_TO_GITIGNORE:
+                self._handle_git_not_available(command_name_original_translated)
+                return
+                
+        except Exception as e:
+            logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
             self.ShowErrorNotification(
-                title=_("❌ Git Non Disponibile"),
-                message=_("Git non è installato o non accessibile"),
-                details=_("🚨 PROBLEMA GIT:\n\nGit non sembra essere installato o accessibile nel PATH di sistema.\n\nPer utilizzare i comandi Git:\n• Installa Git dal sito ufficiale\n• Assicurati che sia nel PATH di sistema\n• Riavvia l'applicazione dopo l'installazione\n\nComando tentato: {}").format(command_name_original_translated),
-                suggestions=_("Visita https://git-scm.com/ per scaricare e installare Git.")
+                title=_("❌ Errore Comando Git"),
+                message=_("Si è verificato un errore durante l'esecuzione del comando"),
+                details=str(e)
             )
             return
+            
+    def _validate_repository_path(self, repo_path: str) -> bool:
+        """Valida il percorso del repository.
+        
+        Args:
+            repo_path: Percorso del repository da validare
+            
+        Returns:
+            True se il percorso è valido, False altrimenti
+        """
+        if not repo_path or not repo_path.strip():
+            self.ShowErrorNotification(
+                title=_("❌ Percorso Vuoto"),
+                message=_("Il percorso del repository è vuoto"),
+                details=_("Specifica un percorso valido per il repository Git")
+            )
+            return False
             
         if not os.path.isdir(repo_path):
             self.ShowErrorNotification(
@@ -6647,22 +6745,71 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 details=_("🗂️ ERRORE PERCORSO:\n\nPercorso specificato: {}\n\nIl percorso:\n• Non esiste\n• Non è una directory\n• Non è accessibile\n\nVerifica:\n• Che il percorso sia corretto\n• Che la directory esista\n• Che tu abbia i permessi di accesso").format(repo_path),
                 suggestions=_("Seleziona una directory valida usando il pulsante 'Sfoglia...' o correggi il percorso manualmente.")
             )
-            return
+            return False
 
-        is_special_no_repo_check = command_name_original_translated in [CMD_CLONE, CMD_INIT_REPO]
-        is_gitignore = command_name_original_translated == CMD_ADD_TO_GITIGNORE
-        is_ls_files = command_name_original_translated == CMD_LS_FILES
-
-        if not is_special_no_repo_check and not is_gitignore and not is_ls_files:
-            if not os.path.isdir(os.path.join(repo_path, ".git")):
-                self.ShowErrorNotification(
-                    title=_("❌ Repository Git Non Valido"),
-                    message=_("La directory non è un repository Git valido"),
-                    details=_("🗂️ PROBLEMA REPOSITORY:\n\nDirectory: {}\n\nLa directory:\n• Non contiene una sottocartella .git\n• Non è stata inizializzata come repository Git\n• Potrebbe essere corrotta\n\nPer risolvere:\n• Usa '{}' per inizializzare un nuovo repository\n• Oppure naviga a una directory che contiene già un repository Git\n• Verifica che la directory .git non sia nascosta o danneggiata\n\nComando tentato: {}").format(repo_path, CMD_INIT_REPO, command_name_original_translated),
-                    suggestions=_("Inizializza un repository Git con '{}' o seleziona una directory che già contiene un repository Git.").format(CMD_INIT_REPO)
-                )
-                return
-        elif is_gitignore:
+        # Validazione repository Git (se necessario)
+        if not self._validate_git_repository(repo_path, command_name_original_translated):
+            return False
+            
+        return True
+        
+    def _validate_git_repository(self, repo_path: str, command_name: str) -> bool:
+        """Valida che la directory sia un repository Git valido.
+        
+        Args:
+            repo_path: Percorso del repository
+            command_name: Nome del comando che richiede la validazione
+            
+        Returns:
+            True se è un repository valido o la validazione non è necessaria, False altrimenti
+        """
+        # Comandi che non richiedono un repository Git esistente
+        special_commands = [CMD_CLONE, CMD_INIT_REPO, CMD_ADD_TO_GITIGNORE, CMD_LS_FILES]
+        
+        if command_name in special_commands:
+            return True
+            
+        git_dir = os.path.join(repo_path, ".git")
+        if not os.path.isdir(git_dir):
+            logger.warning(f"Directory non è un repository Git: {repo_path}")
+            self.ShowErrorNotification(
+                title=_("❌ Repository Git Non Valido"),
+                message=_("La directory non è un repository Git valido"),
+                details=_("🗂️ PROBLEMA REPOSITORY:\n\nDirectory: {}\n\nLa directory:\n• Non contiene una sottocartella .git\n• Non è stata inizializzata come repository Git\n• Potrebbe essere corrotta\n\nPer risolvere:\n• Usa '{}' per inizializzare un nuovo repository\n• Oppure naviga a una directory che contiene già un repository Git\n• Verifica che la directory .git non sia nascosta o danneggiata\n\nComando tentato: {}").format(repo_path, CMD_INIT_REPO, command_name),
+                suggestions=_("Inizializza un repository Git con '{}' o seleziona una directory che già contiene un repository Git.").format(CMD_INIT_REPO)
+            )
+            return False
+            
+        return True
+        
+    def _handle_git_not_available(self, command_name: str):
+        """Gestisce il caso in cui Git non sia disponibile.
+        
+        Args:
+            command_name: Nome del comando che ha richiesto Git
+        """
+        logger.error(f"Git non disponibile per comando: {command_name}")
+        self.ShowErrorNotification(
+            title=_("❌ Git Non Disponibile"),
+            message=_("Git non è installato o non accessibile"),
+            details=_("🚨 PROBLEMA GIT:\n\nGit non sembra essere installato o accessibile nel PATH di sistema.\n\nPer utilizzare i comandi Git:\n• Installa Git dal sito ufficiale\n• Assicurati che sia nel PATH di sistema\n• Riavvia l'applicazione dopo l'installazione\n\nComando tentato: {}").format(command_name),
+            suggestions=_("Visita https://git-scm.com/ per scaricare e installare Git.")
+        )
+        
+        # Continua con la logica del comando
+        self._execute_git_command_logic(command_name_original_translated, command_details, user_input_val, repo_path)
+        
+    def _execute_git_command_logic(self, command_name: str, command_details: Dict[str, Any], user_input_val: Optional[str], repo_path: str):
+        """Esegue la logica del comando Git.
+        
+        Args:
+            command_name: Nome del comando
+            command_details: Dettagli del comando
+            user_input_val: Input dell'utente
+            repo_path: Percorso del repository
+        """
+        # Gestione speciale per gitignore
+        if command_name == CMD_ADD_TO_GITIGNORE:
             if not os.path.isdir(os.path.join(repo_path, ".git")):
                 self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
         if command_details.get("confirm"):
@@ -8453,31 +8600,107 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 )
              
 
-    def RunSingleGitCommand(self, cmd_parts, repo_path, operation_description=_("Comando Git")):
+    def RunSingleGitCommand(self, cmd_parts: List[str], repo_path: str, operation_description: str = _("Comando Git")) -> bool:
+        """Esegue un singolo comando Git con gestione sicura degli errori.
+        
+        Args:
+            cmd_parts: Lista delle parti del comando Git
+            repo_path: Percorso del repository
+            operation_description: Descrizione dell'operazione per il logging
+            
+        Returns:
+            True se il comando è riuscito, False altrimenti
+        """
+        # Validazione input
+        if not cmd_parts or not isinstance(cmd_parts, list):
+            logger.error(f"Comando Git non valido: {cmd_parts}")
+            self.output_text_ctrl.AppendText(_("Errore: comando Git non valido\n"))
+            return False
+            
+        if not repo_path or not os.path.isdir(repo_path):
+            logger.error(f"Percorso repository non valido: {repo_path}")
+            self.output_text_ctrl.AppendText(_("Errore: percorso repository non valido\n"))
+            return False
+            
+        # Sanitizza il comando per il logging
+        safe_cmd = ' '.join(cmd_parts[:3]) + ('...' if len(cmd_parts) > 3 else '')
+        logger.info(f"Esecuzione comando Git: {safe_cmd} in {repo_path}")
+        
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         output = ""
         success = False
+        
         try:
-            proc = subprocess.run(cmd_parts, cwd=repo_path, capture_output=True, text=True, check=False, encoding='utf-8', errors='replace', creationflags=process_flags)
-            if proc.stdout: output += _("--- Output ({}): ---\n{}\n").format(operation_description, proc.stdout)
-            if proc.stderr: output += _("--- Messaggi/Errori ({}): ---\n{}\n").format(operation_description, proc.stderr)
+            # Timeout per evitare comandi bloccati
+            proc = subprocess.run(
+                cmd_parts, 
+                cwd=repo_path, 
+                capture_output=True, 
+                text=True, 
+                check=False, 
+                encoding='utf-8', 
+                errors='replace', 
+                creationflags=process_flags,
+                timeout=300  # 5 minuti timeout
+            )
+            
+            if proc.stdout: 
+                output += _("--- Output ({}): ---\n{}\n").format(operation_description, proc.stdout)
+                
+            if proc.stderr: 
+                output += _("--- Messaggi/Errori ({}): ---\n{}\n").format(operation_description, proc.stderr)
+                
             if proc.returncode == 0:
                 success = True
+                logger.debug(f"Comando Git completato con successo: {safe_cmd}")
             else:
                 output += _("\n!!! Operazione '{}' fallita con codice di uscita: {} !!!\n").format(operation_description, proc.returncode)
+                logger.warning(f"Comando Git fallito: {safe_cmd}, codice: {proc.returncode}")
+                
+        except subprocess.TimeoutExpired:
+            output += _("Errore: timeout durante l'operazione '{}' (>5 minuti)\n").format(operation_description)
+            logger.error(f"Timeout comando Git: {safe_cmd}")
         except Exception as e:
             output += _("Errore durante l'operazione '{}': {}\n").format(operation_description, str(e))
+            logger.error(f"Errore comando Git: {safe_cmd} - {e}", exc_info=True)
+            
         self.output_text_ctrl.AppendText(output)
         return success
 
-    def GetCurrentBranchName(self, repo_path):
+    def GetCurrentBranchName(self, repo_path: str) -> Optional[str]:
+        """Ottiene il nome del branch corrente.
+        
+        Args:
+            repo_path: Percorso del repository
+            
+        Returns:
+            Nome del branch corrente o None se non disponibile
+        """
+        if not repo_path or not os.path.isdir(repo_path):
+            logger.warning(f"Percorso repository non valido per GetCurrentBranchName: {repo_path}")
+            return None
+            
         process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         try:
-            proc = subprocess.run(["git", "branch", "--show-current"], cwd=repo_path,
-                                    capture_output=True, text=True, check=True,
-                                    encoding='utf-8', errors='replace', creationflags=process_flags)
-            return proc.stdout.strip()
-        except (subprocess.CalledProcessError, FileNotFoundError, Exception):
+            proc = subprocess.run(
+                ["git", "branch", "--show-current"], 
+                cwd=repo_path,
+                capture_output=True, 
+                text=True, 
+                check=True,
+                encoding='utf-8', 
+                errors='replace', 
+                creationflags=process_flags,
+                timeout=30
+            )
+            branch_name = proc.stdout.strip()
+            logger.debug(f"Branch corrente: {branch_name}")
+            return branch_name if branch_name else None
+        except subprocess.TimeoutExpired:
+            logger.error("Timeout durante il recupero del branch corrente")
+            return None
+        except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
+            logger.debug(f"Impossibile ottenere il branch corrente: {e}")
             return None
 
     def HandlePushNoUpstream(self, repo_path, original_stderr):
