@@ -9625,6 +9625,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             dict: Risultato dell'operazione con dettagli del successo
         """
         try:
+            # Aggiorna UI per evitare blocchi
+            wx.SafeYield()
             # Inizia il download
             artifact_response = requests.get(download_url, headers=headers, 
                                            stream=True, allow_redirects=True, timeout=120)
@@ -9649,6 +9651,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                                 if os.path.exists(save_path):
                                     os.remove(save_path)
                                 raise Exception(_("Download cancellato dall'utente"))
+                        
+                        # Evita blocchi UI durante download lunghi
+                        wx.SafeYield()
             
             # Calcola dimensione file scaricato
             file_size = os.path.getsize(save_path)
@@ -9702,6 +9707,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         import subprocess
         
         try:
+            # Aggiorna UI per evitare blocchi
+            wx.SafeYield()
             repo_path = self.repo_path_ctrl.GetValue()
             process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             
@@ -9734,6 +9741,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     progress_msg = _("Esecuzione: {}").format(' '.join(cmd_parts[:2]))
                     if not progress_callback(i, total_commands, progress_msg):
                         raise Exception(_("Operazione cancellata dall'utente"))
+                
+                # Evita blocchi UI tra comandi
+                wx.SafeYield()
                 
                 # Esegui il comando
                 proc = subprocess.run(
