@@ -6796,11 +6796,10 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 return
 
             # Gestione speciale per gitignore
-            command_name = command_name_original_translated
-            if command_name == CMD_ADD_TO_GITIGNORE:
+            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
                 if not os.path.isdir(os.path.join(repo_path, ".git")):
                     self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
-            
+                    
             # Controllo conferma
             if command_details.get("confirm"):
                 msg = command_details["confirm"].replace("{input_val}", user_input_val if user_input_val else _("VALORE_NON_SPECIFICATO"))
@@ -6821,7 +6820,113 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         dlg.Destroy()
                         return
                     dlg.Destroy()
-                    
+
+            # Esecuzione comandi Git
+            full_output = ""
+            success = True
+            process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            cmds_to_run = []
+
+            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
+                if not user_input_val:
+                    self.output_text_ctrl.AppendText(_("Errore: Nessun pattern fornito per .gitignore.\n"))
+                    return
+                gitignore_path = os.path.join(repo_path, ".gitignore")
+                try:
+                    entry_exists = False
+                    if os.path.exists(gitignore_path):
+                        with open(gitignore_path, 'r', encoding='utf-8') as f_read:
+                            if user_input_val.strip() in (line.strip() for line in f_read):
+                                entry_exists = True
+                    if entry_exists:
+                        full_output += _("L'elemento '{}' è già presente in .gitignore.\n").format(user_input_val)
+                    else:
+                        with open(gitignore_path, 'a', encoding='utf-8') as f_append:
+                            if os.path.exists(gitignore_path) and os.path.getsize(gitignore_path) > 0:
+                                with open(gitignore_path, 'rb+') as f_nl_check:
+                                    f_nl_check.seek(-1, os.SEEK_END)
+                                    if f_nl_check.read() != b'\n':
+                                        f_append.write('\n')
+                            f_append.write(user_input_val + '\n')
+                        full_output += _("Aggiunto '{}' a .gitignore.\n").format(user_input_val)
+                    success = True
+                except Exception as gitignore_ex:
+                    full_output += _("Errore durante la modifica di .gitignore: {}\n").format(gitignore_ex)
+                    success = False
+            else:
+                # Preparazione comandi Git normali
+                for cmd_template in command_details.get("cmds", []):
+                    cmd_parts = [part.replace("{input_val}", user_input_val if user_input_val else "") for part in cmd_template]
+                    cmds_to_run.append(cmd_parts)
+
+                # Esecuzione comandi Git
+                for cmd_parts in cmds_to_run:
+                    try:
+                        proc = subprocess.run(
+                            cmd_parts, 
+                            cwd=repo_path, 
+                            capture_output=True, 
+                            text=True, 
+                            creationflags=process_flags,
+                            timeout=30
+                        )
+                        
+                        cmd_output = proc.stdout + proc.stderr
+                        full_output += cmd_output
+                        
+                        if proc.returncode != 0:
+                            success = False
+                            # Gestione errori speciali qui...
+                            break
+                            
+                    except Exception as e:
+                        full_output += _("Errore durante l'esecuzione di {}: {}\n").format(' '.join(cmd_parts), e)
+                        success = False
+                        break
+
+            # Scrivi sempre un breve messaggio nel terminale per tracking
+            self.output_text_ctrl.AppendText(_("🔄 Eseguito: {}\n").format(command_name_original_translated))
+
+            # Mostra risultati con dialog
+            if success:
+                format_data = self.format_git_output_for_dialog(
+                    command_name_original_translated, 
+                    full_output,
+                    "",
+                    True
+                )
+                
+                self.ShowSuccessNotification(
+                    title=format_data['title'],
+                    message=format_data['message'],
+                    details=format_data['details']
+                )
+                
+                if format_data.get('suggestions'):
+                    self.output_text_ctrl.AppendText(_("💡 {}\n").format(format_data['suggestions']))
+            else:
+                format_data = self.format_git_output_for_dialog(
+                    command_name_original_translated,
+                    full_output,
+                    "",
+                    False
+                )
+                
+                self.ShowErrorNotification(
+                    title=format_data['title'],
+                    message=format_data['message'],
+                    details=format_data['details'],
+                    suggestions=format_data.get('suggestions')
+                )
+                
+        except Exception as e:
+            logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
+            self.ShowErrorNotification(
+                title=_("❌ Errore Comando Git"),
+                message=_("Si è verificato un errore durante l'esecuzione del comando"),
+                details=str(e)
+            )
+            return
         except Exception as e:
             logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
             self.ShowErrorNotification(
