@@ -15,7 +15,8 @@
       "Bash(rm:*)",
       "Bash(xgettext:*)",
       "Bash(msgmerge:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
