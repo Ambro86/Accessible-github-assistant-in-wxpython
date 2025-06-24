@@ -6794,6 +6794,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             if not self.git_available and command_name_original_translated != CMD_ADD_TO_GITIGNORE:
                 self._handle_git_not_available(command_name_original_translated)
                 return
+            
+            # Esecuzione effettiva del comando Git
+            self._execute_git_command_async(command_name_original_translated, command_details, user_input_val)
                 
         except Exception as e:
             logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
