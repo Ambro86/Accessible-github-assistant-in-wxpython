@@ -6785,7 +6785,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             repo_path = self.repo_path_ctrl.GetValue()
             
             # Validazione percorso repository
-            if not self._validate_repository_path(repo_path):
+            if not self._validate_repository_path(repo_path, command_name_original_translated):
                 return
                 
             self.output_text_ctrl.AppendText(_("Cartella Repository: {}\n\n").format(repo_path))
@@ -6804,11 +6804,12 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             )
             return
             
-    def _validate_repository_path(self, repo_path: str) -> bool:
+    def _validate_repository_path(self, repo_path: str, command_name: str) -> bool:
         """Valida il percorso del repository.
         
         Args:
             repo_path: Percorso del repository da validare
+            command_name: Nome del comando che richiede la validazione
             
         Returns:
             True se il percorso è valido, False altrimenti
@@ -6831,7 +6832,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             return False
 
         # Validazione repository Git (se necessario)
-        if not self._validate_git_repository(repo_path, command_name_original_translated):
+        if not self._validate_git_repository(repo_path, command_name):
             return False
             
         return True
