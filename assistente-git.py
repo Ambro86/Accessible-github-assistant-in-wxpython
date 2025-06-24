@@ -6794,8 +6794,54 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             if not self.git_available and command_name_original_translated != CMD_ADD_TO_GITIGNORE:
                 self._handle_git_not_available(command_name_original_translated)
                 return
-            
+
+            # Gestione speciale per gitignore
+            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
+                if not os.path.isdir(os.path.join(repo_path, ".git")):
+                    self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
+                    
+            # Controllo conferma
+            if command_details.get("confirm"):
+                msg = command_details["confirm"].replace("{input_val}", user_input_val if user_input_val else _("VALORE_NON_SPECIFICATO"))
                 
+                # Usa dialog di conferma migliorato per operazioni critiche
+                if "ATTENZIONE MASSIMA" in command_details.get("info","") or "CONFERMA ESTREMA" in msg:
+                    title_confirm = _("⚠️ CONFERMA AZIONE PERICOLOSA!")
+                    if not self._show_critical_confirmation_dialog(title_confirm, msg):
+                        self.output_text_ctrl.AppendText(_("Operazione annullata dall'utente.\n"))
+                        return
+                else:
+                    # Conferma standard migliorata
+                    style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING
+                    title_confirm = _("⚠️ Conferma Azione")
+                    dlg = wx.MessageDialog(self, f"⚠️ {msg}", title_confirm, style)
+                    if dlg.ShowModal() != wx.ID_YES:
+                        self.output_text_ctrl.AppendText(_("Operazione annullata dall'utente.\n"))
+                        dlg.Destroy()
+                        return
+                    dlg.Destroy()
+
+            # Esecuzione comandi Git
+            full_output = ""
+            success = True
+            process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            cmds_to_run = []
+
+            if command_name_original_translated == CMD_ADD_TO_GITIGNORE:
+                if not user_input_val:
+                    self.output_text_ctrl.AppendText(_("Errore: Nessun pattern fornito per .gitignore.\n"))
+                    return
+                gitignore_path = os.path.join(repo_path, ".gitignore")
+                # Continua implementazione gitignore...
+                
+        except Exception as e:
+            logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
+            self.ShowErrorNotification(
+                title=_("❌ Errore Comando Git"),
+                message=_("Si è verificato un errore durante l'esecuzione del comando"),
+                details=str(e)
+            )
+            return
         except Exception as e:
             logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
             self.ShowErrorNotification(
