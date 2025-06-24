@@ -289,6 +289,7 @@ CMD_STASH_SAVE = _("Salva modifiche temporaneamente (stash)")
 CMD_STASH_POP = _("Applica ultime modifiche da stash (stash pop)")
 CMD_RESTORE_FILE = _("Annulla modifiche su file specifico (restore)")
 CMD_CHECKOUT_COMMIT_CLEAN = _("Sovrascrivi file con commit e pulisci (checkout <commit> . && clean -fd)")
+CMD_CHECKOUT_COMMIT_OVERWRITE_ALL = _("Sostituisci tutto con commit specifico (checkout <commit> -- . && add -A)")
 CMD_RESTORE_CLEAN = _("Ripristina file modificati e pulisci file non tracciati")
 CMD_CHECKOUT_DETACHED = _("Ispeziona commit specifico (checkout - detached HEAD)")
 CMD_RESET_TO_REMOTE = _("Resetta branch locale a versione remota (origin/nome-branch)")
@@ -1081,6 +1082,7 @@ ORIGINAL_COMMANDS = {
     CMD_STASH_POP: {"type": "git", "cmds": [["git", "stash", "pop"]], "input_needed": False, "info": _("Applica le modifiche dall'ultimo stash...") },
     CMD_RESTORE_FILE: {"type": "git", "cmds": [["git", "restore", "{input_val}"]], "input_needed": True, "input_label": "", "placeholder": "", "info": _("Annulla le modifiche non ancora in stage per un file specifico...") },
     CMD_CHECKOUT_COMMIT_CLEAN: {"type": "git", "cmds": [["git", "checkout", "{input_val}", "."], ["git", "clean", "-fd"]], "input_needed": True, "input_label": _("Hash/riferimento del commit da cui ripristinare i file:"), "placeholder": _("es. a1b2c3d o HEAD~1"), "info": _("ATTENZIONE: Sovrascrive i file con le versioni del commit..."), "confirm": _("Sei sicuro di voler sovrascrivere i file con le versioni del commit '{input_val}' E RIMUOVERE tutti i file/directory non tracciati?") },
+    CMD_CHECKOUT_COMMIT_OVERWRITE_ALL: {"type": "git", "cmds": [["git", "checkout", "{input_val}", "--", "."], ["git", "add", "-A"]], "input_needed": False, "info": _("ATTENZIONE MASSIMA: Sostituisce TUTTI i file con le versioni del commit selezionato e prepara per commit..."), "confirm": _("CONFERMA ESTREMA: Sostituire TUTTI i file (inclusi rimossi) con le versioni del commit selezionato e aggiungerli allo stage? Azione IRREVERSIBILE per file non committati.") },
     CMD_RESTORE_CLEAN: {"type": "git", "cmds": [["git", "restore", "."], ["git", "clean", "-fd"]], "input_needed": False, "confirm": _("ATTENZIONE: Ripristina file modificati E RIMUOVE file/directory non tracciati? Azione IRREVERSIBILE."), "info": _("Annulla modifiche nei file tracciati...") },
     CMD_CHECKOUT_DETACHED: {"type": "git", "cmds": [["git", "checkout", "{input_val}"]], "input_needed": True, "input_label": _("Hash/riferimento del commit da ispezionare:"), "placeholder": _("es. a1b2c3d o HEAD~3"), "info": _("Ti sposta su un commit specifico..."), "confirm": _("Stai per entrare in uno stato 'detached HEAD'. Nuove modifiche non apparterranno a nessun branch a meno che non ne crei uno. Continuare?") },
     CMD_RESET_TO_REMOTE: {"type": "git", "cmds": [ ["git", "fetch", "origin"], ["git", "reset", "--hard", "origin/{input_val}"] ], "input_needed": True, "input_label": _("Nome del branch remoto (es. main) a cui resettare:"), "placeholder": _("main"), "info": _("ATTENZIONE: Resetta il branch locale CORRENTE..."), "confirm": _("CONFERMA ESTREMA: Resettare il branch locale CORRENTE a 'origin/{input_val}'? TUTTI i commit locali non inviati e le modifiche non committate su questo branch verranno PERSI IRREVERSIBILMENTE. Sei sicuro?")},
@@ -1247,7 +1249,7 @@ CAT_GITHUB_ACTIONS: {
     },
     CAT_STASH: {"info": _("Salvataggio temporaneo..."), "order": [CMD_STASH_SAVE, CMD_STASH_POP], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_STASH_SAVE, CMD_STASH_POP]}},
     CAT_SEARCH_UTIL: {"info": _("Ricerca e utilità..."), "order": [ CMD_GREP, CMD_LS_FILES ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_GREP, CMD_LS_FILES]}},
-    CAT_RESTORE_RESET: {"info": _("Ripristino e reset (cautela!)..."), "order": [ CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT]}},
+    CAT_RESTORE_RESET: {"info": _("Ripristino e reset (cautela!)..."), "order": [ CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_CHECKOUT_COMMIT_OVERWRITE_ALL, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT ], "commands": {k: ORIGINAL_COMMANDS[k] for k in [CMD_RESTORE_FILE, CMD_CHECKOUT_COMMIT_CLEAN, CMD_CHECKOUT_COMMIT_OVERWRITE_ALL, CMD_RESTORE_CLEAN, CMD_RESET_HARD_HEAD, CMD_MERGE_ABORT, CMD_CHECKOUT_DETACHED, CMD_RESET_TO_REMOTE, CMD_RESET_HARD_COMMIT]}},
 }
 CATEGORY_DISPLAY_ORDER = [
     CAT_DASHBOARD,
@@ -4279,6 +4281,65 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
             # Solo per errori semplici senza        dettagli - usa MessageBox standard
             display_message = f"❌ {message}"
 
+    def _show_critical_confirmation_dialog(self, title, message):
+        """Mostra un dialog di conferma critico con design migliorato."""
+        
+        # Crea dialog personalizzato per conferme critiche
+        dlg = wx.Dialog(self, title=title, size=(500, 300))
+        panel = wx.Panel(dlg)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Header con icona di warning
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Icona di warning grande
+        warning_icon = wx.StaticText(panel, label="⚠️")
+        warning_font = warning_icon.GetFont()
+        warning_font.SetPointSize(32)
+        warning_icon.SetFont(warning_font)
+        warning_icon.SetForegroundColour(wx.Colour(255, 69, 0))  # OrangeRed
+        
+        # Messaggio
+        message_label = wx.StaticText(panel, label=message)
+        message_label.Wrap(400)
+        message_font = message_label.GetFont()
+        message_font.SetWeight(wx.FONTWEIGHT_BOLD)
+        message_font.SetPointSize(11)
+        message_label.SetFont(message_font)
+        
+        header_sizer.Add(warning_icon, 0, wx.ALIGN_TOP | wx.RIGHT, 15)
+        header_sizer.Add(message_label, 1, wx.ALIGN_TOP)
+        
+        main_sizer.Add(header_sizer, 1, wx.ALL | wx.EXPAND, 20)
+        
+        # Separator
+        line = wx.StaticLine(panel)
+        main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
+        
+        # Buttons
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        cancel_btn = wx.Button(panel, wx.ID_CANCEL, _("❌ Annulla"))
+        cancel_btn.SetBackgroundColour(wx.Colour(220, 220, 220))
+        
+        confirm_btn = wx.Button(panel, wx.ID_OK, _("⚠️ CONFERMA OPERAZIONE PERICOLOSA"))
+        confirm_btn.SetBackgroundColour(wx.Colour(255, 69, 0))
+        confirm_btn.SetForegroundColour(wx.Colour(255, 255, 255))
+        
+        button_sizer.Add(cancel_btn, 0, wx.RIGHT, 10)
+        button_sizer.Add(confirm_btn, 0)
+        
+        main_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 20)
+        
+        panel.SetSizer(main_sizer)
+        dlg.SetDefaultItem(cancel_btn)  # Default è Annulla per sicurezza
+        
+        # Mostra dialog
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        
+        return result == wx.ID_OK
+
     def ShowDetailsDialog(self, title, message, details, is_success=True, suggestions=None):
         """Mostra una finestra di dettagli espandibile."""
         
@@ -6649,6 +6710,28 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     commit_dlg.Destroy()
                     return
                 commit_dlg.Destroy()
+            elif cmd_name_key == CMD_CHECKOUT_COMMIT_OVERWRITE_ALL:
+                # Mostra dialogo di selezione commit per sovrascrittura completa
+                commit_dlg = CommitSelectionDialog(
+                    self, 
+                    _("Seleziona Commit per Sostituzione Completa (ATTENZIONE MASSIMA!)"), 
+                    repo_path
+                )
+                
+                if commit_dlg.ShowModal() == wx.ID_OK:
+                    selected_hash = commit_dlg.GetSelectedCommitHash()
+                    if selected_hash:
+                        user_input = selected_hash
+                        self.output_text_ctrl.AppendText(_("Commit selezionato per sostituzione completa: {}\n").format(selected_hash))
+                    else:
+                        self.output_text_ctrl.AppendText(_("Errore: nessun commit selezionato.\n"))
+                        commit_dlg.Destroy()
+                        return
+                else:
+                    self.output_text_ctrl.AppendText(_("Selezione commit annullata.\n"))
+                    commit_dlg.Destroy()
+                    return
+                commit_dlg.Destroy()
             elif cmd_details.get("input_needed", False):
                 prompt = cmd_details.get("input_label", _("Valore:"))
                 placeholder = cmd_details.get("placeholder", "")
@@ -6814,12 +6897,23 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 self.output_text_ctrl.AppendText(_("Avviso: La cartella '{}' non sembra essere un repository Git. Il file .gitignore verrà creato/modificato, ma Git potrebbe non utilizzarlo fino all'inizializzazione del repository ('{}').\n").format(repo_path, CMD_INIT_REPO))
         if command_details.get("confirm"):
             msg = command_details["confirm"].replace("{input_val}", user_input_val if user_input_val else _("VALORE_NON_SPECIFICATO"))
-            style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING; title_confirm = _("Conferma Azione")
+            
+            # Usa dialog di conferma migliorato per operazioni critiche
             if "ATTENZIONE MASSIMA" in command_details.get("info","") or "CONFERMA ESTREMA" in msg:
-                style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_ERROR; title_confirm = _("Conferma Azione PERICOLOSA!")
-            dlg = wx.MessageDialog(self, msg, title_confirm, style)
-            if dlg.ShowModal() != wx.ID_YES: self.output_text_ctrl.AppendText(_("Operazione annullata dall'utente.\n")); dlg.Destroy(); return
-            dlg.Destroy()
+                title_confirm = _("⚠️ CONFERMA AZIONE PERICOLOSA!")
+                if not self._show_critical_confirmation_dialog(title_confirm, msg):
+                    self.output_text_ctrl.AppendText(_("Operazione annullata dall'utente.\n"))
+                    return
+            else:
+                # Conferma standard migliorata
+                style = wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING
+                title_confirm = _("⚠️ Conferma Azione")
+                dlg = wx.MessageDialog(self, f"⚠️ {msg}", title_confirm, style)
+                if dlg.ShowModal() != wx.ID_YES:
+                    self.output_text_ctrl.AppendText(_("Operazione annullata dall'utente.\n"))
+                    dlg.Destroy()
+                    return
+                dlg.Destroy()
 
         full_output = ""; success = True; process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         cmds_to_run = []
@@ -10174,6 +10268,7 @@ class AccessibleMenuBarReplacer:
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESTORE_FILE), id=3090)
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_HARD_HEAD), id=3091)
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_MERGE_ABORT), id=3092)
+        frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_CHECKOUT_COMMIT_OVERWRITE_ALL), id=3097)
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_CHECKOUT_DETACHED), id=3093)
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_TO_REMOTE), id=3094)
         frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_HARD_COMMIT), id=3095)
@@ -10764,6 +10859,7 @@ def _create_accessible_menu_bar(frame):
     restore_menu.Append(3091, _("Reset Hard HEAD") + "\tCtrl+Z", _("Annulla modifiche locali (reset --hard HEAD)"))
     restore_menu.Append(3092, _("Annulla Merge") + "\tAlt+Escape", _("Annulla tentativo di merge"))
     restore_menu.AppendSeparator()
+    restore_menu.Append(3097, _("Sostituisci Tutto con Commit") + "\tCtrl+Shift+O", _("Sostituisce tutti i file con commit specifico (checkout -- . + add -A)"))
     restore_menu.Append(3093, _("Checkout Commit (Detached)") + "\tAlt+Shift+C", _("Ispeziona commit specifico"))
     restore_menu.Append(3094, _("Reset a Remote") + "\tCtrl+R", _("Resetta branch locale a versione remota"))
     restore_menu.Append(3095, _("Reset Hard a Commit") + "\tCtrl+H", _("Resetta branch corrente a commit specifico"))
@@ -10886,6 +10982,7 @@ def _bind_menu_events(frame):
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESTORE_FILE), id=3090)
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_HARD_HEAD), id=3091)
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_MERGE_ABORT), id=3092)
+    frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_CHECKOUT_COMMIT_OVERWRITE_ALL), id=3097)
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_CHECKOUT_DETACHED), id=3093)
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_TO_REMOTE), id=3094)
     frame.Bind(wx.EVT_MENU, lambda e: AccessibleMenuBarReplacer._execute_command(frame, CMD_RESET_HARD_COMMIT), id=3095)
