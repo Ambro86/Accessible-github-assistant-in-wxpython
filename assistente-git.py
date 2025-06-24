@@ -6927,14 +6927,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 details=str(e)
             )
             return
-        except Exception as e:
-            logger.error(f"Errore durante l'esecuzione del comando Git: {e}", exc_info=True)
-            self.ShowErrorNotification(
-                title=_("❌ Errore Comando Git"),
-                message=_("Si è verificato un errore durante l'esecuzione del comando"),
-                details=str(e)
-            )
-            return
             
     def _validate_repository_path(self, repo_path: str, command_name: str) -> bool:
         """Valida il percorso del repository.
