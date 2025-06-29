@@ -98,6 +98,8 @@ jobs:
         pip install pyinstaller
         echo "Installing core dependencies..."
         pip install requests urllib3 certifi cryptography
+        echo "Installing synthizer3d for audio support..."
+        pip install synthizer3d
         echo "All Python dependencies installed successfully."
 
     - name: Install Windows-specific dependencies  
