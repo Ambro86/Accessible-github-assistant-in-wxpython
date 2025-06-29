@@ -44,6 +44,16 @@ try:
     )
 except ImportError:
     logger.warning("Modulo utils non disponibile, alcune funzioni di sicurezza potrebbero essere limitate")
+
+# Import sound functions
+SYNTHIZER_AVAILABLE = False
+try:
+    import synthizer
+    synthizer.initialize()
+    from sound import ctx, sound, sound2d, Sound3D
+    SYNTHIZER_AVAILABLE = True
+except ImportError:
+    logger.warning("Modulo sound non disponibile, verrà utilizzato il beep di sistema")
     
     # Fallback functions
     def sanitize_input(input_str: str, max_length: int = 1000) -> str:
@@ -4503,7 +4513,15 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
                 
             except:
                 # Ultimo fallback: beep
-                wx.Bell()
+                try:
+                    if 'sound' in globals():
+                        beep_sound = sound("beep.wav")
+                        beep_sound.play(looping=False, volume=0.7)
+                    else:
+                        wx.Bell()
+                except Exception as e:
+                    print(f"Errore sound fallback: {e}")
+                    wx.Bell()
 
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
         """Metodo unificato per mostrare risultato di qualsiasi operazione."""
@@ -5396,13 +5414,16 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
 
                 # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
-                    if os.name == "nt":
-                        try:
-                            import winsound
-                            winsound.Beep(800, 150)
-                        except ImportError:
+                    try:
+                        if 'sound' in globals():
+                            beep_sound = sound("beep.wav")
+                            beep_sound.play(looping=False, volume=0.7)
+                        else:
                             wx.Bell()
-                    else:
+                    except Exception as e:
+                        # Log dell'errore per debug
+                        print(f"Errore sound: {e}")
+                        # Fallback al beep di sistema se synthizer non è disponibile
                         wx.Bell()
                 return  # esco e aspetto il prossimo tick del timer
 
@@ -6098,6 +6119,10 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             else:
                 pass
 
+        # Chiudi synthizer se inizializzato
+        if SYNTHIZER_AVAILABLE and synthizer.initialized:
+            synthizer.shutdown()
+            
         self.Destroy()
         
     def check_git_installation(self):
