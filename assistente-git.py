@@ -36,6 +36,207 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet, InvalidToken
 from datetime import datetime, timezone
 
+class CustomFolderDialog(wx.Dialog):
+    """Custom folder browser dialog simile a Windows Explorer"""
+    
+    def __init__(self, parent, title="Scegli cartella", initial_path=""):
+        super().__init__(parent, title=title, size=(600, 450))
+        
+        self.current_path = initial_path if initial_path and os.path.exists(initial_path) else self.GetDefaultPath()
+        self.selected_path = self.current_path
+        
+        # Layout principale
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Label percorso (solo informativo)
+        path_label = wx.StaticText(self, label=f"Percorso: {self.current_path}")
+        main_sizer.Add(path_label, 0, wx.ALL, 5)
+        self.path_label = path_label  # Salva reference per aggiornamenti
+        
+        # Lista cartelle (simile a Windows Explorer)
+        self.folder_list = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.folder_list.AppendColumn("Nome cartella", width=400)
+        self.folder_list.AppendColumn("Tipo", width=100)
+        main_sizer.Add(self.folder_list, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # Campo "Nome cartella"
+        name_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        name_sizer.Add(wx.StaticText(self, label="Nome cartella:"), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.folder_name_text = wx.TextCtrl(self, value=os.path.basename(self.current_path))
+        name_sizer.Add(self.folder_name_text, 1, wx.ALL, 5)
+        main_sizer.Add(name_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Bottoni
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
+        
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Apri")
+        self.cancel_btn = wx.Button(self, wx.ID_CANCEL, "Annulla")
+        
+        btn_sizer.Add(self.ok_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
+        
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        self.SetSizer(main_sizer)
+        
+        # Eventi
+        self.folder_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnFolderSelect)
+        self.folder_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFolderDoubleClick)
+        self.folder_name_text.Bind(wx.EVT_TEXT, self.OnFolderNameChange)
+        
+        # Gestione tasti come Windows Explorer
+        self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDown)
+        self.folder_list.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDown)
+        
+        # Popola la lista
+        self.RefreshFolderList()
+        
+    def GetDefaultPath(self):
+        """Restituisce un path di default"""
+        if platform.system() == "Windows":
+            return "C:\\"
+        else:
+            return os.path.expanduser("~")
+            
+    def RefreshFolderList(self):
+        """Aggiorna la lista delle cartelle"""
+        self.folder_list.DeleteAllItems()
+        
+        if not os.path.exists(self.current_path):
+            self.current_path = self.GetDefaultPath()
+            
+        # Aggiorna label percorso
+        self.path_label.SetLabel(f"Percorso: {self.current_path}")
+        
+        try:
+            # Aggiungi prima le drives su Windows
+            if platform.system() == "Windows" and self.current_path in ["", "Computer", "Questo PC"]:
+                import string
+                for drive in string.ascii_uppercase:
+                    drive_path = f"{drive}:\\"
+                    if os.path.exists(drive_path):
+                        index = self.folder_list.InsertItem(self.folder_list.GetItemCount(), f"Disco locale ({drive}:)")
+                        self.folder_list.SetItem(index, 1, "Unità disco")
+                        self.folder_list.SetItemData(index, hash(drive_path))  # Store path reference
+                return
+            
+            # Lista normale delle cartelle
+            items = []
+            for item_name in os.listdir(self.current_path):
+                item_path = os.path.join(self.current_path, item_name)
+                if os.path.isdir(item_path):
+                    items.append((item_name, item_path))
+            
+            # Ordina alfabeticamente
+            items.sort(key=lambda x: x[0].lower())
+            
+            # Aggiungi alla lista
+            for item_name, item_path in items:
+                try:
+                    index = self.folder_list.InsertItem(self.folder_list.GetItemCount(), item_name)
+                    self.folder_list.SetItem(index, 1, "Cartella file")
+                    self.folder_list.SetItemData(index, hash(item_path))  # Store path reference
+                except:
+                    continue  # Skip cartelle con problemi
+                    
+        except (PermissionError, OSError):
+            wx.MessageBox(f"Impossibile accedere a: {self.current_path}", "Errore", wx.OK | wx.ICON_WARNING)
+            
+    def GoUp(self):
+        """Va alla cartella superiore"""
+        parent_path = os.path.dirname(self.current_path)
+        if parent_path != self.current_path:  # Evita loop infiniti
+            self.current_path = parent_path
+            self.RefreshFolderList()
+            
+    def OnFolderSelect(self, event):
+        """Aggiorna il nome cartella quando viene selezionata"""
+        index = event.GetIndex()
+        folder_name = self.folder_list.GetItemText(index)
+        
+        # Rimuovi "Disco locale" dai nomi drive
+        if "Disco locale" in folder_name:
+            # Estrai solo la lettera del drive
+            import re
+            match = re.search(r'\(([A-Z]):\)', folder_name)
+            if match:
+                folder_path = f"{match.group(1)}:\\"
+                self.selected_path = folder_path
+                self.folder_name_text.SetValue(folder_name)
+        else:
+            folder_path = os.path.join(self.current_path, folder_name)
+            self.selected_path = folder_path
+            self.folder_name_text.SetValue(folder_name)
+            
+    def OnFolderDoubleClick(self, event):
+        """Entra nella cartella quando viene doppio-cliccata"""
+        index = event.GetIndex()
+        folder_name = self.folder_list.GetItemText(index)
+        
+        if "Disco locale" in folder_name:
+            # Gestione drive
+            import re
+            match = re.search(r'\(([A-Z]):\)', folder_name)
+            if match:
+                self.current_path = f"{match.group(1)}:\\"
+        else:
+            # Cartella normale
+            new_path = os.path.join(self.current_path, folder_name)
+            if os.path.isdir(new_path):
+                self.current_path = new_path
+        
+        self.RefreshFolderList()
+        
+    def OnFolderNameChange(self, event):
+        """Aggiorna il path selezionato quando cambia il nome"""
+        folder_name = self.folder_name_text.GetValue()
+        if folder_name:
+            self.selected_path = os.path.join(self.current_path, folder_name)
+            
+    def OnKeyDown(self, event):
+        """Gestisce i tasti premuti come Windows Explorer"""
+        keycode = event.GetKeyCode()
+        
+        # Backspace = torna indietro (come Windows Explorer)
+        if keycode == wx.WXK_BACK:
+            # Ma solo se non siamo nel campo nome cartella
+            focused = self.FindFocus()
+            if focused != self.folder_name_text:
+                self.GoUp()
+                return  # Non passare l'evento oltre
+        
+        # Enter = entra nella cartella selezionata
+        elif keycode == wx.WXK_RETURN or keycode == wx.WXK_NUMPAD_ENTER:
+            focused = self.FindFocus()
+            if focused == self.folder_list:
+                # Simula double-click sulla cartella selezionata
+                selected = self.folder_list.GetFirstSelected()
+                if selected != -1:
+                    # Crea evento fittizio per OnFolderDoubleClick
+                    class FakeEvent:
+                        def GetIndex(self):
+                            return selected
+                    self.OnFolderDoubleClick(FakeEvent())
+                    return  # Non passare l'evento oltre
+        
+        # Alt+Su = torna indietro (altro modo comune)
+        elif keycode == wx.WXK_UP and event.AltDown():
+            self.GoUp()
+            return
+            
+        # F5 = aggiorna
+        elif keycode == wx.WXK_F5:
+            self.RefreshFolderList()
+            return
+            
+        # Passa l'evento al controllo successivo se non gestito
+        event.Skip()
+        
+    def GetPath(self):
+        """Restituisce il path selezionato"""
+        return self.selected_path
+
 # Import utility functions
 try:
     from utils import (
@@ -7032,24 +7233,42 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         # Non continua l'esecuzione quando Git non è disponibile
         
     def _get_github_repo_details_from_current_path(self):
+        """Wrapper sincrono per compatibilità, usa la versione asincrona internamente."""
         repo_path = self.repo_path_ctrl.GetValue()
         if not os.path.isdir(os.path.join(repo_path, ".git")):
             return None, None
 
-        try:
-            process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-            proc = subprocess.run(["git", "remote", "get-url", "origin"], cwd=repo_path,
-                                    capture_output=True, text=True, check=True,
-                                    encoding='utf-8', errors='replace', creationflags=process_flags)
-            origin_url = proc.stdout.strip()
-            match = re.search(r'github\.com[/:]([^/]+)/([^/.]+)(\.git)?$', origin_url)
-            if match:
-                owner = match.group(1)
-                repo = match.group(2)
-                return owner, repo
-        except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
-            pass
-        return None, None
+        # Esegui in thread separato per non bloccare l'UI
+        result = {'owner': None, 'repo': None, 'done': False}
+        
+        def git_worker():
+            try:
+                process_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                proc = subprocess.run(["git", "remote", "get-url", "origin"], cwd=repo_path,
+                                        capture_output=True, text=True, check=True,
+                                        encoding='utf-8', errors='replace', creationflags=process_flags,
+                                        timeout=10)  # Timeout di 10 secondi
+                origin_url = proc.stdout.strip()
+                match = re.search(r'github\.com[/:]([^/]+)/([^/.]+)(\.git)?$', origin_url)
+                if match:
+                    result['owner'] = match.group(1)
+                    result['repo'] = match.group(2)
+            except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired, Exception) as e:
+                pass
+            finally:
+                result['done'] = True
+
+        thread = threading.Thread(target=git_worker, daemon=True)
+        thread.start()
+        
+        # Attendi con timeout per non bloccare l'UI
+        timeout_ms = 0
+        while timeout_ms < 12000 and not result['done']:  # Max 12 secondi
+            wx.MilliSleep(100)
+            wx.GetApp().Yield()  # Permetti aggiornamenti UI
+            timeout_ms += 100
+            
+        return result['owner'], result['repo']
     def _update_github_context_from_path(self):
         """
         Tenta di aggiornare self.github_owner e self.github_repo
@@ -8844,20 +9063,73 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         except Exception as e_conflict:
             self.output_text_ctrl.AppendText(_("Errore durante il tentativo di gestione dei conflitti di merge: {}\nControlla 'git status' per maggiori dettagli.\n").format(e_conflict))
     def OnBrowseRepoPath(self, event):
-        current_path = self.repo_path_ctrl.GetValue()
-        dlg = wx.DirDialog(self, _("Scegli la cartella del repository Git"),
-                           defaultPath=current_path,
-                           style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        
-        if dlg.ShowModal() == wx.ID_OK:
-            new_path = dlg.GetPath()
-            if current_path != new_path: # Se il percorso è effettivamente cambiato
-                self.repo_path_ctrl.SetValue(new_path) # Questo triggererà OnRepoPathManuallyChanged
-                                                       # che a sua volta chiamerà _update_github_context_from_path
-                                                       # tramite il timer. Quindi non c'è bisogno di chiamarlo esplicitamente qui.
-        dlg.Destroy()
-        if hasattr(self, 'statusBar'):
-            self.statusBar.SetStatusText(_("Cartella repository impostata a: {}").format(self.repo_path_ctrl.GetValue()))
+        try:
+            print("DEBUG: OnBrowseRepoPath chiamato")
+            current_path = self.repo_path_ctrl.GetValue()
+            print(f"DEBUG: Current path: {current_path}")
+            
+            # Usa il custom folder dialog invece di wx.DirDialog che si blocca
+            print("DEBUG: Creando CustomFolderDialog...")
+            
+            dlg = CustomFolderDialog(
+                parent=self,
+                title="Scegli la cartella del repository Git",
+                initial_path=current_path if os.path.exists(current_path or "") else ""
+            )
+            
+            print("DEBUG: CustomFolderDialog creato, chiamando ShowModal...")
+            
+            try:
+                result = dlg.ShowModal()
+                print(f"DEBUG: ShowModal completato con risultato: {result}")
+                
+                if result == wx.ID_OK:
+                    new_path = dlg.GetPath()
+                    print(f"DEBUG: Path selezionato: {new_path}")
+                    
+                    if new_path and new_path != current_path:
+                        self.repo_path_ctrl.SetValue(new_path)
+                        print("DEBUG: SetValue completato")
+                        
+                        if hasattr(self, 'statusBar'):
+                            self.statusBar.SetStatusText("Cartella repository: {}".format(new_path))
+                            print("DEBUG: StatusBar aggiornato")
+                else:
+                    print("DEBUG: Dialog annullato")
+                    
+            except Exception as modal_error:
+                print(f"DEBUG: Errore con CustomFolderDialog: {modal_error}")
+                
+                # Fallback: input dialog semplice
+                input_dlg = wx.TextEntryDialog(
+                    self,
+                    "Inserisci il percorso della cartella repository:",
+                    "Percorso Repository",
+                    current_path
+                )
+                
+                if input_dlg.ShowModal() == wx.ID_OK:
+                    manual_path = input_dlg.GetValue().strip()
+                    if manual_path and os.path.exists(manual_path):
+                        self.repo_path_ctrl.SetValue(manual_path)
+                        print(f"DEBUG: Path manuale impostato: {manual_path}")
+                    elif manual_path:
+                        wx.MessageBox(f"Il percorso '{manual_path}' non esiste.", "Errore", wx.OK | wx.ICON_ERROR)
+                
+                input_dlg.Destroy()
+            
+            finally:
+                # Cleanup
+                try:
+                    dlg.Destroy()
+                    print("DEBUG: CustomFolderDialog distrutto")
+                except:
+                    pass
+                
+        except Exception as e:
+            print(f"ERRORE in OnBrowseRepoPath: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
     def ExecuteDashboardCommand(self, command_name_key, command_details):
         """Gestisce i comandi della dashboard repository con risultati in dialog."""
         self.output_text_ctrl.AppendText(_("📊 Esecuzione comando Dashboard: {}...\n").format(command_name_key))
