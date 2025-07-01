@@ -43,7 +43,7 @@ class CustomFolderDialog(wx.Dialog):
         super().__init__(parent, title=title, size=(600, 450))
         
         self.current_path = initial_path if initial_path and os.path.exists(initial_path) else self.GetDefaultPath()
-        self.selected_path = self.current_path
+        self.selected_path = self.current_path  # Inizialmente seleziona la cartella corrente
         
         # Layout principale
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -62,7 +62,8 @@ class CustomFolderDialog(wx.Dialog):
         # Campo "Nome cartella"
         name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         name_sizer.Add(wx.StaticText(self, label="Nome cartella:"), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.folder_name_text = wx.TextCtrl(self, value=os.path.basename(self.current_path))
+        initial_name = os.path.basename(self.current_path) or self.current_path
+        self.folder_name_text = wx.TextCtrl(self, value=initial_name)
         name_sizer.Add(self.folder_name_text, 1, wx.ALL, 5)
         main_sizer.Add(name_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
@@ -73,6 +74,9 @@ class CustomFolderDialog(wx.Dialog):
         self.ok_btn = wx.Button(self, wx.ID_OK, "Apri")
         self.cancel_btn = wx.Button(self, wx.ID_CANCEL, "Annulla")
         
+        # Bind del pulsante OK per aggiornare selected_path
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.OnOKButton)
+        
         btn_sizer.Add(self.ok_btn, 0, wx.ALL, 5)
         btn_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
         
@@ -81,7 +85,8 @@ class CustomFolderDialog(wx.Dialog):
         self.SetSizer(main_sizer)
         
         # Eventi
-        self.folder_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnFolderSelect)
+        # RIMOSSO: self.folder_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnFolderSelect)
+        # Le frecce NON devono aggiornare automaticamente niente!
         self.folder_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFolderDoubleClick)
         self.folder_name_text.Bind(wx.EVT_TEXT, self.OnFolderNameChange)
         
@@ -99,7 +104,7 @@ class CustomFolderDialog(wx.Dialog):
         else:
             return os.path.expanduser("~")
             
-    def RefreshFolderList(self):
+    def RefreshFolderList(self, focus_list=False):
         """Aggiorna la lista delle cartelle"""
         self.folder_list.DeleteAllItems()
         
@@ -119,6 +124,10 @@ class CustomFolderDialog(wx.Dialog):
                         index = self.folder_list.InsertItem(self.folder_list.GetItemCount(), f"Disco locale ({drive}:)")
                         self.folder_list.SetItem(index, 1, "Unità disco")
                         self.folder_list.SetItemData(index, hash(drive_path))  # Store path reference
+                
+                # Focus e feedback per NVDA
+                if focus_list and self.folder_list.GetItemCount() > 0:
+                    self.UpdateFocusForNVDA()
                 return
             
             # Lista normale delle cartelle
@@ -139,21 +148,95 @@ class CustomFolderDialog(wx.Dialog):
                     self.folder_list.SetItemData(index, hash(item_path))  # Store path reference
                 except:
                     continue  # Skip cartelle con problemi
+            
+            # Focus e feedback per NVDA quando richiesto
+            if focus_list and self.folder_list.GetItemCount() > 0:
+                self.UpdateFocusForNVDA()
                     
         except (PermissionError, OSError):
             wx.MessageBox(f"Impossibile accedere a: {self.current_path}", "Errore", wx.OK | wx.ICON_WARNING)
+            
+    def UpdateFocusForNVDA(self):
+        """Aggiorna il focus per NVDA quando cambia la lista cartelle"""
+        # Assicurati che la lista abbia il focus
+        self.folder_list.SetFocus()
+        
+        # Seleziona il primo elemento se disponibile
+        if self.folder_list.GetItemCount() > 0:
+            self.folder_list.Select(0)
+            self.folder_list.Focus(0)
+            
+        # Forza l'aggiornamento dell'accessibilità
+        wx.CallAfter(self._announce_folder_list)
+        
+    def _announce_folder_list(self):
+        """Annuncia informazioni per screen reader"""
+        try:
+            count = self.folder_list.GetItemCount()
+            current_dir = os.path.basename(self.current_path) or self.current_path
+            
+            # Messaggio per screen reader
+            if count == 0:
+                message = f"Cartella {current_dir} vuota"
+            elif count == 1:
+                message = f"Cartella {current_dir}, 1 elemento"
+            else:
+                message = f"Cartella {current_dir}, {count} elementi"
+            
+            # Su Windows, usa NVDA/JAWS compatible notification
+            if platform.system() == "Windows":
+                try:
+                    # Prova con Windows SAPI
+                    import pyttsx3
+                    engine = pyttsx3.init()
+                    engine.say(message)
+                    engine.runAndWait()
+                    engine.stop()
+                except:
+                    # Fallback: aggiorna il titolo della finestra (letto da screen reader)
+                    old_title = self.GetTitle()
+                    self.SetTitle(f"{old_title} - {message}")
+                    wx.CallLater(2000, self._restore_title_safe, old_title)
+            else:
+                # Su Linux/Mac, aggiorna il titolo
+                old_title = self.GetTitle()
+                self.SetTitle(f"{old_title} - {message}")
+                wx.CallLater(2000, self._restore_title_safe, old_title)
+                
+        except Exception as e:
+            print(f"DEBUG: Errore annuncio NVDA: {e}")
+            pass  # Non bloccare il dialog se l'annuncio fallisce
+                
+    def _restore_title_safe(self, old_title):
+        """Ripristina il titolo solo se il dialog esiste ancora"""
+        try:
+            if self and hasattr(self, 'SetTitle'):
+                self.SetTitle(old_title)
+        except (RuntimeError, AttributeError):
+            pass  # Dialog già distrutto, ignora
             
     def GoUp(self):
         """Va alla cartella superiore"""
         parent_path = os.path.dirname(self.current_path)
         if parent_path != self.current_path:  # Evita loop infiniti
             self.current_path = parent_path
-            self.RefreshFolderList()
+            self.RefreshFolderList(focus_list=True)  # Aggiorna focus per NVDA
             
-    def OnFolderSelect(self, event):
-        """Aggiorna il nome cartella quando viene selezionata"""
-        index = event.GetIndex()
-        folder_name = self.folder_list.GetItemText(index)
+            # Aggiorna il campo "Nome cartella" con la cartella corrente
+            current_name = os.path.basename(self.current_path) or self.current_path
+            self.folder_name_text.SetValue(current_name)
+            
+        
+    def SelectCurrentFolder(self):
+        """Seleziona effettivamente la cartella evidenziata (per Enter)"""
+        selected = self.folder_list.GetFirstSelected()
+        if selected == -1:
+            return
+            
+        folder_name = self.folder_list.GetItemText(selected)
+        
+        # Aggiorna il campo nome per mostrare cosa è stato selezionato
+        self.folder_name_text.SetValue(folder_name)
         
         # Rimuovi "Disco locale" dai nomi drive
         if "Disco locale" in folder_name:
@@ -163,16 +246,21 @@ class CustomFolderDialog(wx.Dialog):
             if match:
                 folder_path = f"{match.group(1)}:\\"
                 self.selected_path = folder_path
-                self.folder_name_text.SetValue(folder_name)
         else:
             folder_path = os.path.join(self.current_path, folder_name)
             self.selected_path = folder_path
-            self.folder_name_text.SetValue(folder_name)
             
     def OnFolderDoubleClick(self, event):
-        """Entra nella cartella quando viene doppio-cliccata"""
-        index = event.GetIndex()
-        folder_name = self.folder_list.GetItemText(index)
+        """Entra nella cartella quando viene doppio-cliccata (naviga, non seleziona)"""
+        self.NavigateToSelected()
+        
+    def NavigateToSelected(self):
+        """Naviga nella cartella evidenziata (per doppio click e Enter)"""
+        selected = self.folder_list.GetFirstSelected()
+        if selected == -1:
+            return
+            
+        folder_name = self.folder_list.GetItemText(selected)
         
         if "Disco locale" in folder_name:
             # Gestione drive
@@ -186,7 +274,11 @@ class CustomFolderDialog(wx.Dialog):
             if os.path.isdir(new_path):
                 self.current_path = new_path
         
-        self.RefreshFolderList()
+        self.RefreshFolderList(focus_list=True)  # Aggiorna focus per NVDA
+        
+        # Aggiorna anche il campo "Nome cartella" con la cartella corrente
+        current_name = os.path.basename(self.current_path) or self.current_path
+        self.folder_name_text.SetValue(current_name)
         
     def OnFolderNameChange(self, event):
         """Aggiorna il path selezionato quando cambia il nome"""
@@ -206,19 +298,13 @@ class CustomFolderDialog(wx.Dialog):
                 self.GoUp()
                 return  # Non passare l'evento oltre
         
-        # Enter = entra nella cartella selezionata
+        # Enter = naviga dentro la cartella evidenziata (come Windows Explorer)
         elif keycode == wx.WXK_RETURN or keycode == wx.WXK_NUMPAD_ENTER:
             focused = self.FindFocus()
             if focused == self.folder_list:
-                # Simula double-click sulla cartella selezionata
-                selected = self.folder_list.GetFirstSelected()
-                if selected != -1:
-                    # Crea evento fittizio per OnFolderDoubleClick
-                    class FakeEvent:
-                        def GetIndex(self):
-                            return selected
-                    self.OnFolderDoubleClick(FakeEvent())
-                    return  # Non passare l'evento oltre
+                # Enter = entra nella cartella evidenziata
+                self.NavigateToSelected()
+                return  # Non passare l'evento oltre
         
         # Alt+Su = torna indietro (altro modo comune)
         elif keycode == wx.WXK_UP and event.AltDown():
@@ -232,6 +318,18 @@ class CustomFolderDialog(wx.Dialog):
             
         # Passa l'evento al controllo successivo se non gestito
         event.Skip()
+        
+    def OnOKButton(self, event):
+        """Gestisce il click su Apri - seleziona la cartella corrente"""
+        # Il risultato è sempre la cartella corrente, non quella evidenziata
+        self.selected_path = self.current_path
+        
+        # Aggiorna il campo nome con la cartella corrente
+        current_name = os.path.basename(self.current_path) or self.current_path
+        self.folder_name_text.SetValue(current_name)
+        
+        # Chiudi il dialog con OK
+        self.EndModal(wx.ID_OK)
         
     def GetPath(self):
         """Restituisce il path selezionato"""
