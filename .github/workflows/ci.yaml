@@ -150,8 +150,14 @@ jobs:
       run: |
         echo "Creating DMG for macOS..."
         
+        # Rimuovi cartella dmg_temp se esiste
+        rm -rf dmg_temp
+        
         # Crea una cartella temporanea per il DMG
         mkdir -p dmg_temp
+        
+        # Attendi un po' per assicurarsi che i processi siano terminati
+        sleep 2
         
         # Copia l'app nella cartella temporanea
         cp -R dist/AssistenteGit.app dmg_temp/
@@ -159,9 +165,15 @@ jobs:
         # Crea un link simbolico alle Applicazioni
         ln -s /Applications dmg_temp/Applications
         
+        # Attendi un altro po'
+        sleep 1
+        
         # Crea il DMG con nome specifico per architettura
         DMG_NAME="${{ matrix.dmg_name }}"
-        hdiutil create -volname "AssistenteGit" -srcfolder dmg_temp -ov -format UDZO "$DMG_NAME"
+        echo "Creating DMG: $DMG_NAME"
+        
+        # Usa parametri più specifici per hdiutil
+        hdiutil create -volname "AssistenteGit" -srcfolder dmg_temp -ov -format UDZO -fs HFS+ "$DMG_NAME"
         
         echo "DMG created successfully: $DMG_NAME"
         
