@@ -373,6 +373,32 @@ def initialize_synthizer_if_needed():
             SYNTHIZER_INITIALIZED = True  # Evita tentativi ripetuti
             return False
     return SYNTHIZER_AVAILABLE
+
+def shutdown_synthizer():
+    """Chiude synthizer per ripristinare compatibilità con dialoghi"""
+    global SYNTHIZER_AVAILABLE, SYNTHIZER_INITIALIZED
+    if SYNTHIZER_INITIALIZED and SYNTHIZER_AVAILABLE:
+        try:
+            import synthizer
+            if synthizer.initialized:
+                synthizer.shutdown()
+            
+            # Reset dello stato
+            SYNTHIZER_AVAILABLE = False
+            SYNTHIZER_INITIALIZED = False
+            
+            # Rimuovi le classi dal namespace globale
+            if 'sound' in globals(): del globals()['sound']
+            if 'sound2d' in globals(): del globals()['sound2d']
+            if 'Sound3D' in globals(): del globals()['Sound3D']
+            if 'ctx' in globals(): del globals()['ctx']
+            
+            logger.info("Synthizer deinizializzato per compatibilità dialoghi")
+            return True
+        except Exception as e:
+            logger.error(f"Errore durante shutdown synthizer: {e}")
+            return False
+    return True
     
     # Fallback functions
     def sanitize_input(input_str: str, max_length: int = 1000) -> str:
@@ -3281,7 +3307,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         
         close_btn = wx.Button(panel, wx.ID_CLOSE, label=_("✖️ Chiudi"))
         close_btn.SetDefault()
-        close_btn.Bind(wx.EVT_BUTTON, lambda e: dlg.EndModal(wx.ID_CLOSE))
+        close_btn.Bind(wx.EVT_BUTTON, lambda e: self._on_monitoring_dialog_close(dlg))
         
         btn_sizer.AddStretchSpacer()
         btn_sizer.Add(close_btn, 0)
@@ -3295,6 +3321,16 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         dlg.Show()
         
         return dlg
+
+    def _on_monitoring_dialog_close(self, dlg):
+        """Gestisce la chiusura del dialogo di monitoraggio."""
+        # Chiudi il dialogo
+        dlg.EndModal(wx.ID_CLOSE)
+        
+        # Ferma il monitoraggio completamente
+        self.stop_monitoring_run()
+        
+        # Nota: shutdown_synthizer() viene già chiamato in stop_monitoring_run()
 
     def should_use_details_dialog(self, command_name):
         """Tutti i comandi Git usano ShowDetailsDialog per una UX consistente."""
@@ -4848,7 +4884,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
                     else:
                         wx.Bell()
                 except Exception as e:
-                    print(f"Errore sound fallback: {e}")
+                    logger.error(f"Errore sound fallback: {e}")
                     wx.Bell()
 
     def ShowOperationResult(self, operation_name, success, output="", error_output="", suggestions=None):
@@ -5686,6 +5722,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             except:
                 pass  # Dialog già chiusa
             self.monitoring_dialog = None
+            
+        # Chiudi synthizer per ripristinare compatibilità con dialoghi
+        shutdown_synthizer()
 
 
     def on_monitoring_timer(self, event):
@@ -5750,7 +5789,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                             wx.Bell()
                     except Exception as e:
                         # Log dell'errore per debug
-                        print(f"Errore sound: {e}")
+                        logger.error(f"Errore sound: {e}")
                         # Fallback al beep di sistema se synthizer non è disponibile
                         wx.Bell()
                 return  # esco e aspetto il prossimo tick del timer
@@ -9197,19 +9236,15 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
     def OnBrowseRepoPath(self, event):
         try:
             logger.info("OnBrowseRepoPath chiamato")
-            print("DEBUG: OnBrowseRepoPath chiamato")
             current_path = self.repo_path_ctrl.GetValue()
             logger.info(f"Current path: {current_path}")
-            print(f"DEBUG: Current path: {current_path}")
             
             # Usa wx.DirDialog standard (synthizer ora si inizializza solo quando necessario)
             logger.info("Creando wx.DirDialog...")
-            print("DEBUG: Creando wx.DirDialog...")
             
             # Prepare initial directory
             initial_dir = current_path if current_path and os.path.exists(current_path) else os.getcwd()
             logger.info(f"Initial directory: {initial_dir}")
-            print(f"DEBUG: Initial directory: {initial_dir}")
             
             # Create standard wx.DirDialog
             dlg = wx.DirDialog(
@@ -9220,48 +9255,38 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             )
             
             logger.info("wx.DirDialog creato con successo")
-            print("DEBUG: wx.DirDialog creato, chiamando ShowModal...")
             
             try:
                 # Log before ShowModal
                 logger.info("Chiamando ShowModal() su wx.DirDialog")
-                print("DEBUG: Chiamando ShowModal() su wx.DirDialog")
                 
                 result = dlg.ShowModal()
                 
                 # Log after ShowModal
                 logger.info(f"ShowModal completato con risultato: {result}")
-                print(f"DEBUG: ShowModal completato con risultato: {result}")
                 
                 if result == wx.ID_OK:
                     new_path = dlg.GetPath()
                     logger.info(f"Path selezionato: {new_path}")
-                    print(f"DEBUG: Path selezionato: {new_path}")
                     
                     if new_path and new_path != current_path:
                         self.repo_path_ctrl.SetValue(new_path)
                         logger.info("SetValue completato")
-                        print("DEBUG: SetValue completato")
                         
                         if hasattr(self, 'statusBar'):
                             self.statusBar.SetStatusText("Cartella repository: {}".format(new_path))
                             logger.info("StatusBar aggiornato")
-                            print("DEBUG: StatusBar aggiornato")
                 else:
                     logger.info("Dialog annullato")
-                    print("DEBUG: Dialog annullato")
                     
             except Exception as modal_error:
                 logger.error(f"Errore con wx.DirDialog durante ShowModal: {modal_error}")
-                print(f"DEBUG: Errore con wx.DirDialog durante ShowModal: {modal_error}")
                 import traceback
-                traceback.print_exc()
                 logger.error("Traceback del wx.DirDialog error:")
                 logger.error(traceback.format_exc())
                 
                 # Fallback: CustomFolderDialog
                 logger.info("Fallback a CustomFolderDialog...")
-                print("DEBUG: Fallback a CustomFolderDialog...")
                 try:
                     custom_dlg = CustomFolderDialog(
                         parent=self,
@@ -9274,13 +9299,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         if new_path and new_path != current_path:
                             self.repo_path_ctrl.SetValue(new_path)
                             logger.info(f"CustomFolderDialog path impostato: {new_path}")
-                            print(f"DEBUG: CustomFolderDialog path impostato: {new_path}")
                     
                     custom_dlg.Destroy()
                     
                 except Exception as custom_error:
                     logger.error(f"Errore anche con CustomFolderDialog: {custom_error}")
-                    print(f"DEBUG: Errore anche con CustomFolderDialog: {custom_error}")
                     
                     # Ultimo fallback: input dialog semplice
                     input_dlg = wx.TextEntryDialog(
@@ -9295,7 +9318,6 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         if manual_path and os.path.exists(manual_path):
                             self.repo_path_ctrl.SetValue(manual_path)
                             logger.info(f"Path manuale impostato: {manual_path}")
-                            print(f"DEBUG: Path manuale impostato: {manual_path}")
                         elif manual_path:
                             wx.MessageBox(f"Il percorso '{manual_path}' non esiste.", "Errore", wx.OK | wx.ICON_ERROR)
                     
@@ -9306,16 +9328,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 try:
                     dlg.Destroy()
                     logger.info("wx.DirDialog distrutto")
-                    print("DEBUG: wx.DirDialog distrutto")
                 except Exception as cleanup_error:
                     logger.warning(f"Errore durante cleanup wx.DirDialog: {cleanup_error}")
                     pass
                 
         except Exception as e:
             logger.error(f"ERRORE in OnBrowseRepoPath: {type(e).__name__}: {e}")
-            print(f"ERRORE in OnBrowseRepoPath: {type(e).__name__}: {e}")
             import traceback
-            traceback.print_exc()
             logger.error("Traceback completo:")
             logger.error(traceback.format_exc())
     def ExecuteDashboardCommand(self, command_name_key, command_details):
