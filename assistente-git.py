@@ -374,12 +374,32 @@ def initialize_synthizer_if_needed():
             return False
     return SYNTHIZER_AVAILABLE
 
+def get_audio_file_path(filename):
+    """Restituisce il percorso corretto per i file audio, sia in sviluppo che in esecuzione PyInstaller"""
+    try:
+        # Ottieni la directory base dell'applicazione
+        if getattr(sys, 'frozen', False):
+            # Running in PyInstaller bundle
+            base_dir = sys._MEIPASS
+        else:
+            # Running in development
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        audio_path = os.path.join(base_dir, filename)
+        return audio_path
+    except Exception as e:
+        logger.error(f"Errore nel trovare il percorso del file audio {filename}: {e}")
+        return filename  # Fallback al nome del file
+
 def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep"):
     """Riproduce un file audio usando synthizer in un subprocess separato"""
     try:
         import subprocess
         import sys
         import os
+        
+        # Ottieni il percorso corretto del file audio
+        audio_path = get_audio_file_path(audio_file)
         
         # Script Python per riprodurre l'audio
         audio_script = '''
@@ -390,14 +410,14 @@ try:
     import synthizer
     synthizer.initialize()
     from sound import sound
-    audio_sound = sound("{}")
+    audio_sound = sound(r"{}")
     audio_sound.play(looping=False, volume={})
     import time
     time.sleep(3)  # Aspetta che il suono finisca
     synthizer.shutdown()
 except Exception as e:
     print(f"Errore audio subprocess: {{e}}")
-'''.format(os.getcwd().replace('\\', '\\\\'), audio_file, volume)
+'''.format(os.getcwd().replace('\\', '\\\\'), audio_path.replace('\\', '\\\\'), volume)
         
         # Esegui in subprocess
         subprocess.Popen([sys.executable, '-c', audio_script], 
