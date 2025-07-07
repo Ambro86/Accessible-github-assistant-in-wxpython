@@ -393,47 +393,32 @@ def get_audio_file_path(filename):
         return filename  # Fallback al nome del file
 
 def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep"):
-    """Riproduce un file audio usando audio_player.py in un subprocess separato"""
+    """Riproduce un file audio usando modalità audio in un subprocess separato"""
     try:
         import subprocess
         import sys
         import os
         
-        # Ottieni il percorso del file audio_player.py
-        if getattr(sys, 'frozen', False):
-            # In PyInstaller bundle
-            audio_player_path = os.path.join(sys._MEIPASS, 'audio_player.py')
-        else:
-            # In sviluppo
-            audio_player_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'audio_player.py')
-        
-        # Verifica che audio_player.py esista
-        if not os.path.exists(audio_player_path):
-            logger.warning(f"audio_player.py non trovato in {audio_player_path}, usando fallback")
-            # Fallback a suono di sistema
-            if os.name == 'nt':
-                try:
-                    import winsound
-                    if audio_file.endswith('.wav'):
-                        audio_path = get_audio_file_path(audio_file)
-                        winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
-                    else:
-                        winsound.MessageBeep()
-                except:
-                    wx.Bell()
-            else:
-                wx.Bell()
-            return
-        
-        # Esegui audio_player.py con l'exe principale
-        cmd = [sys.executable, audio_player_path, audio_file, '--volume', str(volume)]
+        # Esegui l'exe principale in modalità audio
+        cmd = [sys.executable, '--audio-mode', '--audio-file', audio_file, '--volume', str(volume)]
         subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         logger.info(f"{description} avviato in subprocess: {audio_file}")
         
     except Exception as e:
         logger.error(f"Errore subprocess {description}: {e}")
-        # Fallback a wx.Bell
-        wx.Bell()
+        # Fallback a suono di sistema
+        if os.name == 'nt':
+            try:
+                import winsound
+                if audio_file.endswith('.wav'):
+                    audio_path = get_audio_file_path(audio_file)
+                    winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+                else:
+                    winsound.MessageBeep()
+            except:
+                wx.Bell()
+        else:
+            wx.Bell()
 
 def play_beep_subprocess():
     """Riproduce un beep usando synthizer in un subprocess separato"""
@@ -11717,7 +11702,63 @@ AccessibleMenuBarReplacer._execute_command = _execute_command
 AccessibleMenuBarReplacer._show_input_dialog = _show_input_dialog
 AccessibleMenuBarReplacer._patch_shortcuts_help_for_mac = _patch_shortcuts_help_for_mac
 
+def audio_mode_main():
+    """Modalità audio - riproduce un file audio e esce"""
+    import sys
+    import argparse
+    
+    # Parser per modalità audio
+    parser = argparse.ArgumentParser(description='Modalità audio per AssistenteGit')
+    parser.add_argument('--audio-mode', action='store_true', help='Modalità riproduzione audio')
+    parser.add_argument('--audio-file', required=True, help='File audio da riprodurre')
+    parser.add_argument('--volume', type=float, default=0.7, help='Volume (0.0-1.0)')
+    
+    args = parser.parse_args()
+    
+    try:
+        # Ottieni il percorso corretto del file audio
+        audio_path = get_audio_file_path(args.audio_file)
+        
+        # Aggiungi il percorso dei moduli se necessario
+        if hasattr(sys, '_MEIPASS'):
+            sys.path.insert(0, sys._MEIPASS)
+        
+        # Importa e inizializza Synthizer
+        import synthizer
+        synthizer.initialize()
+        
+        # Importa la classe sound
+        from sound import sound
+        
+        # Crea e riproduci il suono
+        audio_sound = sound(audio_path)
+        audio_sound.play(looping=False, volume=args.volume)
+        
+        # Aspetta che il suono finisca
+        import time
+        time.sleep(3)
+        
+        # Pulisci
+        audio_sound.stop()
+        synthizer.shutdown()
+        
+        print(f"Audio riprodotto con successo: {args.audio_file}")
+        
+    except Exception as e:
+        print(f"Errore nella riproduzione audio: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
 if __name__ == "__main__":
+    import sys
+    
+    # Controlla se siamo in modalità audio
+    if '--audio-mode' in sys.argv:
+        audio_mode_main()
+        sys.exit(0)
+    
+    # Modalità normale (GUI)
     if is_voiceover_active():
     #if True:
         print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
