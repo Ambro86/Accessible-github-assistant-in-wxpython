@@ -374,6 +374,41 @@ def initialize_synthizer_if_needed():
             return False
     return SYNTHIZER_AVAILABLE
 
+def play_beep_subprocess():
+    """Riproduce un beep usando synthizer in un subprocess separato"""
+    try:
+        import subprocess
+        import sys
+        import os
+        
+        # Script Python per riprodurre il beep
+        beep_script = '''
+import sys
+import os
+sys.path.insert(0, r"{}")
+try:
+    import synthizer
+    synthizer.initialize()
+    from sound import sound
+    beep_sound = sound("beep.wav")
+    beep_sound.play(looping=False, volume=0.7)
+    import time
+    time.sleep(1)  # Aspetta che il suono finisca
+    synthizer.shutdown()
+except Exception as e:
+    print(f"Errore beep subprocess: {{e}}")
+'''.format(os.getcwd().replace('\\', '\\\\'))
+        
+        # Esegui in subprocess
+        subprocess.Popen([sys.executable, '-c', beep_script], 
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        logger.info("Beep avviato in subprocess")
+        
+    except Exception as e:
+        logger.error(f"Errore subprocess beep: {e}")
+        # Fallback a wx.Bell
+        wx.Bell()
+
 def shutdown_synthizer():
     """Chiude synthizer per ripristinare compatibilità con dialoghi"""
     global SYNTHIZER_AVAILABLE, SYNTHIZER_INITIALIZED
@@ -394,6 +429,7 @@ def shutdown_synthizer():
             if 'ctx' in globals(): del globals()['ctx']
             
             logger.info("Synthizer deinizializzato per compatibilità dialoghi")
+            
             return True
         except Exception as e:
             logger.error(f"Errore durante shutdown synthizer: {e}")
@@ -3341,9 +3377,6 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         except:
             pass
         
-        # Ferma synthizer immediatamente
-        shutdown_synthizer()
-        
         # Ferma il monitoraggio completamente
         self.stop_monitoring_run()
 
@@ -4893,11 +4926,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
             except:
                 # Ultimo fallback: beep
                 try:
-                    if initialize_synthizer_if_needed():
-                        beep_sound = sound("beep.wav")
-                        beep_sound.play(looping=False, volume=0.7)
-                    else:
-                        wx.Bell()
+                    play_beep_subprocess()
                 except Exception as e:
                     logger.error(f"Errore sound fallback: {e}")
                     wx.Bell()
@@ -5738,8 +5767,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 pass  # Dialog già chiusa
             self.monitoring_dialog = None
             
-        # Chiudi synthizer per ripristinare compatibilità con dialoghi
-        shutdown_synthizer()
+        # Non serve più shutdown_synthizer() perché usiamo subprocess
 
 
     def on_monitoring_timer(self, event):
@@ -5797,15 +5825,11 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
                     try:
-                        if initialize_synthizer_if_needed():
-                            beep_sound = sound("beep.wav")
-                            beep_sound.play(looping=False, volume=0.7)
-                        else:
-                            wx.Bell()
+                        play_beep_subprocess()
                     except Exception as e:
                         # Log dell'errore per debug
                         logger.error(f"Errore sound: {e}")
-                        # Fallback al beep di sistema se synthizer non è disponibile
+                        # Fallback al beep di sistema
                         wx.Bell()
                 return  # esco e aspetto il prossimo tick del timer
 
@@ -5819,8 +5843,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     pass  # Dialog già chiusa o errore
                 self.monitoring_dialog = None
 
-            # Deinizializza synthizer quando il workflow termina
-            shutdown_synthizer()
+            # Non serve più shutdown_synthizer() perché usiamo subprocess
 
 
             # Recupero dati locali prima di azzerare lo stato
@@ -5933,8 +5956,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         pass
                     self.monitoring_dialog = None
                 
-                # Deinizializza synthizer quando il monitoring termina per errore 404
-                shutdown_synthizer()
+                # Non serve più shutdown_synthizer() perché usiamo subprocess
 
                 # Recupero dati prima di fermare il monitoraggio
                 run_id_local = self.monitoring_run_id
