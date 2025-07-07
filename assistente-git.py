@@ -43,15 +43,21 @@ class CustomFolderDialog(wx.Dialog):
         super().__init__(parent, title=title, size=(600, 450))
         
         self.current_path = initial_path if initial_path and os.path.exists(initial_path) else self.GetDefaultPath()
-        self.selected_path = self.current_path  # Inizialmente seleziona la cartella corrente
+        self.selected_path = self.current_path  # Inizialmente uguale al current_path
+        
+        print(f"DEBUG __init__: initial_path={initial_path}")
+        print(f"DEBUG __init__: current_path={self.current_path}")
+        print(f"DEBUG __init__: selected_path={self.selected_path}")
         
         # Layout principale
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # Label percorso (solo informativo)
-        path_label = wx.StaticText(self, label=f"Percorso: {self.current_path}")
-        main_sizer.Add(path_label, 0, wx.ALL, 5)
-        self.path_label = path_label  # Salva reference per aggiornamenti
+        # Rimuoviamo completamente la label del percorso
+        # Il percorso sarà visibile nel titolo del dialog se necessario
+        # NVDA leggerà solo "Elenco" quando va sulla lista
+        
+        # Manteniamo la reference per aggiornamenti interni
+        self.path_label = None
         
         # Lista cartelle (simile a Windows Explorer)
         self.folder_list = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
@@ -111,8 +117,12 @@ class CustomFolderDialog(wx.Dialog):
         if not os.path.exists(self.current_path):
             self.current_path = self.GetDefaultPath()
             
-        # Aggiorna label percorso
-        self.path_label.SetLabel(f"Percorso: {self.current_path}")
+        # Aggiorna label percorso (se esiste)
+        if self.path_label:
+            self.path_label.SetLabel(f"Percorso: {self.current_path}")
+            
+        # Aggiorna il titolo del dialog con il percorso corrente
+        self.SetTitle(f"Scegli cartella - {self.current_path}")
         
         try:
             # Aggiungi prima le drives su Windows
@@ -227,28 +237,6 @@ class CustomFolderDialog(wx.Dialog):
             self.folder_name_text.SetValue(current_name)
             
         
-    def SelectCurrentFolder(self):
-        """Seleziona effettivamente la cartella evidenziata (per Enter)"""
-        selected = self.folder_list.GetFirstSelected()
-        if selected == -1:
-            return
-            
-        folder_name = self.folder_list.GetItemText(selected)
-        
-        # Aggiorna il campo nome per mostrare cosa è stato selezionato
-        self.folder_name_text.SetValue(folder_name)
-        
-        # Rimuovi "Disco locale" dai nomi drive
-        if "Disco locale" in folder_name:
-            # Estrai solo la lettera del drive
-            import re
-            match = re.search(r'\(([A-Z]):\)', folder_name)
-            if match:
-                folder_path = f"{match.group(1)}:\\"
-                self.selected_path = folder_path
-        else:
-            folder_path = os.path.join(self.current_path, folder_name)
-            self.selected_path = folder_path
             
     def OnFolderDoubleClick(self, event):
         """Entra nella cartella quando viene doppio-cliccata (naviga, non seleziona)"""
@@ -321,8 +309,13 @@ class CustomFolderDialog(wx.Dialog):
         
     def OnOKButton(self, event):
         """Gestisce il click su Apri - seleziona la cartella corrente"""
-        # Il risultato è sempre la cartella corrente, non quella evidenziata
+        print(f"DEBUG OnOKButton: current_path prima={self.current_path}")
+        print(f"DEBUG OnOKButton: selected_path prima={self.selected_path}")
+        
+        # Il risultato è SEMPRE la cartella corrente (dove ti trovi ora)
         self.selected_path = self.current_path
+        
+        print(f"DEBUG OnOKButton: selected_path dopo={self.selected_path}")
         
         # Aggiorna il campo nome con la cartella corrente
         current_name = os.path.basename(self.current_path) or self.current_path
@@ -332,8 +325,16 @@ class CustomFolderDialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
         
     def GetPath(self):
-        """Restituisce il path selezionato"""
-        return self.selected_path
+        """Restituisce il path selezionato (sempre path assoluto per compatibilità)"""
+        # Debug per capire cosa sta succedendo
+        print(f"DEBUG GetPath: selected_path={self.selected_path}")
+        print(f"DEBUG GetPath: current_path={self.current_path}")
+        
+        # SEMPRE restituisci current_path - quello è dove l'utente ha navigato
+        result = self.current_path
+            
+        print(f"DEBUG GetPath: returning={result}")
+        return result
 
 # Import utility functions
 try:
@@ -342,17 +343,29 @@ try:
         format_file_size, truncate_text, is_safe_filename, PerformanceMonitor
     )
 except ImportError:
-    logger.warning("Modulo utils non disponibile, alcune funzioni di sicurezza potrebbero essere limitate")
+    pass  # Log verrà fatto dopo la definizione del logger
 
-# Import sound functions
+# Import sound functions - inizializzazione ritardata per evitare conflitti con wx.DirDialog
 SYNTHIZER_AVAILABLE = False
-try:
-    import synthizer
-    synthizer.initialize()
-    from sound import ctx, sound, sound2d, Sound3D
-    SYNTHIZER_AVAILABLE = True
-except ImportError:
-    logger.warning("Modulo sound non disponibile, verrà utilizzato il beep di sistema")
+SYNTHIZER_INITIALIZED = False
+
+def initialize_synthizer_if_needed():
+    """Inizializza synthizer solo quando necessario per evitare conflitti con dialoghi"""
+    global SYNTHIZER_AVAILABLE, SYNTHIZER_INITIALIZED
+    if not SYNTHIZER_INITIALIZED:
+        try:
+            import synthizer
+            synthizer.initialize()
+            from sound import ctx, sound, sound2d, Sound3D
+            SYNTHIZER_AVAILABLE = True
+            SYNTHIZER_INITIALIZED = True
+            logger.info("Synthizer inizializzato on-demand")
+            return True
+        except ImportError:
+            logger.warning("Modulo sound non disponibile, verrà utilizzato il beep di sistema")
+            SYNTHIZER_INITIALIZED = True  # Evita tentativi ripetuti
+            return False
+    return SYNTHIZER_AVAILABLE
     
     # Fallback functions
     def sanitize_input(input_str: str, max_length: int = 1000) -> str:
@@ -387,6 +400,9 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Log synthizer status
+logger.info("Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)")
 
 # --- Setup gettext for internationalization ---
 import gettext
@@ -3962,10 +3978,16 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         summary = _("%(icon)s OPERAZIONE COMPLETATA\n\n") % {"icon": icon}
         summary += _("✅ %(action)s eseguito con successo\n\n") % {"action": action_name}
         
+        # Se stdout è vuoto, aggiungi un messaggio informativo
+        if not stdout or not stdout.strip():
+            stdout_content = _("✅ Comando eseguito senza errori.\n✅ Nessun output aggiuntivo (normale per questo tipo di operazione).")
+        else:
+            stdout_content = stdout
+            
         formatted_details = _("%(summary)s📋 DETTAGLIO COMPLETO:\n%(separator)s\n%(stdout)s") % {
         "summary": summary,
         "separator": '-'*50,
-        "stdout": stdout
+        "stdout": stdout_content
         }
         
         if stderr and stderr.strip():
@@ -4813,7 +4835,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
             except:
                 # Ultimo fallback: beep
                 try:
-                    if 'sound' in globals():
+                    if initialize_synthizer_if_needed():
                         beep_sound = sound("beep.wav")
                         beep_sound.play(looping=False, volume=0.7)
                     else:
@@ -5714,7 +5736,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
                     try:
-                        if 'sound' in globals():
+                        if initialize_synthizer_if_needed():
                             beep_sound = sound("beep.wav")
                             beep_sound.play(looping=False, volume=0.7)
                         else:
@@ -6419,8 +6441,13 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 pass
 
         # Chiudi synthizer se inizializzato
-        if SYNTHIZER_AVAILABLE and synthizer.initialized:
-            synthizer.shutdown()
+        if SYNTHIZER_INITIALIZED and SYNTHIZER_AVAILABLE:
+            try:
+                import synthizer
+                if synthizer.initialized:
+                    synthizer.shutdown()
+            except:
+                pass
             
         self.Destroy()
         
@@ -9162,72 +9189,128 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             self.output_text_ctrl.AppendText(_("Errore durante il tentativo di gestione dei conflitti di merge: {}\nControlla 'git status' per maggiori dettagli.\n").format(e_conflict))
     def OnBrowseRepoPath(self, event):
         try:
+            logger.info("OnBrowseRepoPath chiamato")
             print("DEBUG: OnBrowseRepoPath chiamato")
             current_path = self.repo_path_ctrl.GetValue()
+            logger.info(f"Current path: {current_path}")
             print(f"DEBUG: Current path: {current_path}")
             
-            # Usa il custom folder dialog invece di wx.DirDialog che si blocca
-            print("DEBUG: Creando CustomFolderDialog...")
+            # Usa wx.DirDialog standard (synthizer ora si inizializza solo quando necessario)
+            logger.info("Creando wx.DirDialog...")
+            print("DEBUG: Creando wx.DirDialog...")
             
-            dlg = CustomFolderDialog(
+            # Prepare initial directory
+            initial_dir = current_path if current_path and os.path.exists(current_path) else os.getcwd()
+            logger.info(f"Initial directory: {initial_dir}")
+            print(f"DEBUG: Initial directory: {initial_dir}")
+            
+            # Create standard wx.DirDialog
+            dlg = wx.DirDialog(
                 parent=self,
-                title="Scegli la cartella del repository Git",
-                initial_path=current_path if os.path.exists(current_path or "") else ""
+                message="Scegli la cartella del repository Git",
+                defaultPath=initial_dir,
+                style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
             )
             
-            print("DEBUG: CustomFolderDialog creato, chiamando ShowModal...")
+            logger.info("wx.DirDialog creato con successo")
+            print("DEBUG: wx.DirDialog creato, chiamando ShowModal...")
             
             try:
+                # Log before ShowModal
+                logger.info("Chiamando ShowModal() su wx.DirDialog")
+                print("DEBUG: Chiamando ShowModal() su wx.DirDialog")
+                
                 result = dlg.ShowModal()
+                
+                # Log after ShowModal
+                logger.info(f"ShowModal completato con risultato: {result}")
                 print(f"DEBUG: ShowModal completato con risultato: {result}")
                 
                 if result == wx.ID_OK:
                     new_path = dlg.GetPath()
+                    logger.info(f"Path selezionato: {new_path}")
                     print(f"DEBUG: Path selezionato: {new_path}")
                     
                     if new_path and new_path != current_path:
                         self.repo_path_ctrl.SetValue(new_path)
+                        logger.info("SetValue completato")
                         print("DEBUG: SetValue completato")
                         
                         if hasattr(self, 'statusBar'):
                             self.statusBar.SetStatusText("Cartella repository: {}".format(new_path))
+                            logger.info("StatusBar aggiornato")
                             print("DEBUG: StatusBar aggiornato")
                 else:
+                    logger.info("Dialog annullato")
                     print("DEBUG: Dialog annullato")
                     
             except Exception as modal_error:
-                print(f"DEBUG: Errore con CustomFolderDialog: {modal_error}")
+                logger.error(f"Errore con wx.DirDialog durante ShowModal: {modal_error}")
+                print(f"DEBUG: Errore con wx.DirDialog durante ShowModal: {modal_error}")
+                import traceback
+                traceback.print_exc()
+                logger.error("Traceback del wx.DirDialog error:")
+                logger.error(traceback.format_exc())
                 
-                # Fallback: input dialog semplice
-                input_dlg = wx.TextEntryDialog(
-                    self,
-                    "Inserisci il percorso della cartella repository:",
-                    "Percorso Repository",
-                    current_path
-                )
-                
-                if input_dlg.ShowModal() == wx.ID_OK:
-                    manual_path = input_dlg.GetValue().strip()
-                    if manual_path and os.path.exists(manual_path):
-                        self.repo_path_ctrl.SetValue(manual_path)
-                        print(f"DEBUG: Path manuale impostato: {manual_path}")
-                    elif manual_path:
-                        wx.MessageBox(f"Il percorso '{manual_path}' non esiste.", "Errore", wx.OK | wx.ICON_ERROR)
-                
-                input_dlg.Destroy()
+                # Fallback: CustomFolderDialog
+                logger.info("Fallback a CustomFolderDialog...")
+                print("DEBUG: Fallback a CustomFolderDialog...")
+                try:
+                    custom_dlg = CustomFolderDialog(
+                        parent=self,
+                        title="Scegli la cartella del repository Git",
+                        initial_path=current_path if os.path.exists(current_path or "") else ""
+                    )
+                    
+                    if custom_dlg.ShowModal() == wx.ID_OK:
+                        new_path = custom_dlg.GetPath()
+                        if new_path and new_path != current_path:
+                            self.repo_path_ctrl.SetValue(new_path)
+                            logger.info(f"CustomFolderDialog path impostato: {new_path}")
+                            print(f"DEBUG: CustomFolderDialog path impostato: {new_path}")
+                    
+                    custom_dlg.Destroy()
+                    
+                except Exception as custom_error:
+                    logger.error(f"Errore anche con CustomFolderDialog: {custom_error}")
+                    print(f"DEBUG: Errore anche con CustomFolderDialog: {custom_error}")
+                    
+                    # Ultimo fallback: input dialog semplice
+                    input_dlg = wx.TextEntryDialog(
+                        self,
+                        "Inserisci il percorso della cartella repository:",
+                        "Percorso Repository",
+                        current_path
+                    )
+                    
+                    if input_dlg.ShowModal() == wx.ID_OK:
+                        manual_path = input_dlg.GetValue().strip()
+                        if manual_path and os.path.exists(manual_path):
+                            self.repo_path_ctrl.SetValue(manual_path)
+                            logger.info(f"Path manuale impostato: {manual_path}")
+                            print(f"DEBUG: Path manuale impostato: {manual_path}")
+                        elif manual_path:
+                            wx.MessageBox(f"Il percorso '{manual_path}' non esiste.", "Errore", wx.OK | wx.ICON_ERROR)
+                    
+                    input_dlg.Destroy()
             
             finally:
                 # Cleanup
                 try:
                     dlg.Destroy()
-                    print("DEBUG: CustomFolderDialog distrutto")
-                except:
+                    logger.info("wx.DirDialog distrutto")
+                    print("DEBUG: wx.DirDialog distrutto")
+                except Exception as cleanup_error:
+                    logger.warning(f"Errore durante cleanup wx.DirDialog: {cleanup_error}")
                     pass
                 
         except Exception as e:
+            logger.error(f"ERRORE in OnBrowseRepoPath: {type(e).__name__}: {e}")
             print(f"ERRORE in OnBrowseRepoPath: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
+            logger.error("Traceback completo:")
+            logger.error(traceback.format_exc())
     def ExecuteDashboardCommand(self, command_name_key, command_details):
         """Gestisce i comandi della dashboard repository con risultati in dialog."""
         self.output_text_ctrl.AppendText(_("📊 Esecuzione comando Dashboard: {}...\n").format(command_name_key))
