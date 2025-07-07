@@ -13,6 +13,7 @@ import time
 import platform
 import subprocess
 import fnmatch
+import threading
 import re
 import json
 import requests
@@ -392,43 +393,45 @@ def get_audio_file_path(filename):
         return filename  # Fallback al nome del file
 
 def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep"):
-    """Riproduce un file audio usando synthizer in un thread separato"""
+    """Riproduce un file audio usando audio_player.py in un subprocess separato"""
     try:
-        import threading
-        import time
+        import subprocess
+        import sys
+        import os
         
-        # Ottieni il percorso corretto del file audio
-        audio_path = get_audio_file_path(audio_file)
+        # Ottieni il percorso del file audio_player.py
+        if getattr(sys, 'frozen', False):
+            # In PyInstaller bundle
+            audio_player_path = os.path.join(sys._MEIPASS, 'audio_player.py')
+        else:
+            # In sviluppo
+            audio_player_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'audio_player.py')
         
-        def audio_thread():
-            """Thread function per riprodurre l'audio"""
-            try:
-                # Importa synthizer nel thread
-                import synthizer
-                synthizer.initialize()
-                from sound import sound
-                
-                # Crea e riproduci il suono
-                audio_sound = sound(audio_path)
-                audio_sound.play(looping=False, volume=volume)
-                
-                # Aspetta che il suono finisca
-                time.sleep(3)
-                
-                # Pulisci
-                audio_sound.stop()
-                synthizer.shutdown()
-                
-            except Exception as e:
-                logger.error(f"Errore audio thread: {e}")
+        # Verifica che audio_player.py esista
+        if not os.path.exists(audio_player_path):
+            logger.warning(f"audio_player.py non trovato in {audio_player_path}, usando fallback")
+            # Fallback a suono di sistema
+            if os.name == 'nt':
+                try:
+                    import winsound
+                    if audio_file.endswith('.wav'):
+                        audio_path = get_audio_file_path(audio_file)
+                        winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+                    else:
+                        winsound.MessageBeep()
+                except:
+                    wx.Bell()
+            else:
+                wx.Bell()
+            return
         
-        # Avvia il thread
-        thread = threading.Thread(target=audio_thread, daemon=True)
-        thread.start()
-        logger.info(f"{description} avviato in thread: {audio_file}")
+        # Esegui audio_player.py con l'exe principale
+        cmd = [sys.executable, audio_player_path, audio_file, '--volume', str(volume)]
+        subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        logger.info(f"{description} avviato in subprocess: {audio_file}")
         
     except Exception as e:
-        logger.error(f"Errore thread {description}: {e}")
+        logger.error(f"Errore subprocess {description}: {e}")
         # Fallback a wx.Bell
         wx.Bell()
 

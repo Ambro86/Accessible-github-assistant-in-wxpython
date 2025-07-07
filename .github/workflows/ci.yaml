@@ -123,6 +123,7 @@ jobs:
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "audio_player.py${{ matrix.pyinstaller_add_data_sep }}." \
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
@@ -135,6 +136,7 @@ jobs:
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "audio_player.py${{ matrix.pyinstaller_add_data_sep }}." \
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
