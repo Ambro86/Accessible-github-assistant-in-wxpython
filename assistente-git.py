@@ -392,40 +392,43 @@ def get_audio_file_path(filename):
         return filename  # Fallback al nome del file
 
 def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep"):
-    """Riproduce un file audio usando synthizer in un subprocess separato"""
+    """Riproduce un file audio usando synthizer in un thread separato"""
     try:
-        import subprocess
-        import sys
-        import os
+        import threading
+        import time
         
         # Ottieni il percorso corretto del file audio
         audio_path = get_audio_file_path(audio_file)
         
-        # Script Python per riprodurre l'audio
-        audio_script = '''
-import sys
-import os
-sys.path.insert(0, r"{}")
-try:
-    import synthizer
-    synthizer.initialize()
-    from sound import sound
-    audio_sound = sound(r"{}")
-    audio_sound.play(looping=False, volume={})
-    import time
-    time.sleep(3)  # Aspetta che il suono finisca
-    synthizer.shutdown()
-except Exception as e:
-    print(f"Errore audio subprocess: {{e}}")
-'''.format(os.getcwd().replace('\\', '\\\\'), audio_path.replace('\\', '\\\\'), volume)
+        def audio_thread():
+            """Thread function per riprodurre l'audio"""
+            try:
+                # Importa synthizer nel thread
+                import synthizer
+                synthizer.initialize()
+                from sound import sound
+                
+                # Crea e riproduci il suono
+                audio_sound = sound(audio_path)
+                audio_sound.play(looping=False, volume=volume)
+                
+                # Aspetta che il suono finisca
+                time.sleep(3)
+                
+                # Pulisci
+                audio_sound.stop()
+                synthizer.shutdown()
+                
+            except Exception as e:
+                logger.error(f"Errore audio thread: {e}")
         
-        # Esegui in subprocess
-        subprocess.Popen([sys.executable, '-c', audio_script], 
-                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
-        logger.info(f"{description} avviato in subprocess: {audio_file}")
+        # Avvia il thread
+        thread = threading.Thread(target=audio_thread, daemon=True)
+        thread.start()
+        logger.info(f"{description} avviato in thread: {audio_file}")
         
     except Exception as e:
-        logger.error(f"Errore subprocess {description}: {e}")
+        logger.error(f"Errore thread {description}: {e}")
         # Fallback a wx.Bell
         wx.Bell()
 

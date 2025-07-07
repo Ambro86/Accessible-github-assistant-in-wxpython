@@ -49,3 +49,19 @@
 2025-07-07 03:29:03,121 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 03:29:13,166 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 03:29:23,169 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
+2025-07-07 12:18:16,780 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-07 12:18:16,782 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-07 12:18:53,566 - __main__ - INFO - Esecuzione comando Git: Controlla lo stato del repository
+2025-07-07 12:19:27,219 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:19:37,211 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:19:47,208 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:19:57,196 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:07,206 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:17,185 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:27,218 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:37,256 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:47,197 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:20:57,247 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:21:07,237 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:21:17,217 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 12:21:27,220 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
