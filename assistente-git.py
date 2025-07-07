@@ -357,6 +357,13 @@ def initialize_synthizer_if_needed():
             import synthizer
             synthizer.initialize()
             from sound import ctx, sound, sound2d, Sound3D
+            
+            # Rendi le classi disponibili globalmente
+            globals()['sound'] = sound
+            globals()['sound2d'] = sound2d
+            globals()['Sound3D'] = Sound3D
+            globals()['ctx'] = ctx
+            
             SYNTHIZER_AVAILABLE = True
             SYNTHIZER_INITIALIZED = True
             logger.info("Synthizer inizializzato on-demand")
