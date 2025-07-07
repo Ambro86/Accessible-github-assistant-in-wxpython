@@ -1,69 +1,13 @@
-2025-07-07 03:16:05,764 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-07 03:16:05,765 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-07 03:16:08,215 - __main__ - INFO - OnBrowseRepoPath chiamato
-2025-07-07 03:16:08,216 - __main__ - INFO - Current path: C:\fork\Assistente git
-2025-07-07 03:16:08,216 - __main__ - INFO - Creando wx.DirDialog...
-2025-07-07 03:16:08,216 - __main__ - INFO - Initial directory: C:\fork\Assistente git
-2025-07-07 03:16:08,217 - __main__ - INFO - wx.DirDialog creato con successo
-2025-07-07 03:16:08,222 - __main__ - INFO - Chiamando ShowModal() su wx.DirDialog
-2025-07-07 03:16:15,740 - __main__ - INFO - ShowModal completato con risultato: 5100
-2025-07-07 03:16:15,740 - __main__ - INFO - Path selezionato: C:\fork\Assistente git
-2025-07-07 03:16:15,741 - __main__ - INFO - wx.DirDialog distrutto
-2025-07-07 03:16:50,929 - __main__ - INFO - Beep avviato in subprocess
-2025-07-07 03:17:00,894 - __main__ - INFO - Beep avviato in subprocess
-2025-07-07 03:17:02,392 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
-2025-07-07 03:17:04,537 - __main__ - INFO - OnBrowseRepoPath chiamato
-2025-07-07 03:17:04,537 - __main__ - INFO - Current path: C:\fork\Assistente git
-2025-07-07 03:17:04,538 - __main__ - INFO - Creando wx.DirDialog...
-2025-07-07 03:17:04,538 - __main__ - INFO - Initial directory: C:\fork\Assistente git
-2025-07-07 03:17:04,538 - __main__ - INFO - wx.DirDialog creato con successo
-2025-07-07 03:17:04,538 - __main__ - INFO - Chiamando ShowModal() su wx.DirDialog
-2025-07-07 03:17:10,086 - __main__ - INFO - ShowModal completato con risultato: 5101
-2025-07-07 03:17:10,087 - __main__ - INFO - Dialog annullato
-2025-07-07 03:17:10,087 - __main__ - INFO - wx.DirDialog distrutto
-2025-07-07 03:25:52,396 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-07 03:25:52,397 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-07 03:25:54,910 - __main__ - INFO - OnBrowseRepoPath chiamato
-2025-07-07 03:25:54,911 - __main__ - INFO - Current path: C:\fork\Assistente git
-2025-07-07 03:25:54,911 - __main__ - INFO - Creando wx.DirDialog...
-2025-07-07 03:25:54,912 - __main__ - INFO - Initial directory: C:\fork\Assistente git
-2025-07-07 03:25:54,912 - __main__ - INFO - wx.DirDialog creato con successo
-2025-07-07 03:25:54,912 - __main__ - INFO - Chiamando ShowModal() su wx.DirDialog
-2025-07-07 03:26:05,076 - __main__ - INFO - ShowModal completato con risultato: 5100
-2025-07-07 03:26:05,076 - __main__ - INFO - Path selezionato: C:\fork\Assistente git
-2025-07-07 03:26:05,076 - __main__ - INFO - wx.DirDialog distrutto
-2025-07-07 03:26:43,132 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:26:53,126 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:03,124 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:13,120 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:23,135 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:33,126 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:43,106 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:27:53,130 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:03,105 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:13,121 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:23,138 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:33,207 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:43,134 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:28:53,179 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:29:03,121 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:29:13,166 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 03:29:23,169 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
-2025-07-07 12:18:16,780 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-07 12:18:16,782 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-07 12:18:53,566 - __main__ - INFO - Esecuzione comando Git: Controlla lo stato del repository
-2025-07-07 12:19:27,219 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:19:37,211 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:19:47,208 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:19:57,196 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:07,206 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:17,185 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:27,218 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:37,256 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:47,197 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:20:57,247 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:21:07,237 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:21:17,217 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-07 12:21:27,220 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
-2025-07-07 13:39:16,919 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-07 13:39:16,921 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-08 00:03:06,215 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-08 00:03:06,216 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-08 00:03:48,700 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:03:58,680 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:04:00,677 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
+2025-07-08 00:06:33,014 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-08 00:06:33,016 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-08 00:06:58,997 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:07:08,962 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:07:11,229 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
+2025-07-08 00:07:59,926 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:08:09,908 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-08 00:08:10,805 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta

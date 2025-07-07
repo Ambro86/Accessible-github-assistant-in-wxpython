@@ -10,6 +10,9 @@ pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteG
 # Controlla modalità audio PRIMA di qualsiasi import pesante
 import sys
 if '--audio-mode' in sys.argv:
+    # DEBUG: Stampa per verificare che il controllo funzioni
+    print("DEBUG: Modalità audio rilevata, argomenti:", sys.argv)
+    
     # Modalità audio - import minimal e esci subito
     import os
     import argparse
@@ -34,16 +37,22 @@ if '--audio-mode' in sys.argv:
     args = parser.parse_args()
     
     try:
+        print(f"DEBUG: Iniziando riproduzione audio {args.audio_file} volume {args.volume}")
+        
         # Ottieni il percorso corretto del file audio
         audio_path = get_audio_file_path_minimal(args.audio_file)
+        print(f"DEBUG: Percorso audio: {audio_path}")
         
         # Aggiungi il percorso dei moduli se necessario
         if hasattr(sys, '_MEIPASS'):
             sys.path.insert(0, sys._MEIPASS)
+            print(f"DEBUG: Usando _MEIPASS: {sys._MEIPASS}")
         
         # Importa e inizializza Synthizer
+        print("DEBUG: Inizializzando Synthizer...")
         import synthizer
         synthizer.initialize()
+        print("DEBUG: Synthizer inizializzato")
         
         # Importa la classe sound
         from sound import sound
@@ -463,8 +472,14 @@ def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep")
         import sys
         import os
         
+        
         # Esegui l'exe principale in modalità audio
-        cmd = [sys.executable, '--audio-mode', '--audio-file', audio_file, '--volume', str(volume)]
+        if hasattr(sys, '_MEIPASS'):
+            # Modalità PyInstaller - usa direttamente l'eseguibile
+            cmd = [sys.executable, '--audio-mode', '--audio-file', audio_file, '--volume', str(volume)]
+        else:
+            # Modalità sviluppo - includi nome script
+            cmd = [sys.executable, 'assistente-git.py', '--audio-mode', '--audio-file', audio_file, '--volume', str(volume)]
         subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         logger.info(f"{description} avviato in subprocess: {audio_file}")
         
@@ -484,9 +499,9 @@ def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep")
         else:
             wx.Bell()
 
-def play_beep_subprocess():
+def play_beep_subprocess(volume=0.7):
     """Riproduce un beep usando synthizer in un subprocess separato"""
-    play_audio_subprocess("beep.wav", 0.7, "Beep")
+    play_audio_subprocess("beep.wav", volume, "Beep")
 
 def shutdown_synthizer():
     """Chiude synthizer per ripristinare compatibilità con dialoghi"""
@@ -998,7 +1013,7 @@ class InputDialog(wx.Dialog):
 # --- Finestra di Dialogo per Configurazione GitHub (MODIFICATA) ---
 class GitHubConfigDialog(wx.Dialog):
     def __init__(self, parent, title, current_owner, current_repo,
-                 current_token_present, current_ask_pass_on_startup, current_strip_timestamps, current_monitoring_beep):
+                 current_token_present, current_ask_pass_on_startup, current_strip_timestamps, current_monitoring_beep, current_volume=0.7):
         """Inizializza il dialogo di configurazione GitHub.
         
         Args:
@@ -1058,6 +1073,29 @@ class GitHubConfigDialog(wx.Dialog):
         self.monitoring_beep_cb = wx.CheckBox(panel, label=_("Beep sonoro durante monitoraggio workflow"))
         self.monitoring_beep_cb.SetValue(current_monitoring_beep)
         main_sizer.Add(self.monitoring_beep_cb, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        
+        # Controllo volume audio - Usando SpinCtrl per migliore accessibilità
+        volume_panel = wx.Panel(panel)
+        volume_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Label con istruzioni complete
+        volume_label = wx.StaticText(volume_panel, label=_("Volume Audio (usa frecce su/giù per regolare):"))
+        volume_sizer.Add(volume_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
+        
+        # SpinCtrl invece di Slider per migliore accessibilità NVDA
+        self.volume_spin = wx.SpinCtrl(volume_panel, value=str(int(current_volume * 100)), 
+                                     min=0, max=100, initial=int(current_volume * 100))
+        self.volume_spin.Bind(wx.EVT_SPINCTRL, self.OnVolumeChanged)
+        volume_sizer.Add(self.volume_spin, 0, wx.RIGHT, 10)
+        
+        # Pulsante testa audio
+        self.test_audio_button = wx.Button(volume_panel, label=_("Testa Audio"))
+        self.test_audio_button.Bind(wx.EVT_BUTTON, self.OnTestAudio)
+        volume_sizer.Add(self.test_audio_button, 0, wx.ALIGN_CENTER_VERTICAL)
+        
+        volume_panel.SetSizer(volume_sizer)
+        main_sizer.Add(volume_panel, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        
         btn_panel = wx.Panel(panel)
         btn_sizer_h = wx.BoxSizer(wx.HORIZONTAL)
         self.delete_config_button = wx.Button(btn_panel, label=_("Elimina Configurazione Salvata"))
@@ -1208,6 +1246,57 @@ class GitHubConfigDialog(wx.Dialog):
             if self.parent_frame and hasattr(self.parent_frame, 'output_text_ctrl'):
                 pass
 
+    def OnVolumeChanged(self, event):
+        """Chiamato quando il volume slider cambia."""
+        # Non è necessario fare nulla qui, il valore viene letto quando serve
+        event.Skip()
+    
+    def OnTestAudio(self, event):
+        """Testa l'audio con il volume selezionato."""
+        try:
+            volume = self.volume_spin.GetValue() / 100.0  # Converti da 0-100 a 0.0-1.0
+            
+            # Debug: Verifica se il metodo esiste
+            has_method = hasattr(self.parent_frame, 'play_audio_with_user_volume')
+            
+            if has_method:
+                # Log per debug
+                if hasattr(self.parent_frame, 'output_text_ctrl'):
+                    self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Test audio volume {volume:.2f}\n")
+                
+                # Chiamata diretta senza modificare github_volume
+                # Debug: Modifica temporanea per vedere l'output del subprocess
+                import sys
+                import subprocess
+                import os
+                
+                if hasattr(sys, '_MEIPASS'):
+                    # Modalità PyInstaller - usa direttamente l'eseguibile
+                    cmd = [sys.executable, '--audio-mode', '--audio-file', 'success.mp3', '--volume', str(volume)]
+                else:
+                    # Modalità sviluppo - includi nome script
+                    cmd = [sys.executable, 'assistente-git.py', '--audio-mode', '--audio-file', 'success.mp3', '--volume', str(volume)]
+                self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Comando: {' '.join(cmd)}\n")
+                
+                # Esegui senza aspettare la fine (non-bloccante)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.parent_frame.output_text_ctrl.AppendText(f"DEBUG: Test audio avviato\n")
+            else:
+                dlg = wx.MessageDialog(self, 
+                                      _("Metodo audio non disponibile nel parent frame"),
+                                      _("Errore"),
+                                      wx.OK)
+                dlg.ShowModal()
+                dlg.Destroy()
+                
+        except Exception as e:
+            dlg = wx.MessageDialog(self, 
+                                  _("Errore nel testare l'audio: {}").format(str(e)),
+                                  _("Errore"),
+                                  wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+    
     def GetValues(self):
         """Restituisce i valori inseriti nel dialogo.
         
@@ -1221,7 +1310,8 @@ class GitHubConfigDialog(wx.Dialog):
             "password": self.password_ctrl.GetValue(),
             "ask_pass_on_startup": self.ask_pass_startup_cb.GetValue(),
             "strip_log_timestamps": self.strip_timestamps_cb.GetValue(),
-            "monitoring_beep": self.monitoring_beep_cb.GetValue()
+            "monitoring_beep": self.monitoring_beep_cb.GetValue(),
+            "volume": self.volume_spin.GetValue() / 100.0  # Converti da 0-100 a 0.0-1.0
         }
 
     def OnCreateToken(self, event):
@@ -3338,6 +3428,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         self.github_ask_pass_on_startup = True
         self.github_strip_log_timestamps = False
         self.github_monitoring_beep = True
+        self.github_volume = 0.7  # Volume audio predefinito
         self._last_processed_path_for_context = None # Usato per tracciare l'ultimo path processato
         self.InitUI()
         self.SetMinSize((800, 700))
@@ -3365,6 +3456,10 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+    def play_audio_with_user_volume(self, audio_file, description="Audio"):
+        """Riproduce un file audio usando il volume configurato dall'utente."""
+        play_audio_subprocess(audio_file, self.github_volume, description)
 
     def _create_monitoring_dialog(self, title, message, details):
         """Crea una dialog di monitoraggio non-modale che può essere chiusa automaticamente."""
@@ -5005,7 +5100,7 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
             except:
                 # Ultimo fallback: beep
                 try:
-                    play_beep_subprocess()
+                    play_beep_subprocess(0.7)  # Volume predefinito per fallback
                 except Exception as e:
                     logger.error(f"Errore sound fallback: {e}")
                     wx.Bell()
@@ -5904,7 +5999,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 # Emetti beep solo se abilitato
                 if getattr(self, "github_monitoring_beep", True):
                     try:
-                        play_beep_subprocess()
+                        play_beep_subprocess(self.github_volume)
                     except Exception as e:
                         # Log dell'errore per debug
                         logger.error(f"Errore sound: {e}")
@@ -5940,32 +6035,32 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 icon = "✅"
                 result = _("completato con SUCCESSO")
                 # Riproduce suono di successo
-                play_audio_subprocess("success.mp3", 0.8, "Successo workflow")
+                self.play_audio_with_user_volume("success.mp3", "Successo workflow")
             elif current_conclusion == "failure":
                 icon = "❌"
                 result = _("FALLITO")
                 # Riproduce suono di fallimento
-                play_audio_subprocess("failed.mp3", 0.8, "Fallimento workflow")
+                self.play_audio_with_user_volume("failed.mp3", "Fallimento workflow")
             elif current_conclusion == "cancelled":
                 icon = "🚫"
                 result = _("CANCELLATO")
                 # Riproduce suono di fallimento per cancellazione
-                play_audio_subprocess("failed.mp3", 0.8, "Workflow cancellato")
+                self.play_audio_with_user_volume("failed.mp3", "Workflow cancellato")
             elif current_conclusion == "skipped":
                 icon = "⏭️"
                 result = _("SALTATO")
                 # Beep neutro per skip
-                play_beep_subprocess()
+                play_beep_subprocess(self.github_volume)
             elif current_conclusion == "timed_out":
                 icon = "⏰"
                 result = _("SCADUTO (timeout)")
                 # Riproduce suono di fallimento per timeout
-                play_audio_subprocess("failed.mp3", 0.8, "Workflow timeout")
+                self.play_audio_with_user_volume("failed.mp3", "Workflow timeout")
             else:
                 icon = "🏁"
                 result = _("terminato (conclusione: {})").format(current_conclusion or _('N/D'))
                 # Beep neutro per risultati sconosciuti
-                play_beep_subprocess()
+                play_beep_subprocess(self.github_volume)
 
             # Formatta i dettagli completi per la dialog
             workflow_details = _("🎯 WORKFLOW COMPLETATO") + "\n\n"
@@ -6060,7 +6155,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 self.stop_monitoring_run()
                 
                 # Riproduce suono di fallimento per cancellazione
-                play_audio_subprocess("failed.mp3", 0.8, "Workflow cancellato/rimosso")
+                self.play_audio_with_user_volume("failed.mp3", "Workflow cancellato/rimosso")
                 
                 # Notifica della cancellazione
                 # Formatta i dettagli per la dialog
@@ -6221,7 +6316,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
         settings_data = {
             "ask_pass_on_startup": self.github_ask_pass_on_startup,
             "strip_log_timestamps": self.github_strip_log_timestamps,
-            "monitoring_beep": self.github_monitoring_beep
+            "monitoring_beep": self.github_monitoring_beep,
+            "volume": self.github_volume
         }
         try:
             with open(self.app_settings_path, 'w') as f:
@@ -6240,17 +6336,20 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     self.github_ask_pass_on_startup = settings_data.get("ask_pass_on_startup", True)
                     self.github_strip_log_timestamps = settings_data.get("strip_log_timestamps", False)
                     self.github_monitoring_beep = settings_data.get("monitoring_beep", True)  # ← 
+                    self.github_volume = settings_data.get("volume", 0.7)  # Volume audio
 
             except (IOError, json.JSONDecodeError) as e:
 
                 self.github_ask_pass_on_startup = True
                 self.github_strip_log_timestamps = False
                 self.github_monitoring_beep = True
+                self.github_volume = 0.7
         else:
 
             self.github_ask_pass_on_startup = True
             self.github_strip_log_timestamps = False
             self.github_monitoring_beep = True
+            self.github_volume = 0.7
 
         self.output_text_ctrl.AppendText(_("Opzione 'Richiedi password all'avvio': {}.\n").format(
             _("Abilitata") if self.github_ask_pass_on_startup else _("Disabilitata")
@@ -7887,7 +7986,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                                      bool(self.github_token),
                                      self.github_ask_pass_on_startup,
                                      self.github_strip_log_timestamps,
-                                     self.github_monitoring_beep)
+                                     self.github_monitoring_beep,
+                                     self.github_volume)
             
             if dlg.ShowModal() == wx.ID_OK:
                 values = dlg.GetValues()
@@ -7898,6 +7998,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 new_ask_pass_startup = values["ask_pass_on_startup"]
                 new_strip_timestamps = values["strip_log_timestamps"]
                 new_monitoring_beep = values["monitoring_beep"]
+                new_volume = values["volume"]
 
                 if not new_owner_val or not new_repo_val:
                     self.output_text_ctrl.AppendText(_("Proprietario e Nome Repository sono obbligatori.\n"))
@@ -7908,6 +8009,7 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 self.github_ask_pass_on_startup = new_ask_pass_startup
                 self.github_strip_log_timestamps = new_strip_timestamps
                 self.github_monitoring_beep = new_monitoring_beep
+                self.github_volume = new_volume
                 self._save_app_settings()
 
                 # MODIFICA: Preserva il token esistente se il campo è vuoto
