@@ -3317,6 +3317,9 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         panel.SetSizer(main_sizer)
         dlg.Center()
         
+        # Gestisci anche la chiusura tramite X o ESC
+        dlg.Bind(wx.EVT_CLOSE, lambda e: self._on_monitoring_dialog_close(dlg))
+        
         # Mostra la dialog in modo non-modale
         dlg.Show()
         
@@ -3324,8 +3327,17 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
 
     def _on_monitoring_dialog_close(self, dlg):
         """Gestisce la chiusura del dialogo di monitoraggio."""
-        # Chiudi il dialogo
-        dlg.EndModal(wx.ID_CLOSE)
+        logger.info("Chiusura dialogo monitoraggio richiesta")
+        
+        # Chiudi il dialogo (se non è già chiuso)
+        try:
+            if dlg.IsModal():
+                dlg.EndModal(wx.ID_CLOSE)
+            else:
+                dlg.Close()
+                dlg.Destroy()
+        except:
+            pass
         
         # Ferma il monitoraggio completamente
         self.stop_monitoring_run()
@@ -5804,6 +5816,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                     pass  # Dialog già chiusa o errore
                 self.monitoring_dialog = None
 
+            # Deinizializza synthizer quando il workflow termina
+            shutdown_synthizer()
+
 
             # Recupero dati locali prima di azzerare lo stato
             run_id_local = self.monitoring_run_id
@@ -5915,6 +5930,8 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                         pass
                     self.monitoring_dialog = None
                 
+                # Deinizializza synthizer quando il monitoring termina per errore 404
+                shutdown_synthizer()
 
                 # Recupero dati prima di fermare il monitoraggio
                 run_id_local = self.monitoring_run_id
