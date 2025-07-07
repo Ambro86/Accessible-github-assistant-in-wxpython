@@ -374,15 +374,15 @@ def initialize_synthizer_if_needed():
             return False
     return SYNTHIZER_AVAILABLE
 
-def play_beep_subprocess():
-    """Riproduce un beep usando synthizer in un subprocess separato"""
+def play_audio_subprocess(audio_file="beep.wav", volume=0.7, description="beep"):
+    """Riproduce un file audio usando synthizer in un subprocess separato"""
     try:
         import subprocess
         import sys
         import os
         
-        # Script Python per riprodurre il beep
-        beep_script = '''
+        # Script Python per riprodurre l'audio
+        audio_script = '''
 import sys
 import os
 sys.path.insert(0, r"{}")
@@ -390,24 +390,28 @@ try:
     import synthizer
     synthizer.initialize()
     from sound import sound
-    beep_sound = sound("beep.wav")
-    beep_sound.play(looping=False, volume=0.7)
+    audio_sound = sound("{}")
+    audio_sound.play(looping=False, volume={})
     import time
-    time.sleep(1)  # Aspetta che il suono finisca
+    time.sleep(3)  # Aspetta che il suono finisca
     synthizer.shutdown()
 except Exception as e:
-    print(f"Errore beep subprocess: {{e}}")
-'''.format(os.getcwd().replace('\\', '\\\\'))
+    print(f"Errore audio subprocess: {{e}}")
+'''.format(os.getcwd().replace('\\', '\\\\'), audio_file, volume)
         
         # Esegui in subprocess
-        subprocess.Popen([sys.executable, '-c', beep_script], 
+        subprocess.Popen([sys.executable, '-c', audio_script], 
                         creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
-        logger.info("Beep avviato in subprocess")
+        logger.info(f"{description} avviato in subprocess: {audio_file}")
         
     except Exception as e:
-        logger.error(f"Errore subprocess beep: {e}")
+        logger.error(f"Errore subprocess {description}: {e}")
         # Fallback a wx.Bell
         wx.Bell()
+
+def play_beep_subprocess():
+    """Riproduce un beep usando synthizer in un subprocess separato"""
+    play_audio_subprocess("beep.wav", 0.7, "Beep")
 
 def shutdown_synthizer():
     """Chiude synthizer per ripristinare compatibilità con dialoghi"""
@@ -5860,21 +5864,33 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
             if current_conclusion == "success":
                 icon = "✅"
                 result = _("completato con SUCCESSO")
+                # Riproduce suono di successo
+                play_audio_subprocess("success.mp3", 0.8, "Successo workflow")
             elif current_conclusion == "failure":
                 icon = "❌"
                 result = _("FALLITO")
+                # Riproduce suono di fallimento
+                play_audio_subprocess("failed.mp3", 0.8, "Fallimento workflow")
             elif current_conclusion == "cancelled":
                 icon = "🚫"
                 result = _("CANCELLATO")
+                # Riproduce suono di fallimento per cancellazione
+                play_audio_subprocess("failed.mp3", 0.8, "Workflow cancellato")
             elif current_conclusion == "skipped":
                 icon = "⏭️"
                 result = _("SALTATO")
+                # Beep neutro per skip
+                play_beep_subprocess()
             elif current_conclusion == "timed_out":
                 icon = "⏰"
                 result = _("SCADUTO (timeout)")
+                # Riproduce suono di fallimento per timeout
+                play_audio_subprocess("failed.mp3", 0.8, "Workflow timeout")
             else:
                 icon = "🏁"
                 result = _("terminato (conclusione: {})").format(current_conclusion or _('N/D'))
+                # Beep neutro per risultati sconosciuti
+                play_beep_subprocess()
 
             # Formatta i dettagli completi per la dialog
             workflow_details = _("🎯 WORKFLOW COMPLETATO") + "\n\n"
@@ -5967,6 +5983,9 @@ suggestions=_("Configura un token GitHub tramite '{}'.").format(CMD_GITHUB_CONFI
                 
                 # Ferma il monitoraggio
                 self.stop_monitoring_run()
+                
+                # Riproduce suono di fallimento per cancellazione
+                play_audio_subprocess("failed.mp3", 0.8, "Workflow cancellato/rimosso")
                 
                 # Notifica della cancellazione
                 # Formatta i dettagli per la dialog
