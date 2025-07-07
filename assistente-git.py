@@ -3329,20 +3329,23 @@ class GitFrame(wx.Frame, AsyncOperationMixin):
         """Gestisce la chiusura del dialogo di monitoraggio."""
         logger.info("Chiusura dialogo monitoraggio richiesta")
         
-        # Chiudi il dialogo (se non è già chiuso)
+        # Evita loop: disconnetti gli eventi prima di chiudere
         try:
-            if dlg.IsModal():
-                dlg.EndModal(wx.ID_CLOSE)
-            else:
-                dlg.Close()
-                dlg.Destroy()
+            dlg.Unbind(wx.EVT_CLOSE)
         except:
             pass
         
+        # Chiudi il dialogo
+        try:
+            dlg.EndModal(wx.ID_CLOSE)
+        except:
+            pass
+        
+        # Ferma synthizer immediatamente
+        shutdown_synthizer()
+        
         # Ferma il monitoraggio completamente
         self.stop_monitoring_run()
-        
-        # Nota: shutdown_synthizer() viene già chiamato in stop_monitoring_run()
 
     def should_use_details_dialog(self, command_name):
         """Tutti i comandi Git usano ShowDetailsDialog per una UX consistente."""
