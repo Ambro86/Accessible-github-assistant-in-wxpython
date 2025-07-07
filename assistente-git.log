@@ -65,3 +65,5 @@
 2025-07-07 12:21:07,237 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 12:21:17,217 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 12:21:27,220 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
+2025-07-07 13:39:16,919 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-07 13:39:16,921 - __main__ - INFO - Inizializzazione sistema traduzioni

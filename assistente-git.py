@@ -7,6 +7,70 @@ Per creare un eseguibile:
 pyinstaller --onefile --windowed --add-data "locales;locales" --name AssistenteGit assistente-git.py
 """
 
+# Controlla modalità audio PRIMA di qualsiasi import pesante
+import sys
+if '--audio-mode' in sys.argv:
+    # Modalità audio - import minimal e esci subito
+    import os
+    import argparse
+    
+    def get_audio_file_path_minimal(filename):
+        """Versione minimal per modalità audio"""
+        try:
+            if hasattr(sys, '_MEIPASS'):
+                base_dir = sys._MEIPASS
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+            return os.path.join(base_dir, filename)
+        except Exception:
+            return filename
+    
+    # Parser per modalità audio
+    parser = argparse.ArgumentParser(description='Modalità audio per AssistenteGit')
+    parser.add_argument('--audio-mode', action='store_true', help='Modalità riproduzione audio')
+    parser.add_argument('--audio-file', required=True, help='File audio da riprodurre')
+    parser.add_argument('--volume', type=float, default=0.7, help='Volume (0.0-1.0)')
+    
+    args = parser.parse_args()
+    
+    try:
+        # Ottieni il percorso corretto del file audio
+        audio_path = get_audio_file_path_minimal(args.audio_file)
+        
+        # Aggiungi il percorso dei moduli se necessario
+        if hasattr(sys, '_MEIPASS'):
+            sys.path.insert(0, sys._MEIPASS)
+        
+        # Importa e inizializza Synthizer
+        import synthizer
+        synthizer.initialize()
+        
+        # Importa la classe sound
+        from sound import sound
+        
+        # Crea e riproduci il suono
+        audio_sound = sound(audio_path)
+        audio_sound.play(looping=False, volume=args.volume)
+        
+        # Aspetta che il suono finisca
+        import time
+        time.sleep(3)
+        
+        # Pulisci
+        audio_sound.stop()
+        synthizer.shutdown()
+        
+        print(f"Audio riprodotto con successo: {args.audio_file}")
+        
+    except Exception as e:
+        print(f"Errore nella riproduzione audio: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    
+    sys.exit(0)
+
+# Modalità normale - continua con import completi
 import wx
 import os
 import time
@@ -11702,63 +11766,9 @@ AccessibleMenuBarReplacer._execute_command = _execute_command
 AccessibleMenuBarReplacer._show_input_dialog = _show_input_dialog
 AccessibleMenuBarReplacer._patch_shortcuts_help_for_mac = _patch_shortcuts_help_for_mac
 
-def audio_mode_main():
-    """Modalità audio - riproduce un file audio e esce"""
-    import sys
-    import argparse
-    
-    # Parser per modalità audio
-    parser = argparse.ArgumentParser(description='Modalità audio per AssistenteGit')
-    parser.add_argument('--audio-mode', action='store_true', help='Modalità riproduzione audio')
-    parser.add_argument('--audio-file', required=True, help='File audio da riprodurre')
-    parser.add_argument('--volume', type=float, default=0.7, help='Volume (0.0-1.0)')
-    
-    args = parser.parse_args()
-    
-    try:
-        # Ottieni il percorso corretto del file audio
-        audio_path = get_audio_file_path(args.audio_file)
-        
-        # Aggiungi il percorso dei moduli se necessario
-        if hasattr(sys, '_MEIPASS'):
-            sys.path.insert(0, sys._MEIPASS)
-        
-        # Importa e inizializza Synthizer
-        import synthizer
-        synthizer.initialize()
-        
-        # Importa la classe sound
-        from sound import sound
-        
-        # Crea e riproduci il suono
-        audio_sound = sound(audio_path)
-        audio_sound.play(looping=False, volume=args.volume)
-        
-        # Aspetta che il suono finisca
-        import time
-        time.sleep(3)
-        
-        # Pulisci
-        audio_sound.stop()
-        synthizer.shutdown()
-        
-        print(f"Audio riprodotto con successo: {args.audio_file}")
-        
-    except Exception as e:
-        print(f"Errore nella riproduzione audio: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
-
 if __name__ == "__main__":
-    import sys
-    
-    # Controlla se siamo in modalità audio
-    if '--audio-mode' in sys.argv:
-        audio_mode_main()
-        sys.exit(0)
-    
-    # Modalità normale (GUI)
+    # Il controllo --audio-mode è già stato fatto all'inizio del file
+    # Se arriviamo qui, siamo in modalità normale (GUI)
     if is_voiceover_active():
     #if True:
         print("🍎 VoiceOver rilevato - Applicando Menu Bar Accessibile")
