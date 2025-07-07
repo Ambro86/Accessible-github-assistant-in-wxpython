@@ -120,12 +120,18 @@ jobs:
           echo "Building macOS .app bundle..."
           pyinstaller --windowed \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+            --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --name AssistenteGit \
             assistente-git.py
         else
           echo "Building single executable for ${{ matrix.os_name }}..."
           pyinstaller --onefile --windowed --noconsole \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+            --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --name AssistenteGit \
             assistente-git.py
         fi

@@ -40,3 +40,12 @@
 2025-07-07 03:27:33,126 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 03:27:43,106 - __main__ - INFO - Beep avviato in subprocess: beep.wav
 2025-07-07 03:27:53,130 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:03,105 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:13,121 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:23,138 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:33,207 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:43,134 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:28:53,179 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:29:03,121 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:29:13,166 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-07 03:29:23,169 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
