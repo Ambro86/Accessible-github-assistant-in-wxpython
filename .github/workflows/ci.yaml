@@ -245,8 +245,11 @@ jobs:
         
         if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
           echo "Testing macOS .app bundle..."
-          # Basic test that executable starts without immediate crash
-          timeout 5s ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "App started (timeout expected)"
+          # Basic test that executable starts without immediate crash (macOS doesn't have timeout)
+          ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 &
+          TEST_PID=$!
+          sleep 5
+          kill $TEST_PID 2>/dev/null || echo "App test process already finished"
           echo "macOS app test completed"
         elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
           echo "Testing Windows executable..."
@@ -274,8 +277,11 @@ jobs:
         # Crea una cartella temporanea per il DMG
         mkdir -p dmg_temp
         
+        # Termina eventuali processi rimasti
+        pkill -f "AssistenteGit" 2>/dev/null || true
+        
         # Attendi un po' per assicurarsi che i processi siano terminati
-        sleep 2
+        sleep 3
         
         # Copia l'app nella cartella temporanea
         cp -R dist/AssistenteGit.app dmg_temp/
@@ -284,7 +290,7 @@ jobs:
         ln -s /Applications dmg_temp/Applications
         
         # Attendi un altro po'
-        sleep 1
+        sleep 2
         
         # Crea il DMG con nome specifico per architettura
         DMG_NAME="${{ matrix.dmg_name }}"
