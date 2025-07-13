@@ -149,23 +149,39 @@ jobs:
         echo "# Wrapper file for PyInstaller that imports the Nuitka-compiled module" > main_wrapper.py
         echo "import sys" >> main_wrapper.py
         echo "import os" >> main_wrapper.py
+        echo "import traceback" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "# Debug: Print environment info" >> main_wrapper.py
+        echo "print(f'Python version: {sys.version}')" >> main_wrapper.py
+        echo "print(f'Working directory: {os.getcwd()}')" >> main_wrapper.py
+        echo "print(f'Executable path: {sys.executable}')" >> main_wrapper.py
+        echo "print(f'Script path: {os.path.abspath(__file__)}')" >> main_wrapper.py
+        echo "print(f'Args: {sys.argv}')" >> main_wrapper.py
         echo "" >> main_wrapper.py
         echo "# Add current directory to Python path to find compiled modules" >> main_wrapper.py
         echo "sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))" >> main_wrapper.py
         echo "" >> main_wrapper.py
+        echo "# List available files for debugging" >> main_wrapper.py
+        echo "print('Files in current directory:')" >> main_wrapper.py
+        echo "for f in os.listdir('.'):" >> main_wrapper.py
+        echo "    print(f'  {f}')" >> main_wrapper.py
+        echo "" >> main_wrapper.py
         echo "try:" >> main_wrapper.py
-        echo "    # Try to import the Nuitka-compiled module" >> main_wrapper.py
+        echo "    print('Attempting to import Nuitka-compiled module...')" >> main_wrapper.py
         echo "    import assistente_git_main" >> main_wrapper.py
         echo "    print('Successfully imported Nuitka-compiled assistente_git_main module')" >> main_wrapper.py
-        echo "except (ImportError, NameError) as e:" >> main_wrapper.py
-        echo "    print(f'Could not import Nuitka module, falling back to source: {e}')" >> main_wrapper.py
-        echo "    # Fallback to original source file" >> main_wrapper.py
+        echo "except Exception as e:" >> main_wrapper.py
+        echo "    print(f'Could not import Nuitka module: {type(e).__name__}: {e}')" >> main_wrapper.py
+        echo "    traceback.print_exc()" >> main_wrapper.py
+        echo "    print('Falling back to source file...')" >> main_wrapper.py
         echo "    try:" >> main_wrapper.py
-        echo "        exec(open('assistente-git.py').read())" >> main_wrapper.py
+        echo "        with open('assistente-git.py', 'r', encoding='utf-8') as f:" >> main_wrapper.py
+        echo "            source_code = f.read()" >> main_wrapper.py
+        echo "        exec(source_code)" >> main_wrapper.py
         echo "    except Exception as exec_error:" >> main_wrapper.py
-        echo "        print(f'Error executing source file: {exec_error}')" >> main_wrapper.py
-        echo "        import traceback" >> main_wrapper.py
+        echo "        print(f'Error executing source file: {type(exec_error).__name__}: {exec_error}')" >> main_wrapper.py
         echo "        traceback.print_exc()" >> main_wrapper.py
+        echo "        input('Press Enter to exit...')  # Keep console open to see errors" >> main_wrapper.py
         echo "        sys.exit(1)" >> main_wrapper.py
         
         echo "Wrapper file created successfully"
@@ -191,17 +207,33 @@ jobs:
             main_wrapper.py
         else
           echo "Building single executable for ${{ matrix.os_name }} with Nuitka-compiled modules..."
-          pyinstaller --onefile --windowed --noconsole \
-            --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
-            --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
-            --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-            --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-            --additional-hooks-dir=. \
-            --hidden-import=sound \
-            --hidden-import=utils \
-            --hidden-import=assistente_git_main \
-            --name AssistenteGit \
-            main_wrapper.py
+          if [[ "${{ matrix.os_name }}" == "Windows" ]]; then
+            # Windows: Keep console for debugging
+            pyinstaller --onefile --windowed \
+              --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+              --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
+              --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+              --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+              --additional-hooks-dir=. \
+              --hidden-import=sound \
+              --hidden-import=utils \
+              --hidden-import=assistente_git_main \
+              --name AssistenteGit \
+              main_wrapper.py
+          else
+            # Linux: Standard build
+            pyinstaller --onefile --windowed --noconsole \
+              --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+              --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
+              --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+              --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+              --additional-hooks-dir=. \
+              --hidden-import=sound \
+              --hidden-import=utils \
+              --hidden-import=assistente_git_main \
+              --name AssistenteGit \
+              main_wrapper.py
+          fi
         fi
         
         echo "PyInstaller build finished."
