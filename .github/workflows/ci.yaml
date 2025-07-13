@@ -94,6 +94,8 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         echo "Installing wxPython..."
         pip install --verbose wxPython  # --verbose per output dettagliato
+        echo "Installing Nuitka..."
+        pip install nuitka
         echo "Installing PyInstaller..."
         pip install pyinstaller
         echo "Installing core dependencies..."
@@ -111,13 +113,61 @@ jobs:
         python -c "import winsound; print('winsound module available on Windows')" || echo "Warning: winsound not available"
         echo "Windows-specific dependencies verified."
 
+    - name: Create Python module with Nuitka
+      shell: bash
+      run: |
+        echo "Building Python modules with Nuitka..."
+        
+        # Compila il modulo principale
+        echo "Compiling assistente-git.py as module..."
+        nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=. --include-data-file=failed.mp3=. --include-data-file=success.mp3=. assistente-git.py
+        
+        # Compila moduli ausiliari
+        echo "Compiling sound.py module..."
+        nuitka --module sound.py
+        
+        echo "Compiling utils.py module..."
+        nuitka --module utils.py
+        
+        echo "Nuitka module compilation completed."
+        
+        # Mostra i file generati
+        echo "Generated Nuitka modules:"
+        ls -la *.so *.pyd *.dylib 2>/dev/null || echo "No compiled modules found with expected extensions"
+        find . -name "*.so" -o -name "*.pyd" -o -name "*.dylib" -o -name "*.dist" | head -10
+
+    - name: Create wrapper for PyInstaller
+      shell: bash
+      run: |
+        echo "Creating wrapper file for PyInstaller..."
+        cat > main_wrapper.py << 'EOF'
+# Wrapper file for PyInstaller that imports the Nuitka-compiled module
+import sys
+import os
+
+# Add current directory to Python path to find compiled modules
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    # Try to import the Nuitka-compiled module
+    import assistente_git
+    print("Successfully imported Nuitka-compiled assistente_git module")
+except ImportError as e:
+    print(f"Could not import Nuitka module, falling back to source: {e}")
+    # Fallback to original source file
+    import assistente-git
+EOF
+        
+        echo "Wrapper file created successfully"
+        cat main_wrapper.py
+
     - name: Build executable with PyInstaller
       shell: bash 
       run: |
         echo "Starting PyInstaller build..."
         
         if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
-          echo "Building macOS .app bundle..."
+          echo "Building macOS .app bundle with Nuitka-compiled modules..."
           pyinstaller --windowed \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
@@ -126,10 +176,11 @@ jobs:
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
+            --hidden-import=assistente_git \
             --name AssistenteGit \
-            assistente-git.py
+            main_wrapper.py
         else
-          echo "Building single executable for ${{ matrix.os_name }}..."
+          echo "Building single executable for ${{ matrix.os_name }} with Nuitka-compiled modules..."
           pyinstaller --onefile --windowed --noconsole \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
@@ -138,8 +189,9 @@ jobs:
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
+            --hidden-import=assistente_git \
             --name AssistenteGit \
-            assistente-git.py
+            main_wrapper.py
         fi
         
         echo "PyInstaller build finished."

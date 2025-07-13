@@ -1,13 +1,2 @@
-2025-07-08 00:03:06,215 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-08 00:03:06,216 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-08 00:03:48,700 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:03:58,680 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:04:00,677 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
-2025-07-08 00:06:33,014 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-08 00:06:33,016 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-08 00:06:58,997 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:07:08,962 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:07:11,229 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
-2025-07-08 00:07:59,926 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:08:09,908 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:08:10,805 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
+2025-07-13 05:19:27,590 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 05:19:27,590 - __main__ - INFO - Inizializzazione sistema traduzioni

@@ -554,12 +554,40 @@ def shutdown_synthizer():
         def __enter__(self): return self
         def __exit__(self, *args): pass
 # --- Setup logging ---
+def get_app_config_dir():
+    """Ottiene la directory di configurazione dell'applicazione."""
+    try:
+        import wx
+        sp = wx.StandardPaths.Get()
+        config_dir = sp.GetUserConfigDir()
+        app_config_path = os.path.join(config_dir, APP_CONFIG_DIR_NAME)
+        if not os.path.exists(app_config_path):
+            try:
+                os.makedirs(app_config_path)
+            except OSError:
+                app_config_path = os.path.join(script_dir, "." + APP_CONFIG_DIR_NAME.lower())
+                if not os.path.exists(app_config_path):
+                    try: 
+                        os.makedirs(app_config_path)
+                    except: 
+                        pass
+        return app_config_path
+    except ImportError:
+        # Fallback se wx non è disponibile
+        fallback_dir = os.path.join(script_dir, ".assistentegit")
+        if not os.path.exists(fallback_dir):
+            try:
+                os.makedirs(fallback_dir)
+            except:
+                pass
+        return fallback_dir
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler('assistente-git.log', encoding='utf-8')
+        logging.FileHandler(os.path.join(get_app_config_dir(), 'assistente-git.log'), encoding='utf-8')
     ]
 )
 logger = logging.getLogger(__name__)
