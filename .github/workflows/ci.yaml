@@ -268,8 +268,8 @@ jobs:
         else
           echo "Building single executable for ${{ matrix.os_name }} with Nuitka-compiled modules..."
           if [[ "${{ matrix.os_name }}" == "Windows" ]]; then
-            # Windows: Keep console for debugging
-            pyinstaller --onefile --windowed \
+            # Windows: Console mode for debugging (remove --windowed)
+            pyinstaller --onefile \
               --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
               --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
               --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
