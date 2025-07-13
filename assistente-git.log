@@ -1,13 +1,35 @@
-2025-07-08 00:03:06,215 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-08 00:03:06,216 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-08 00:03:48,700 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:03:58,680 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:04:00,677 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
-2025-07-08 00:06:33,014 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
-2025-07-08 00:06:33,016 - __main__ - INFO - Inizializzazione sistema traduzioni
-2025-07-08 00:06:58,997 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:07:08,962 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:07:11,229 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
-2025-07-08 00:07:59,926 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:08:09,908 - __main__ - INFO - Beep avviato in subprocess: beep.wav
-2025-07-08 00:08:10,805 - __main__ - INFO - Chiusura dialogo monitoraggio richiesta
+2025-07-13 19:54:52,925 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 19:54:52,925 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-13 19:55:30,086 - __main__ - INFO - Esecuzione comando Git: Sostituisci tutto con commit specifico (checkout <commit> -- . && add -A)
+2025-07-13 19:56:21,591 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 19:56:21,591 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-13 19:56:23,568 - __main__ - INFO - Esecuzione comando Git: Controlla lo stato del repository
+2025-07-13 20:00:47,272 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 20:00:47,272 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-13 20:01:15,089 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:01:24,866 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:01:34,893 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:01:44,948 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:01:54,906 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:04,853 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:14,887 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:25,190 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:34,840 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:44,878 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:02:54,867 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:04,948 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:14,905 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:24,903 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:34,866 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:44,871 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:03:54,860 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:04:04,900 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:04:14,938 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 20:04:24,909 - __main__ - INFO - Successo workflow avviato in subprocess: success.mp3
+2025-07-13 20:54:38,838 - assistente_git - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 20:54:38,855 - assistente_git - INFO - Inizializzazione sistema traduzioni
+2025-07-13 21:01:19,981 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 21:01:19,983 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-13 21:08:06,221 - assistente_git - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 21:08:06,227 - assistente_git - INFO - Inizializzazione sistema traduzioni
+2025-07-13 21:08:39,205 - assistente_git - INFO - Esecuzione comando Git: Controlla lo stato del repository

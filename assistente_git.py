@@ -11868,7 +11868,7 @@ AccessibleMenuBarReplacer._execute_command = _execute_command
 AccessibleMenuBarReplacer._show_input_dialog = _show_input_dialog
 AccessibleMenuBarReplacer._patch_shortcuts_help_for_mac = _patch_shortcuts_help_for_mac
 
-if __name__ == "__main__":
+def run_gui():
     # Il controllo --audio-mode è già stato fatto all'inizio del file
     # Se arriviamo qui, siamo in modalità normale (GUI)
     if is_voiceover_active():
@@ -11891,3 +11891,5 @@ if __name__ == "__main__":
     
     frame.Show()
     app.MainLoop()
+if __name__ == "__main__":
+    run_gui()

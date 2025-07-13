@@ -96,11 +96,20 @@ jobs:
         pip install --verbose wxPython  # --verbose per output dettagliato
         echo "Installing PyInstaller..."
         pip install pyinstaller
+        echo "Installing Nuitka..."
+        pip install nuitka
         echo "Installing core dependencies..."
         pip install requests urllib3 certifi cryptography
         echo "Installing synthizer3d for audio support..."
         pip install synthizer3d
         echo "All Python dependencies installed successfully."
+
+    - name: Compile with Nuitka
+      shell: bash
+      run: |
+        echo "Compiling assistente_git.py module with Nuitka..."
+        nuitka --module assistente_git.py --include-module=sound --include-module=utils
+        echo "Nuitka compilation finished."
 
     - name: Install Windows-specific dependencies  
       if: matrix.os_runner == 'windows-latest'
@@ -123,11 +132,27 @@ jobs:
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "assistente_git.*${{ matrix.pyinstaller_add_data_sep }}." \
             --additional-hooks-dir=. \
-            --hidden-import=sound \
-            --hidden-import=utils \
+            --hidden-import=synthizer \
+            --hidden-import=wx \
+            --hidden-import=platform \
+            --hidden-import=subprocess \
+            --hidden-import=fnmatch \
+            --hidden-import=pyttsx3 \
+            --hidden-import=webbrowser \
+            --hidden-import=requests \
+            --hidden-import=traceback \
+            --hidden-import=argparse \
+            --hidden-import=cryptography \
+            --hidden-import=cryptography.hazmat.primitives.kdf.pbkdf2 \
+            --hidden-import=cryptography.hazmat.primitives.hashes \
+            --hidden-import=cryptography.hazmat.backends \
+            --hidden-import=cryptography.fernet \
+            --collect-submodules=wx \
+            --collect-submodules=cryptography \
             --name AssistenteGit \
-            assistente-git.py
+            main.py
         else
           echo "Building single executable for ${{ matrix.os_name }}..."
           pyinstaller --onefile --windowed --noconsole \
@@ -135,11 +160,27 @@ jobs:
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "assistente_git.*${{ matrix.pyinstaller_add_data_sep }}." \
             --additional-hooks-dir=. \
-            --hidden-import=sound \
-            --hidden-import=utils \
+            --hidden-import=synthizer \
+            --hidden-import=wx \
+            --hidden-import=platform \
+            --hidden-import=subprocess \
+            --hidden-import=fnmatch \
+            --hidden-import=pyttsx3 \
+            --hidden-import=webbrowser \
+            --hidden-import=requests \
+            --hidden-import=traceback \
+            --hidden-import=argparse \
+            --hidden-import=cryptography \
+            --hidden-import=cryptography.hazmat.primitives.kdf.pbkdf2 \
+            --hidden-import=cryptography.hazmat.primitives.hashes \
+            --hidden-import=cryptography.hazmat.backends \
+            --hidden-import=cryptography.fernet \
+            --collect-submodules=wx \
+            --collect-submodules=cryptography \
             --name AssistenteGit \
-            assistente-git.py
+            main.py
         fi
         
         echo "PyInstaller build finished."
