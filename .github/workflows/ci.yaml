@@ -126,7 +126,7 @@ jobs:
         
         # Compila il modulo principale
         echo "Compiling assistente_git_main.py as module..."
-        python -m nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=. --include-data-file=failed.mp3=. --include-data-file=success.mp3=. assistente_git_main.py
+        python -m nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=beep.wav --include-data-file=failed.mp3=failed.mp3 --include-data-file=success.mp3=success.mp3 assistente_git_main.py
         
         # Compila moduli ausiliari
         echo "Compiling sound.py module..."
