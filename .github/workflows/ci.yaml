@@ -311,8 +311,11 @@ jobs:
           echo "macOS app test completed"
         elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
           echo "Testing Windows executable..."
-          # Basic test that executable starts without immediate crash
-          timeout 5s ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "Exe started (timeout expected)"
+          # Basic test that executable starts without immediate crash (Windows doesn't always handle timeout well)
+          ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 &
+          TEST_PID=$!
+          sleep 5
+          kill $TEST_PID 2>/dev/null || echo "Windows exe test process already finished"
           echo "Windows exe test completed"
         else
           echo "Testing Linux executable..."
