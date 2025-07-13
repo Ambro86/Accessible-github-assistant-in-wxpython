@@ -578,18 +578,18 @@ def get_app_config_dir():
         return app_config_path
     except (ImportError, RuntimeError):
         # Fallback se wx non è disponibile o wx.App non è creato
-        # Determina la directory dello script
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstaller bundle
-            script_dir = sys._MEIPASS
-        elif getattr(sys, 'frozen', False):
-            # Eseguibile
-            script_dir = os.path.dirname(os.path.abspath(sys.executable))
+        # Usa la directory di configurazione utente standard del sistema
+        if platform.system() == "Windows":
+            # Windows: usa AppData\Roaming
+            config_dir = os.path.expandvars(r'%APPDATA%')
+        elif platform.system() == "Darwin":
+            # macOS: usa ~/Library/Application Support
+            config_dir = os.path.expanduser('~/Library/Application Support')
         else:
-            # Script Python normale
-            script_dir = os.path.dirname(os.path.abspath(__file__))
+            # Linux: usa ~/.config
+            config_dir = os.path.expanduser('~/.config')
         
-        fallback_dir = os.path.join(script_dir, ".assistentegit")
+        fallback_dir = os.path.join(config_dir, "AssistenteGit")
         if not os.path.exists(fallback_dir):
             try:
                 os.makedirs(fallback_dir)
