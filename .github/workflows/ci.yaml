@@ -108,7 +108,7 @@ jobs:
       shell: bash
       run: |
         echo "Compiling assistente_git.py module with Nuitka..."
-        nuitka --module assistente_git.py --include-module=sound --include-module=utils
+        python -m nuitka --module assistente_git.py --include-module=sound --include-module=utils
         echo "Nuitka compilation finished."
 
     - name: Install Windows-specific dependencies  

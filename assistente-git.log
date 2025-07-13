@@ -33,3 +33,9 @@
 2025-07-13 21:08:06,221 - assistente_git - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
 2025-07-13 21:08:06,227 - assistente_git - INFO - Inizializzazione sistema traduzioni
 2025-07-13 21:08:39,205 - assistente_git - INFO - Esecuzione comando Git: Controlla lo stato del repository
+2025-07-13 21:31:23,505 - __main__ - INFO - Synthizer configurato per inizializzazione ritardata (evita conflitti con dialoghi)
+2025-07-13 21:31:23,505 - __main__ - INFO - Inizializzazione sistema traduzioni
+2025-07-13 21:32:03,675 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 21:32:13,714 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 21:32:23,679 - __main__ - INFO - Beep avviato in subprocess: beep.wav
+2025-07-13 21:32:33,721 - __main__ - INFO - Beep avviato in subprocess: beep.wav
