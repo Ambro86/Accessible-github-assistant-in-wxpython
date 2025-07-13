@@ -195,23 +195,11 @@ jobs:
         echo "    else:" >> main_wrapper.py
         echo "        print(f'{bundle_dir} already in Python path')" >> main_wrapper.py
         echo "" >> main_wrapper.py
-        echo "    # Try to import Nuitka compiled module first" >> main_wrapper.py
-        echo "    print('\\n=== Attempting Nuitka Import ===')" >> main_wrapper.py
-        echo "    try:" >> main_wrapper.py
-        echo "        print('Checking for assistente_git_main.cp313-win_amd64.pyd...')" >> main_wrapper.py
-        echo "        pyd_files = [f for f in os.listdir(bundle_dir) if f.endswith('.pyd')]" >> main_wrapper.py
-        echo "        print(f'Found .pyd files: {pyd_files}')" >> main_wrapper.py
-        echo "        print('Attempting import of assistente_git_main...')" >> main_wrapper.py
-        echo "        import assistente_git_main" >> main_wrapper.py
-        echo "        print('SUCCESS: Imported Nuitka-compiled module!')" >> main_wrapper.py
-        echo "        print('Checking if module has main functionality...')" >> main_wrapper.py
-        echo "        if hasattr(assistente_git_main, '__file__'):" >> main_wrapper.py
-        echo "            print(f'Module file: {assistente_git_main.__file__}')" >> main_wrapper.py
-        echo "        print('Nuitka module import completed successfully!')" >> main_wrapper.py
-        echo "        return" >> main_wrapper.py
-        echo "    except Exception as e:" >> main_wrapper.py
-        echo "        print(f'FAILED: Nuitka import error: {type(e).__name__}: {e}')" >> main_wrapper.py
-        echo "        traceback.print_exc()" >> main_wrapper.py
+        echo "    # Skip Nuitka import for now - it causes hangs" >> main_wrapper.py
+        echo "    print('\\n=== Skipping Nuitka Import (causes hangs) ===')" >> main_wrapper.py
+        echo "    pyd_files = [f for f in os.listdir(bundle_dir) if f.endswith('.pyd')]" >> main_wrapper.py
+        echo "    print(f'Available .pyd files: {len(pyd_files)} files including Nuitka modules')" >> main_wrapper.py
+        echo "    print('Proceeding to source file execution...')" >> main_wrapper.py
         echo "" >> main_wrapper.py
         echo "    # Fallback to source file execution" >> main_wrapper.py
         echo "    print('\\n=== Fallback to Source File ===')" >> main_wrapper.py
@@ -309,6 +297,7 @@ jobs:
               --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
               --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
               --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+              --add-data "assistente-git.py${{ matrix.pyinstaller_add_data_sep }}." \
               --add-binary "assistente_git_main.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
               --add-binary "sound.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
               --add-binary "utils.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
