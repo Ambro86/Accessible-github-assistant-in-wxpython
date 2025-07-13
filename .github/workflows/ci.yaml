@@ -120,9 +120,13 @@ jobs:
       run: |
         echo "Building Python modules with Nuitka..."
         
+        # Crea una copia del file principale con nome compatibile
+        echo "Creating Nuitka-compatible copy of main file..."
+        cp assistente-git.py assistente_git_main.py
+        
         # Compila il modulo principale
-        echo "Compiling assistente-git.py as module..."
-        nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=. --include-data-file=failed.mp3=. --include-data-file=success.mp3=. assistente-git.py
+        echo "Compiling assistente_git_main.py as module..."
+        nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=. --include-data-file=failed.mp3=. --include-data-file=success.mp3=. assistente_git_main.py
         
         # Compila moduli ausiliari
         echo "Compiling sound.py module..."
@@ -151,8 +155,8 @@ jobs:
         echo "" >> main_wrapper.py
         echo "try:" >> main_wrapper.py
         echo "    # Try to import the Nuitka-compiled module" >> main_wrapper.py
-        echo "    import assistente_git" >> main_wrapper.py
-        echo "    print('Successfully imported Nuitka-compiled assistente_git module')" >> main_wrapper.py
+        echo "    import assistente_git_main" >> main_wrapper.py
+        echo "    print('Successfully imported Nuitka-compiled assistente_git_main module')" >> main_wrapper.py
         echo "except ImportError as e:" >> main_wrapper.py
         echo "    print(f'Could not import Nuitka module, falling back to source: {e}')" >> main_wrapper.py
         echo "    # Fallback to original source file" >> main_wrapper.py
@@ -176,7 +180,7 @@ jobs:
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
-            --hidden-import=assistente_git \
+            --hidden-import=assistente_git_main \
             --name AssistenteGit \
             main_wrapper.py
         else
@@ -189,7 +193,7 @@ jobs:
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
-            --hidden-import=assistente_git \
+            --hidden-import=assistente_git_main \
             --name AssistenteGit \
             main_wrapper.py
         fi
