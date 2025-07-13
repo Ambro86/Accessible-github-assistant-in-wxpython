@@ -140,23 +140,21 @@ jobs:
       shell: bash
       run: |
         echo "Creating wrapper file for PyInstaller..."
-        cat > main_wrapper.py << 'EOF'
-# Wrapper file for PyInstaller that imports the Nuitka-compiled module
-import sys
-import os
-
-# Add current directory to Python path to find compiled modules
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-try:
-    # Try to import the Nuitka-compiled module
-    import assistente_git
-    print("Successfully imported Nuitka-compiled assistente_git module")
-except ImportError as e:
-    print(f"Could not import Nuitka module, falling back to source: {e}")
-    # Fallback to original source file
-    exec(open('assistente-git.py').read())
-EOF
+        echo "# Wrapper file for PyInstaller that imports the Nuitka-compiled module" > main_wrapper.py
+        echo "import sys" >> main_wrapper.py
+        echo "import os" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "# Add current directory to Python path to find compiled modules" >> main_wrapper.py
+        echo "sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "try:" >> main_wrapper.py
+        echo "    # Try to import the Nuitka-compiled module" >> main_wrapper.py
+        echo "    import assistente_git" >> main_wrapper.py
+        echo "    print('Successfully imported Nuitka-compiled assistente_git module')" >> main_wrapper.py
+        echo "except ImportError as e:" >> main_wrapper.py
+        echo "    print(f'Could not import Nuitka module, falling back to source: {e}')" >> main_wrapper.py
+        echo "    # Fallback to original source file" >> main_wrapper.py
+        echo "    exec(open('assistente-git.py').read())" >> main_wrapper.py
         
         echo "Wrapper file created successfully"
         cat main_wrapper.py
