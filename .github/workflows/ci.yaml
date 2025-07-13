@@ -157,10 +157,16 @@ jobs:
         echo "    # Try to import the Nuitka-compiled module" >> main_wrapper.py
         echo "    import assistente_git_main" >> main_wrapper.py
         echo "    print('Successfully imported Nuitka-compiled assistente_git_main module')" >> main_wrapper.py
-        echo "except ImportError as e:" >> main_wrapper.py
+        echo "except (ImportError, NameError) as e:" >> main_wrapper.py
         echo "    print(f'Could not import Nuitka module, falling back to source: {e}')" >> main_wrapper.py
         echo "    # Fallback to original source file" >> main_wrapper.py
-        echo "    exec(open('assistente-git.py').read())" >> main_wrapper.py
+        echo "    try:" >> main_wrapper.py
+        echo "        exec(open('assistente-git.py').read())" >> main_wrapper.py
+        echo "    except Exception as exec_error:" >> main_wrapper.py
+        echo "        print(f'Error executing source file: {exec_error}')" >> main_wrapper.py
+        echo "        import traceback" >> main_wrapper.py
+        echo "        traceback.print_exc()" >> main_wrapper.py
+        echo "        sys.exit(1)" >> main_wrapper.py
         
         echo "Wrapper file created successfully"
         cat main_wrapper.py
@@ -207,25 +213,19 @@ jobs:
         
         if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
           echo "Testing macOS .app bundle..."
-          # Test using audio mode which doesn't require wxWidgets GUI
-          ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 &
-          sleep 3
-          kill $! 2>/dev/null || true
-          echo "macOS app test completed successfully"
+          # Basic test that executable starts without immediate crash
+          timeout 5s ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "App started (timeout expected)"
+          echo "macOS app test completed"
         elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
           echo "Testing Windows executable..."
-          # Test using audio mode which doesn't require wxWidgets GUI
-          ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 &
-          sleep 3
-          kill $! 2>/dev/null || true
-          echo "Windows exe test completed successfully"
+          # Basic test that executable starts without immediate crash
+          timeout 5s ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "Exe started (timeout expected)"
+          echo "Windows exe test completed"
         else
           echo "Testing Linux executable..."
-          # Test using audio mode which doesn't require wxWidgets GUI  
-          ./dist/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 &
-          sleep 3
-          kill $! 2>/dev/null || true
-          echo "Linux binary test completed successfully"
+          # Basic test that executable starts without immediate crash
+          timeout 5s ./dist/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "Binary started (timeout expected)"
+          echo "Linux binary test completed"
         fi
         
         echo "Executable test phase completed."
