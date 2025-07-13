@@ -558,6 +558,10 @@ def get_app_config_dir():
     """Ottiene la directory di configurazione dell'applicazione."""
     try:
         import wx
+        # Verifica se wx.App è già stato creato
+        if wx.GetApp() is None:
+            # Se non c'è ancora un'app, usa fallback senza wx.StandardPaths
+            raise ImportError("wx.App not created yet")
         sp = wx.StandardPaths.Get()
         config_dir = sp.GetUserConfigDir()
         app_config_path = os.path.join(config_dir, APP_CONFIG_DIR_NAME)
@@ -572,7 +576,7 @@ def get_app_config_dir():
                     except: 
                         pass
         return app_config_path
-    except ImportError:
+    except (ImportError, RuntimeError):
         # Fallback se wx non è disponibile
         fallback_dir = os.path.join(script_dir, ".assistentegit")
         if not os.path.exists(fallback_dir):
