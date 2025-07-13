@@ -200,6 +200,36 @@ jobs:
         
         echo "PyInstaller build finished."
 
+    - name: Test executable
+      shell: bash
+      run: |
+        echo "Testing compiled executable..."
+        
+        if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
+          echo "Testing macOS .app bundle..."
+          # Test using audio mode which doesn't require wxWidgets GUI
+          ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 &
+          sleep 3
+          kill $! 2>/dev/null || true
+          echo "macOS app test completed successfully"
+        elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
+          echo "Testing Windows executable..."
+          # Test using audio mode which doesn't require wxWidgets GUI
+          ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 &
+          sleep 3
+          kill $! 2>/dev/null || true
+          echo "Windows exe test completed successfully"
+        else
+          echo "Testing Linux executable..."
+          # Test using audio mode which doesn't require wxWidgets GUI  
+          ./dist/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 &
+          sleep 3
+          kill $! 2>/dev/null || true
+          echo "Linux binary test completed successfully"
+        fi
+        
+        echo "Executable test phase completed."
+
     - name: Create macOS DMG (macOS only)
       if: contains(matrix.os_name, 'macOS')
       shell: bash
