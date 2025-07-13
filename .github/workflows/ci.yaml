@@ -155,7 +155,7 @@ try:
 except ImportError as e:
     print(f"Could not import Nuitka module, falling back to source: {e}")
     # Fallback to original source file
-    import assistente-git
+    exec(open('assistente-git.py').read())
 EOF
         
         echo "Wrapper file created successfully"
