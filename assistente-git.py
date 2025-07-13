@@ -577,7 +577,18 @@ def get_app_config_dir():
                         pass
         return app_config_path
     except (ImportError, RuntimeError):
-        # Fallback se wx non è disponibile
+        # Fallback se wx non è disponibile o wx.App non è creato
+        # Determina la directory dello script
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller bundle
+            script_dir = sys._MEIPASS
+        elif getattr(sys, 'frozen', False):
+            # Eseguibile
+            script_dir = os.path.dirname(os.path.abspath(sys.executable))
+        else:
+            # Script Python normale
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+        
         fallback_dir = os.path.join(script_dir, ".assistentegit")
         if not os.path.exists(fallback_dir):
             try:
