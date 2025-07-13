@@ -146,42 +146,100 @@ jobs:
       shell: bash
       run: |
         echo "Creating wrapper file for PyInstaller..."
-        echo "# Wrapper file for PyInstaller that imports the Nuitka-compiled module" > main_wrapper.py
+        echo "#!/usr/bin/env python3" > main_wrapper.py
+        echo "# -*- coding: utf-8 -*-" >> main_wrapper.py
+        echo "\"\"\"Wrapper file for PyInstaller that imports the Nuitka-compiled module\"\"\"" >> main_wrapper.py
+        echo "" >> main_wrapper.py
         echo "import sys" >> main_wrapper.py
         echo "import os" >> main_wrapper.py
         echo "import traceback" >> main_wrapper.py
+        echo "import time" >> main_wrapper.py
         echo "" >> main_wrapper.py
-        echo "# Debug: Print environment info" >> main_wrapper.py
-        echo "print(f'Python version: {sys.version}')" >> main_wrapper.py
-        echo "print(f'Working directory: {os.getcwd()}')" >> main_wrapper.py
-        echo "print(f'Executable path: {sys.executable}')" >> main_wrapper.py
-        echo "print(f'Script path: {os.path.abspath(__file__)}')" >> main_wrapper.py
-        echo "print(f'Args: {sys.argv}')" >> main_wrapper.py
+        echo "def main():" >> main_wrapper.py
+        echo "    \"\"\"Main wrapper function\"\"\"" >> main_wrapper.py
+        echo "    print('=== AssistenteGit Wrapper Starting ===')" >> main_wrapper.py
+        echo "    print(f'Python version: {sys.version}')" >> main_wrapper.py
+        echo "    print(f'Working directory: {os.getcwd()}')" >> main_wrapper.py
+        echo "    print(f'Executable path: {sys.executable}')" >> main_wrapper.py
+        echo "    print(f'Script path: {os.path.abspath(__file__)}')" >> main_wrapper.py
+        echo "    print(f'Args: {sys.argv}')" >> main_wrapper.py
+        echo "    print(f'Python path: {sys.path}')" >> main_wrapper.py
         echo "" >> main_wrapper.py
-        echo "# Add current directory to Python path to find compiled modules" >> main_wrapper.py
-        echo "sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))" >> main_wrapper.py
+        echo "    # Check if we're in PyInstaller bundle" >> main_wrapper.py
+        echo "    if hasattr(sys, '_MEIPASS'):" >> main_wrapper.py
+        echo "        print(f'PyInstaller bundle detected: {sys._MEIPASS}')" >> main_wrapper.py
+        echo "        bundle_dir = sys._MEIPASS" >> main_wrapper.py
+        echo "    else:" >> main_wrapper.py
+        echo "        print('Running from source directory')" >> main_wrapper.py
+        echo "        bundle_dir = os.path.dirname(os.path.abspath(__file__))" >> main_wrapper.py
         echo "" >> main_wrapper.py
-        echo "# List available files for debugging" >> main_wrapper.py
-        echo "print('Files in current directory:')" >> main_wrapper.py
-        echo "for f in os.listdir('.'):" >> main_wrapper.py
-        echo "    print(f'  {f}')" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "try:" >> main_wrapper.py
-        echo "    print('Attempting to import Nuitka-compiled module...')" >> main_wrapper.py
-        echo "    import assistente_git_main" >> main_wrapper.py
-        echo "    print('Successfully imported Nuitka-compiled assistente_git_main module')" >> main_wrapper.py
-        echo "except Exception as e:" >> main_wrapper.py
-        echo "    print(f'Could not import Nuitka module: {type(e).__name__}: {e}')" >> main_wrapper.py
-        echo "    traceback.print_exc()" >> main_wrapper.py
-        echo "    print('Falling back to source file...')" >> main_wrapper.py
+        echo "    # List all files in bundle directory" >> main_wrapper.py
+        echo "    print(f'Files in bundle directory ({bundle_dir}):')" >> main_wrapper.py
         echo "    try:" >> main_wrapper.py
-        echo "        with open('assistente-git.py', 'r', encoding='utf-8') as f:" >> main_wrapper.py
-        echo "            source_code = f.read()" >> main_wrapper.py
-        echo "        exec(source_code)" >> main_wrapper.py
-        echo "    except Exception as exec_error:" >> main_wrapper.py
-        echo "        print(f'Error executing source file: {type(exec_error).__name__}: {exec_error}')" >> main_wrapper.py
+        echo "        for f in sorted(os.listdir(bundle_dir)):" >> main_wrapper.py
+        echo "            file_path = os.path.join(bundle_dir, f)" >> main_wrapper.py
+        echo "            if os.path.isfile(file_path):" >> main_wrapper.py
+        echo "                size = os.path.getsize(file_path)" >> main_wrapper.py
+        echo "                print(f'  FILE: {f} ({size} bytes)')" >> main_wrapper.py
+        echo "            else:" >> main_wrapper.py
+        echo "                print(f'  DIR:  {f}/')" >> main_wrapper.py
+        echo "    except Exception as e:" >> main_wrapper.py
+        echo "        print(f'Error listing files: {e}')" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "    # Add bundle directory to Python path" >> main_wrapper.py
+        echo "    if bundle_dir not in sys.path:" >> main_wrapper.py
+        echo "        sys.path.insert(0, bundle_dir)" >> main_wrapper.py
+        echo "        print(f'Added {bundle_dir} to Python path')" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "    # Try to import Nuitka compiled module first" >> main_wrapper.py
+        echo "    print('\\n=== Attempting Nuitka Import ===')" >> main_wrapper.py
+        echo "    try:" >> main_wrapper.py
+        echo "        print('Importing assistente_git_main...')" >> main_wrapper.py
+        echo "        import assistente_git_main" >> main_wrapper.py
+        echo "        print('SUCCESS: Imported Nuitka-compiled module!')" >> main_wrapper.py
+        echo "        return" >> main_wrapper.py
+        echo "    except Exception as e:" >> main_wrapper.py
+        echo "        print(f'FAILED: Nuitka import error: {type(e).__name__}: {e}')" >> main_wrapper.py
         echo "        traceback.print_exc()" >> main_wrapper.py
-        echo "        input('Press Enter to exit...')  # Keep console open to see errors" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "    # Fallback to source file execution" >> main_wrapper.py
+        echo "    print('\\n=== Fallback to Source File ===')" >> main_wrapper.py
+        echo "    source_file = os.path.join(bundle_dir, 'assistente-git.py')" >> main_wrapper.py
+        echo "    if not os.path.exists(source_file):" >> main_wrapper.py
+        echo "        source_file = 'assistente-git.py'  # Try current directory" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "    print(f'Looking for source file: {source_file}')" >> main_wrapper.py
+        echo "    if os.path.exists(source_file):" >> main_wrapper.py
+        echo "        print(f'Found source file: {source_file}')" >> main_wrapper.py
+        echo "        try:" >> main_wrapper.py
+        echo "            print('Reading and executing source file...')" >> main_wrapper.py
+        echo "            with open(source_file, 'r', encoding='utf-8') as f:" >> main_wrapper.py
+        echo "                source_code = f.read()" >> main_wrapper.py
+        echo "            print(f'Source file read successfully ({len(source_code)} characters)')" >> main_wrapper.py
+        echo "            exec(source_code, {'__file__': source_file})" >> main_wrapper.py
+        echo "            print('SUCCESS: Source file executed!')" >> main_wrapper.py
+        echo "            return" >> main_wrapper.py
+        echo "        except Exception as exec_error:" >> main_wrapper.py
+        echo "            print(f'FAILED: Source execution error: {type(exec_error).__name__}: {exec_error}')" >> main_wrapper.py
+        echo "            traceback.print_exc()" >> main_wrapper.py
+        echo "    else:" >> main_wrapper.py
+        echo "        print(f'ERROR: Source file not found: {source_file}')" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "    print('\\n=== ALL METHODS FAILED ===')" >> main_wrapper.py
+        echo "    print('Neither Nuitka module nor source file could be executed.')" >> main_wrapper.py
+        echo "    input('Press Enter to exit...')" >> main_wrapper.py
+        echo "    sys.exit(1)" >> main_wrapper.py
+        echo "" >> main_wrapper.py
+        echo "if __name__ == '__main__':" >> main_wrapper.py
+        echo "    try:" >> main_wrapper.py
+        echo "        main()" >> main_wrapper.py
+        echo "    except KeyboardInterrupt:" >> main_wrapper.py
+        echo "        print('\\nInterrupted by user')" >> main_wrapper.py
+        echo "        sys.exit(0)" >> main_wrapper.py
+        echo "    except Exception as e:" >> main_wrapper.py
+        echo "        print(f'\\nUnexpected error in wrapper: {type(e).__name__}: {e}')" >> main_wrapper.py
+        echo "        traceback.print_exc()" >> main_wrapper.py
+        echo "        input('Press Enter to exit...')" >> main_wrapper.py
         echo "        sys.exit(1)" >> main_wrapper.py
         
         echo "Wrapper file created successfully"
