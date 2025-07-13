@@ -2,6 +2,8 @@ name: Build AssistenteGit Multi-OS
 
 on:
   workflow_dispatch: # Permette l'avvio manuale dalla tab Azioni di GitHub
+  push:
+    branches: [ master, main ] # Esegue su push nei branch master e main
 
 jobs:
   build:
