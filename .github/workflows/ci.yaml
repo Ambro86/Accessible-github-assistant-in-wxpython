@@ -173,16 +173,23 @@ jobs:
         echo "        print('Running from source directory')" >> main_wrapper.py
         echo "        bundle_dir = os.path.dirname(os.path.abspath(__file__))" >> main_wrapper.py
         echo "" >> main_wrapper.py
-        echo "    # List all files in bundle directory" >> main_wrapper.py
+        echo "    # List all files in bundle directory (limited for debugging)" >> main_wrapper.py
         echo "    print(f'Files in bundle directory ({bundle_dir}):')" >> main_wrapper.py
         echo "    try:" >> main_wrapper.py
-        echo "        for f in sorted(os.listdir(bundle_dir)):" >> main_wrapper.py
-        echo "            file_path = os.path.join(bundle_dir, f)" >> main_wrapper.py
-        echo "            if os.path.isfile(file_path):" >> main_wrapper.py
-        echo "                size = os.path.getsize(file_path)" >> main_wrapper.py
-        echo "                print(f'  FILE: {f} ({size} bytes)')" >> main_wrapper.py
-        echo "            else:" >> main_wrapper.py
-        echo "                print(f'  DIR:  {f}/')" >> main_wrapper.py
+        echo "        files = os.listdir(bundle_dir)" >> main_wrapper.py
+        echo "        print(f'Total files found: {len(files)}')" >> main_wrapper.py
+        echo "        for i, f in enumerate(sorted(files)[:10]):  # Show only first 10 files" >> main_wrapper.py
+        echo "            try:" >> main_wrapper.py
+        echo "                file_path = os.path.join(bundle_dir, f)" >> main_wrapper.py
+        echo "                if os.path.isfile(file_path):" >> main_wrapper.py
+        echo "                    size = os.path.getsize(file_path)" >> main_wrapper.py
+        echo "                    print(f'  FILE {i+1}: {f} ({size} bytes)')" >> main_wrapper.py
+        echo "                else:" >> main_wrapper.py
+        echo "                    print(f'  DIR {i+1}:  {f}/')" >> main_wrapper.py
+        echo "            except Exception as file_error:" >> main_wrapper.py
+        echo "                print(f'  ERROR {i+1}: {f} - {file_error}')" >> main_wrapper.py
+        echo "        if len(files) > 10:" >> main_wrapper.py
+        echo "            print(f'  ... and {len(files) - 10} more files')" >> main_wrapper.py
         echo "    except Exception as e:" >> main_wrapper.py
         echo "        print(f'Error listing files: {e}')" >> main_wrapper.py
         echo "" >> main_wrapper.py
@@ -194,9 +201,16 @@ jobs:
         echo "    # Try to import Nuitka compiled module first" >> main_wrapper.py
         echo "    print('\\n=== Attempting Nuitka Import ===')" >> main_wrapper.py
         echo "    try:" >> main_wrapper.py
-        echo "        print('Importing assistente_git_main...')" >> main_wrapper.py
+        echo "        print('Checking for assistente_git_main.cp313-win_amd64.pyd...')" >> main_wrapper.py
+        echo "        pyd_files = [f for f in os.listdir(bundle_dir) if f.endswith('.pyd')]" >> main_wrapper.py
+        echo "        print(f'Found .pyd files: {pyd_files}')" >> main_wrapper.py
+        echo "        print('Attempting import of assistente_git_main...')" >> main_wrapper.py
         echo "        import assistente_git_main" >> main_wrapper.py
         echo "        print('SUCCESS: Imported Nuitka-compiled module!')" >> main_wrapper.py
+        echo "        print('Checking if module has main functionality...')" >> main_wrapper.py
+        echo "        if hasattr(assistente_git_main, '__file__'):" >> main_wrapper.py
+        echo "            print(f'Module file: {assistente_git_main.__file__}')" >> main_wrapper.py
+        echo "        print('Nuitka module import completed successfully!')" >> main_wrapper.py
         echo "        return" >> main_wrapper.py
         echo "    except Exception as e:" >> main_wrapper.py
         echo "        print(f'FAILED: Nuitka import error: {type(e).__name__}: {e}')" >> main_wrapper.py
