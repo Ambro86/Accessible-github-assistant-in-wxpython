@@ -176,11 +176,16 @@ jobs:
         echo "    # Skip detailed file listing - go straight to .pyd check" >> main_wrapper.py
         echo "    print(f'Bundle directory: {bundle_dir}')" >> main_wrapper.py
         echo "    try:" >> main_wrapper.py
+        echo "        print('About to list bundle directory files...')" >> main_wrapper.py
         echo "        files = os.listdir(bundle_dir)" >> main_wrapper.py
         echo "        print(f'Total files in bundle: {len(files)}')" >> main_wrapper.py
+        echo "        print('File listing completed successfully')" >> main_wrapper.py
         echo "    except Exception as e:" >> main_wrapper.py
         echo "        print(f'Error accessing bundle directory: {e}')" >> main_wrapper.py
+        echo "        import traceback" >> main_wrapper.py
+        echo "        traceback.print_exc()" >> main_wrapper.py
         echo "" >> main_wrapper.py
+        echo "    print('Proceeding to Python path manipulation...')" >> main_wrapper.py
         echo "    # Add bundle directory to Python path" >> main_wrapper.py
         echo "    print(f'Current sys.path length: {len(sys.path)}')" >> main_wrapper.py
         echo "    if bundle_dir not in sys.path:" >> main_wrapper.py
