@@ -182,9 +182,13 @@ jobs:
         echo "        print(f'Error accessing bundle directory: {e}')" >> main_wrapper.py
         echo "" >> main_wrapper.py
         echo "    # Add bundle directory to Python path" >> main_wrapper.py
+        echo "    print(f'Current sys.path length: {len(sys.path)}')" >> main_wrapper.py
         echo "    if bundle_dir not in sys.path:" >> main_wrapper.py
+        echo "        print(f'Adding {bundle_dir} to Python path...')" >> main_wrapper.py
         echo "        sys.path.insert(0, bundle_dir)" >> main_wrapper.py
-        echo "        print(f'Added {bundle_dir} to Python path')" >> main_wrapper.py
+        echo "        print(f'Added {bundle_dir} to Python path successfully')" >> main_wrapper.py
+        echo "    else:" >> main_wrapper.py
+        echo "        print(f'{bundle_dir} already in Python path')" >> main_wrapper.py
         echo "" >> main_wrapper.py
         echo "    # Try to import Nuitka compiled module first" >> main_wrapper.py
         echo "    print('\\n=== Attempting Nuitka Import ===')" >> main_wrapper.py
