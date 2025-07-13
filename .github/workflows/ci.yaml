@@ -2,8 +2,6 @@ name: Build AssistenteGit Multi-OS
 
 on:
   workflow_dispatch: # Permette l'avvio manuale dalla tab Azioni di GitHub
-  push:
-    branches: [ master, main ] # Esegue su push nei branch master e main
 
 jobs:
   build:
@@ -96,8 +94,6 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         echo "Installing wxPython..."
         pip install --verbose wxPython  # --verbose per output dettagliato
-        echo "Installing Nuitka..."
-        pip install nuitka
         echo "Installing PyInstaller..."
         pip install pyinstaller
         echo "Installing core dependencies..."
@@ -115,268 +111,38 @@ jobs:
         python -c "import winsound; print('winsound module available on Windows')" || echo "Warning: winsound not available"
         echo "Windows-specific dependencies verified."
 
-    - name: Create Python module with Nuitka
-      shell: bash
-      run: |
-        echo "Building Python modules with Nuitka..."
-        
-        # Crea una copia del file principale con nome compatibile
-        echo "Creating Nuitka-compatible copy of main file..."
-        cp assistente-git.py assistente_git_main.py
-        
-        # Compila il modulo principale
-        echo "Compiling assistente_git_main.py as module..."
-        python -m nuitka --module --include-data-dir=locales=locales --include-data-file=beep.wav=beep.wav --include-data-file=failed.mp3=failed.mp3 --include-data-file=success.mp3=success.mp3 assistente_git_main.py
-        
-        # Compila moduli ausiliari
-        echo "Compiling sound.py module..."
-        python -m nuitka --module sound.py
-        
-        echo "Compiling utils.py module..."
-        python -m nuitka --module utils.py
-        
-        echo "Nuitka module compilation completed."
-        
-        # Mostra i file generati
-        echo "Generated Nuitka modules:"
-        ls -la *.so *.pyd *.dylib 2>/dev/null || echo "No compiled modules found with expected extensions"
-        find . -name "*.so" -o -name "*.pyd" -o -name "*.dylib" -o -name "*.dist" | head -10
-
-    - name: Create wrapper for PyInstaller
-      shell: bash
-      run: |
-        echo "Creating wrapper file for PyInstaller..."
-        echo "#!/usr/bin/env python3" > main_wrapper.py
-        echo "# -*- coding: utf-8 -*-" >> main_wrapper.py
-        echo "\"\"\"Wrapper file for PyInstaller that imports the Nuitka-compiled module\"\"\"" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "import sys" >> main_wrapper.py
-        echo "import os" >> main_wrapper.py
-        echo "import traceback" >> main_wrapper.py
-        echo "import time" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "def main():" >> main_wrapper.py
-        echo "    \"\"\"Main wrapper function\"\"\"" >> main_wrapper.py
-        echo "    print('=== AssistenteGit Wrapper Starting ===')" >> main_wrapper.py
-        echo "    print(f'Python version: {sys.version}')" >> main_wrapper.py
-        echo "    print(f'Working directory: {os.getcwd()}')" >> main_wrapper.py
-        echo "    print(f'Executable path: {sys.executable}')" >> main_wrapper.py
-        echo "    print(f'Script path: {os.path.abspath(__file__)}')" >> main_wrapper.py
-        echo "    print(f'Args: {sys.argv}')" >> main_wrapper.py
-        echo "    print(f'Python path: {sys.path}')" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    # Check if we're in PyInstaller bundle" >> main_wrapper.py
-        echo "    if hasattr(sys, '_MEIPASS'):" >> main_wrapper.py
-        echo "        print(f'PyInstaller bundle detected: {sys._MEIPASS}')" >> main_wrapper.py
-        echo "        bundle_dir = sys._MEIPASS" >> main_wrapper.py
-        echo "    else:" >> main_wrapper.py
-        echo "        print('Running from source directory')" >> main_wrapper.py
-        echo "        bundle_dir = os.path.dirname(os.path.abspath(__file__))" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    # Skip detailed file listing - go straight to .pyd check" >> main_wrapper.py
-        echo "    print(f'Bundle directory: {bundle_dir}')" >> main_wrapper.py
-        echo "    try:" >> main_wrapper.py
-        echo "        print('About to list bundle directory files...')" >> main_wrapper.py
-        echo "        files = os.listdir(bundle_dir)" >> main_wrapper.py
-        echo "        print(f'Total files in bundle: {len(files)}')" >> main_wrapper.py
-        echo "        print('File listing completed successfully')" >> main_wrapper.py
-        echo "    except Exception as e:" >> main_wrapper.py
-        echo "        print(f'Error accessing bundle directory: {e}')" >> main_wrapper.py
-        echo "        import traceback" >> main_wrapper.py
-        echo "        traceback.print_exc()" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    print('Proceeding to Python path manipulation...')" >> main_wrapper.py
-        echo "    # Add bundle directory to Python path" >> main_wrapper.py
-        echo "    print(f'Current sys.path length: {len(sys.path)}')" >> main_wrapper.py
-        echo "    if bundle_dir not in sys.path:" >> main_wrapper.py
-        echo "        print(f'Adding {bundle_dir} to Python path...')" >> main_wrapper.py
-        echo "        sys.path.insert(0, bundle_dir)" >> main_wrapper.py
-        echo "        print(f'Added {bundle_dir} to Python path successfully')" >> main_wrapper.py
-        echo "    else:" >> main_wrapper.py
-        echo "        print(f'{bundle_dir} already in Python path')" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    # Skip Nuitka import for now - it causes hangs" >> main_wrapper.py
-        echo "    print('\\n=== Skipping Nuitka Import (causes hangs) ===')" >> main_wrapper.py
-        echo "    pyd_files = [f for f in os.listdir(bundle_dir) if f.endswith('.pyd')]" >> main_wrapper.py
-        echo "    print(f'Available .pyd files: {len(pyd_files)} files including Nuitka modules')" >> main_wrapper.py
-        echo "    print('Proceeding to source file execution...')" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    # Fallback to source file execution" >> main_wrapper.py
-        echo "    print('\\n=== Fallback to Source File ===')" >> main_wrapper.py
-        echo "    source_file = os.path.join(bundle_dir, 'assistente-git.py')" >> main_wrapper.py
-        echo "    if not os.path.exists(source_file):" >> main_wrapper.py
-        echo "        source_file = 'assistente-git.py'  # Try current directory" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    print(f'Looking for source file: {source_file}')" >> main_wrapper.py
-        echo "    if os.path.exists(source_file):" >> main_wrapper.py
-        echo "        print(f'Found source file: {source_file}')" >> main_wrapper.py
-        echo "        try:" >> main_wrapper.py
-        echo "            print('Reading and executing source file...')" >> main_wrapper.py
-        echo "            with open(source_file, 'r', encoding='utf-8') as f:" >> main_wrapper.py
-        echo "                source_code = f.read()" >> main_wrapper.py
-        echo "            print(f'Source file read successfully ({len(source_code)} characters)')" >> main_wrapper.py
-        echo "            exec(source_code, {'__file__': source_file})" >> main_wrapper.py
-        echo "            print('SUCCESS: Source file executed!')" >> main_wrapper.py
-        echo "            return" >> main_wrapper.py
-        echo "        except Exception as exec_error:" >> main_wrapper.py
-        echo "            print(f'FAILED: Source execution error: {type(exec_error).__name__}: {exec_error}')" >> main_wrapper.py
-        echo "            traceback.print_exc()" >> main_wrapper.py
-        echo "    else:" >> main_wrapper.py
-        echo "        print(f'ERROR: Source file not found: {source_file}')" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "    print('\\n=== ALL METHODS FAILED ===')" >> main_wrapper.py
-        echo "    print('Neither Nuitka module nor source file could be executed.')" >> main_wrapper.py
-        echo "    print('Wrapper will exit after showing this message.')" >> main_wrapper.py
-        echo "    sys.exit(1)" >> main_wrapper.py
-        echo "" >> main_wrapper.py
-        echo "if __name__ == '__main__':" >> main_wrapper.py
-        echo "    try:" >> main_wrapper.py
-        echo "        main()" >> main_wrapper.py
-        echo "    except KeyboardInterrupt:" >> main_wrapper.py
-        echo "        print('\\nInterrupted by user')" >> main_wrapper.py
-        echo "        sys.exit(0)" >> main_wrapper.py
-        echo "    except Exception as e:" >> main_wrapper.py
-        echo "        print(f'\\nUnexpected error in wrapper: {type(e).__name__}: {e}')" >> main_wrapper.py
-        echo "        traceback.print_exc()" >> main_wrapper.py
-        echo "        sys.exit(1)" >> main_wrapper.py
-        
-        echo "Wrapper file created successfully"
-        cat main_wrapper.py
-        
-        # Also create a minimal test wrapper to verify PyInstaller basics
-        echo "Creating minimal test wrapper..."
-        echo "#!/usr/bin/env python3" > test_wrapper.py
-        echo "print('MINIMAL WRAPPER TEST: This message proves PyInstaller Python execution works')" >> test_wrapper.py
-        echo "import sys" >> test_wrapper.py
-        echo "print(f'Python version: {sys.version_info}')" >> test_wrapper.py
-        echo "print('Minimal wrapper completed successfully')" >> test_wrapper.py
-        echo "sys.exit(0)" >> test_wrapper.py
-
     - name: Build executable with PyInstaller
       shell: bash 
       run: |
         echo "Starting PyInstaller build..."
         
         if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
-          echo "Building macOS .app bundle with Nuitka-compiled modules..."
+          echo "Building macOS .app bundle..."
           pyinstaller --windowed \
             --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
             --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
             --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-            --add-binary "*.dylib${{ matrix.pyinstaller_add_data_sep }}." \
-            --add-binary "*.so${{ matrix.pyinstaller_add_data_sep }}." \
             --additional-hooks-dir=. \
             --hidden-import=sound \
             --hidden-import=utils \
-            --hidden-import=assistente_git_main \
             --name AssistenteGit \
-            main_wrapper.py
+            assistente-git.py
         else
-          echo "Building single executable for ${{ matrix.os_name }} with Nuitka-compiled modules..."
-          if [[ "${{ matrix.os_name }}" == "Windows" ]]; then
-            # Windows: Console mode for debugging (remove --windowed)
-            echo "Verifying .pyd files exist before PyInstaller..."
-            ls -la *.pyd || echo "No .pyd files found"
-            
-            # First, create a minimal test executable to verify PyInstaller works
-            echo "Building minimal test executable to verify PyInstaller functionality..."
-            pyinstaller --onefile --name MinimalTest test_wrapper.py
-            
-            echo "Testing minimal executable..."
-            if [ -f "./dist/MinimalTest.exe" ]; then
-              echo "Minimal test executable created. Testing..."
-              timeout 5s ./dist/MinimalTest.exe 2>&1 || echo "Minimal test completed"
-            else
-              echo "ERROR: Minimal test executable not created!"
-            fi
-            
-            echo "Building main AssistenteGit executable..."
-            pyinstaller --onefile \
-              --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
-              --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-data "assistente-git.py${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-binary "assistente_git_main.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-binary "sound.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-binary "utils.cp313-win_amd64.pyd${{ matrix.pyinstaller_add_data_sep }}." \
-              --additional-hooks-dir=. \
-              --hidden-import=sound \
-              --hidden-import=utils \
-              --hidden-import=assistente_git_main \
-              --name AssistenteGit \
-              main_wrapper.py
-              
-            echo "PyInstaller build completed. Verifying executable..."
-            ls -la dist/
-            file dist/AssistenteGit.exe || echo "file command not available"
-            
-          else
-            # Linux: Standard build
-            pyinstaller --onefile --windowed --noconsole \
-              --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
-              --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
-              --add-binary "*.so${{ matrix.pyinstaller_add_data_sep }}." \
-              --additional-hooks-dir=. \
-              --hidden-import=sound \
-              --hidden-import=utils \
-              --hidden-import=assistente_git_main \
-              --name AssistenteGit \
-              main_wrapper.py
-          fi
+          echo "Building single executable for ${{ matrix.os_name }}..."
+          pyinstaller --onefile --windowed --noconsole \
+            --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
+            --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "failed.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --add-data "success.mp3${{ matrix.pyinstaller_add_data_sep }}." \
+            --additional-hooks-dir=. \
+            --hidden-import=sound \
+            --hidden-import=utils \
+            --name AssistenteGit \
+            assistente-git.py
         fi
         
         echo "PyInstaller build finished."
-
-    - name: Test executable
-      shell: bash
-      run: |
-        echo "Testing compiled executable..."
-        
-        if [[ "${{ matrix.os_name }}" == *"macOS"* ]]; then
-          echo "Testing macOS .app bundle..."
-          # Basic test that executable starts without immediate crash (macOS doesn't have timeout)
-          ./dist/AssistenteGit.app/Contents/MacOS/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 &
-          TEST_PID=$!
-          sleep 5
-          kill $TEST_PID 2>/dev/null || echo "App test process already finished"
-          echo "macOS app test completed"
-        elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
-          echo "Testing Windows executable..."
-          
-          # First test: Basic executable launch without arguments
-          echo "=== Test 1: Basic executable startup ==="
-          echo "Attempting to run AssistenteGit.exe without arguments..."
-          timeout 10s ./dist/AssistenteGit.exe 2>&1 | head -20 || echo "Basic startup test completed (timeout expected)"
-          
-          # Second test: Audio mode test with verbose output  
-          echo "=== Test 2: Audio mode test ==="
-          echo "Attempting audio mode test..."
-          timeout 10s ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -20 || echo "Audio mode test completed (timeout expected)"
-          
-          # Third test: Check if exe can be executed at all
-          echo "=== Test 3: Simple executable verification ==="
-          if [ -f "./dist/AssistenteGit.exe" ]; then
-            echo "Executable exists. Size: $(stat -c%s ./dist/AssistenteGit.exe) bytes"
-            echo "Attempting to check if executable is valid..."
-            # Try to get version info or any basic response
-            echo "Test" | timeout 5s ./dist/AssistenteGit.exe 2>&1 | head -10 || echo "Version check completed"
-          else
-            echo "ERROR: AssistenteGit.exe not found!"
-          fi
-          
-          echo "Windows exe test completed"
-        else
-          echo "Testing Linux executable..."
-          # Basic test that executable starts without immediate crash
-          timeout 5s ./dist/AssistenteGit --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 || echo "Binary started (timeout expected)"
-          echo "Linux binary test completed"
-        fi
-        
-        echo "Executable test phase completed."
 
     - name: Create macOS DMG (macOS only)
       if: contains(matrix.os_name, 'macOS')
@@ -390,11 +156,8 @@ jobs:
         # Crea una cartella temporanea per il DMG
         mkdir -p dmg_temp
         
-        # Termina eventuali processi rimasti
-        pkill -f "AssistenteGit" 2>/dev/null || true
-        
         # Attendi un po' per assicurarsi che i processi siano terminati
-        sleep 3
+        sleep 2
         
         # Copia l'app nella cartella temporanea
         cp -R dist/AssistenteGit.app dmg_temp/
@@ -403,7 +166,7 @@ jobs:
         ln -s /Applications dmg_temp/Applications
         
         # Attendi un altro po'
-        sleep 2
+        sleep 1
         
         # Crea il DMG con nome specifico per architettura
         DMG_NAME="${{ matrix.dmg_name }}"
