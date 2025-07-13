@@ -238,7 +238,7 @@ jobs:
         echo "" >> main_wrapper.py
         echo "    print('\\n=== ALL METHODS FAILED ===')" >> main_wrapper.py
         echo "    print('Neither Nuitka module nor source file could be executed.')" >> main_wrapper.py
-        echo "    input('Press Enter to exit...')" >> main_wrapper.py
+        echo "    print('Wrapper will exit after showing this message.')" >> main_wrapper.py
         echo "    sys.exit(1)" >> main_wrapper.py
         echo "" >> main_wrapper.py
         echo "if __name__ == '__main__':" >> main_wrapper.py
@@ -250,11 +250,19 @@ jobs:
         echo "    except Exception as e:" >> main_wrapper.py
         echo "        print(f'\\nUnexpected error in wrapper: {type(e).__name__}: {e}')" >> main_wrapper.py
         echo "        traceback.print_exc()" >> main_wrapper.py
-        echo "        input('Press Enter to exit...')" >> main_wrapper.py
         echo "        sys.exit(1)" >> main_wrapper.py
         
         echo "Wrapper file created successfully"
         cat main_wrapper.py
+        
+        # Also create a minimal test wrapper to verify PyInstaller basics
+        echo "Creating minimal test wrapper..."
+        echo "#!/usr/bin/env python3" > test_wrapper.py
+        echo "print('MINIMAL WRAPPER TEST: This message proves PyInstaller Python execution works')" >> test_wrapper.py
+        echo "import sys" >> test_wrapper.py
+        echo "print(f'Python version: {sys.version_info}')" >> test_wrapper.py
+        echo "print('Minimal wrapper completed successfully')" >> test_wrapper.py
+        echo "sys.exit(0)" >> test_wrapper.py
 
     - name: Build executable with PyInstaller
       shell: bash 
@@ -280,6 +288,22 @@ jobs:
           echo "Building single executable for ${{ matrix.os_name }} with Nuitka-compiled modules..."
           if [[ "${{ matrix.os_name }}" == "Windows" ]]; then
             # Windows: Console mode for debugging (remove --windowed)
+            echo "Verifying .pyd files exist before PyInstaller..."
+            ls -la *.pyd || echo "No .pyd files found"
+            
+            # First, create a minimal test executable to verify PyInstaller works
+            echo "Building minimal test executable to verify PyInstaller functionality..."
+            pyinstaller --onefile --name MinimalTest test_wrapper.py
+            
+            echo "Testing minimal executable..."
+            if [ -f "./dist/MinimalTest.exe" ]; then
+              echo "Minimal test executable created. Testing..."
+              timeout 5s ./dist/MinimalTest.exe 2>&1 || echo "Minimal test completed"
+            else
+              echo "ERROR: Minimal test executable not created!"
+            fi
+            
+            echo "Building main AssistenteGit executable..."
             pyinstaller --onefile \
               --add-data "locales${{ matrix.pyinstaller_add_data_sep }}locales" \
               --add-data "beep.wav${{ matrix.pyinstaller_add_data_sep }}." \
@@ -294,6 +318,11 @@ jobs:
               --hidden-import=assistente_git_main \
               --name AssistenteGit \
               main_wrapper.py
+              
+            echo "PyInstaller build completed. Verifying executable..."
+            ls -la dist/
+            file dist/AssistenteGit.exe || echo "file command not available"
+            
           else
             # Linux: Standard build
             pyinstaller --onefile --windowed --noconsole \
@@ -328,11 +357,28 @@ jobs:
           echo "macOS app test completed"
         elif [[ "${{ matrix.os_name }}" == "Windows" ]]; then
           echo "Testing Windows executable..."
-          # Basic test that executable starts without immediate crash (Windows doesn't always handle timeout well)
-          ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -10 &
-          TEST_PID=$!
-          sleep 5
-          kill $TEST_PID 2>/dev/null || echo "Windows exe test process already finished"
+          
+          # First test: Basic executable launch without arguments
+          echo "=== Test 1: Basic executable startup ==="
+          echo "Attempting to run AssistenteGit.exe without arguments..."
+          timeout 10s ./dist/AssistenteGit.exe 2>&1 | head -20 || echo "Basic startup test completed (timeout expected)"
+          
+          # Second test: Audio mode test with verbose output  
+          echo "=== Test 2: Audio mode test ==="
+          echo "Attempting audio mode test..."
+          timeout 10s ./dist/AssistenteGit.exe --audio-mode --audio-file success.mp3 --volume 0.1 2>&1 | head -20 || echo "Audio mode test completed (timeout expected)"
+          
+          # Third test: Check if exe can be executed at all
+          echo "=== Test 3: Simple executable verification ==="
+          if [ -f "./dist/AssistenteGit.exe" ]; then
+            echo "Executable exists. Size: $(stat -c%s ./dist/AssistenteGit.exe) bytes"
+            echo "Attempting to check if executable is valid..."
+            # Try to get version info or any basic response
+            echo "Test" | timeout 5s ./dist/AssistenteGit.exe 2>&1 | head -10 || echo "Version check completed"
+          else
+            echo "ERROR: AssistenteGit.exe not found!"
+          fi
+          
           echo "Windows exe test completed"
         else
           echo "Testing Linux executable..."
